@@ -1,0 +1,2 @@
+-- Queue.lua
+-- Manages the send queue and retry queue for SmartMail.

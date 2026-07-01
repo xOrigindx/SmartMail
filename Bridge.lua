@@ -1,0 +1,3 @@
+-- Bridge.lua
+-- Thin stateless wrapper: maps SmartMail category names to PeriodicTable set names.
+-- This is the ONLY file that knows PT set names. Never holds state between calls.

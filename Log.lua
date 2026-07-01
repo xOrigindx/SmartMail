@@ -1,0 +1,2 @@
+-- Log.lua
+-- Reads and writes SmartMailLog (SavedVariablesPerCharacter).

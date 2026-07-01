@@ -1,0 +1,2 @@
+-- UI.lua
+-- UI logic and event handlers. References frames declared in SmartMail.xml.
