@@ -98,16 +98,16 @@
         </Layers>
         <Scripts>
             <OnLoad>
-                SmartMail_OnLoad(self);
+                SmartMail_OnLoad(this);
             </OnLoad>
             <OnEvent>
-                SmartMail_OnEvent(self, event);
+                SmartMail_OnEvent(this, event);
             </OnEvent>
             <OnDragStart>
-                self:StartMoving();
+                this:StartMoving();
             </OnDragStart>
             <OnDragStop>
-                self:StopMovingOrSizing();
+                this:StopMovingOrSizing();
             </OnDragStop>
         </Scripts>
         <Frames>
@@ -350,13 +350,13 @@
         </Layers>
         <Scripts>
             <OnLoad>
-                SmartMailLog_OnLoad(self);
+                SmartMailLog_OnLoad(this);
             </OnLoad>
             <OnDragStart>
-                self:StartMoving();
+                this:StartMoving();
             </OnDragStart>
             <OnDragStop>
-                self:StopMovingOrSizing();
+                this:StopMovingOrSizing();
             </OnDragStop>
         </Scripts>
         <Frames>
@@ -444,22 +444,22 @@
         </Layers>
         <Scripts>
             <OnLoad>
-                SmartMailMinimap_OnLoad(self);
+                SmartMailMinimap_OnLoad(this);
             </OnLoad>
             <OnClick>
-                SmartMailMinimap_OnClick(self, arg1);
+                SmartMailMinimap_OnClick(this, arg1);
             </OnClick>
             <OnEnter>
-                SmartMailMinimap_OnEnter(self);
+                SmartMailMinimap_OnEnter(this);
             </OnEnter>
             <OnLeave>
                 GameTooltip:Hide();
             </OnLeave>
             <OnDragStart>
-                self:StartMoving();
+                this:StartMoving();
             </OnDragStart>
             <OnDragStop>
-                SmartMailMinimap_OnDragStop(self);
+                SmartMailMinimap_OnDragStop(this);
             </OnDragStop>
         </Scripts>
     </Button>

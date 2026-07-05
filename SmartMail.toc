@@ -4,15 +4,6 @@
 ## Version: 0.1.0
 ## Notes: Sends raw banking materials to bank characters via category-based profiles.
 ## DefaultState: Enabled
-## LoadOnDemand: 1
-## SavedVariables: SmartMailDB
 ## SavedVariablesPerCharacter: SmartMailDB,SmartMailLog
-Libs\Core\PTEmbed.lua
-Libs\Elements\Tradeskills\PTEmbedElemTradeskill.lua
-Libs\Tradeskills\PTTradeskillsEmbed.lua
 SmartMail.lua
-Bridge.lua
-Queue.lua
-Log.lua
-UI.lua
 SmartMail.xml
