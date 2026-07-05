@@ -1,9 +1,0 @@
-## Interface: 11200
-## Title: SmartMail
-## Author: OriginD
-## Version: 0.1.0
-## Notes: Sends raw banking materials to bank characters via category-based profiles.
-## DefaultState: Enabled
-## SavedVariablesPerCharacter: SmartMailDB,SmartMailLog
-SmartMail.lua
-SmartMail.xml
