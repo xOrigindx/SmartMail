@@ -1,7 +1,466 @@
-<Ui xmlns="http://www.blizzard.com/wow/ui/"
-   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
+<Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ..\FrameXML\UI.xsd">
 
-    <!-- SmartMail UI frame declarations go here -->
+    <!-- Row Template -->
+    <Button name="SmartMailRowTemplate" virtual="true">
+        <Size>
+            <AbsDimension x="250" y="20"/>
+        </Size>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture name="$parentHighlight" file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD" hidden="true">
+                    <Anchors>
+                        <Anchor point="TOPLEFT"/>
+                        <Anchor point="BOTTOMRIGHT"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="ARTWORK">
+                <FontString name="$parentName" inherits="GameFontNormal" justifyH="LEFT">
+                    <Size>
+                        <AbsDimension x="100" y="20"/>
+                    </Size>
+                    <Anchors>
+                        <Anchor point="LEFT">
+                            <Offset>
+                                <AbsDimension x="5" y="0"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+                <FontString name="$parentCategories" inherits="GameFontHighlightSmall" justifyH="LEFT">
+                    <Size>
+                        <AbsDimension x="140" y="20"/>
+                    </Size>
+                    <Anchors>
+                        <Anchor point="LEFT" relativeTo="$parentName" relativePoint="RIGHT">
+                            <Offset>
+                                <AbsDimension x="5" y="0"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+    </Button>
 
+    <!-- Main Window -->
+    <Frame name="SmartMailFrame" toplevel="true" enableMouse="true" movable="true" parent="UIParent" hidden="true">
+        <Size>
+            <AbsDimension x="350" y="380"/>
+        </Size>
+        <Anchors>
+            <Anchor point="CENTER"/>
+        </Anchors>
+        <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+            <BackgroundInsets>
+                <AbsInset left="11" right="12" top="12" bottom="11"/>
+            </BackgroundInsets>
+            <TileSize>
+                <AbsValue val="32"/>
+            </TileSize>
+            <EdgeSize>
+                <AbsValue val="32"/>
+            </EdgeSize>
+        </Backdrop>
+        <Layers>
+            <Layer level="ARTWORK">
+                <Texture name="$parentHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
+                    <Size>
+                        <AbsDimension x="256" y="64"/>
+                    </Size>
+                    <Anchors>
+                        <Anchor point="TOP">
+                            <Offset>
+                                <AbsDimension x="0" y="12"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </Texture>
+                <FontString inherits="GameFontNormal" text="SmartMail">
+                    <Anchors>
+                        <Anchor point="TOP" relativeTo="$parentHeader">
+                            <Offset>
+                                <AbsDimension x="0" y="-14"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+                <FontString name="SmartMailFrameStatusLabel" inherits="GameFontNormalSmall" text="">
+                    <Anchors>
+                        <Anchor point="BOTTOM">
+                            <Offset>
+                                <AbsDimension x="0" y="16"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+        <Scripts>
+            <OnLoad>
+                SmartMail_OnLoad(self);
+            </OnLoad>
+            <OnEvent>
+                SmartMail_OnEvent(self, event);
+            </OnEvent>
+            <OnDragStart>
+                self:StartMoving();
+            </OnDragStart>
+            <OnDragStop>
+                self:StopMovingOrSizing();
+            </OnDragStop>
+        </Scripts>
+        <Frames>
+            <!-- Top Buttons -->
+            <Button name="SmartMailBtnAdd" inherits="UIPanelButtonTemplate" text="Add">
+                <Size>
+                    <AbsDimension x="80" y="22"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="TOPLEFT">
+                        <Offset>
+                            <AbsDimension x="20" y="-35"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <Button name="SmartMailBtnDelete" inherits="UIPanelButtonTemplate" text="Delete">
+                <Size>
+                    <AbsDimension x="80" y="22"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="TOP">
+                        <Offset>
+                            <AbsDimension x="0" y="-35"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <Scripts>
+                    <OnClick>
+                        SmartMail_DeleteProfile();
+                    </OnClick>
+                </Scripts>
+            </Button>
+            <Button name="SmartMailBtnEdit" inherits="UIPanelButtonTemplate" text="Edit">
+                <Size>
+                    <AbsDimension x="80" y="22"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="TOPRIGHT">
+                        <Offset>
+                            <AbsDimension x="-20" y="-35"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+
+            <!-- Scroll Frame -->
+            <ScrollFrame name="SmartMailScrollFrame" inherits="FauxScrollFrameTemplate">
+                <Size>
+                    <AbsDimension x="280" y="160"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="TOPLEFT">
+                        <Offset>
+                            <AbsDimension x="20" y="-70"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <Scripts>
+                    <OnVerticalScroll>
+                        FauxScrollFrame_OnVerticalScroll(20, SmartMail_UpdateProfileList);
+                    </OnVerticalScroll>
+                </Scripts>
+            </ScrollFrame>
+
+            <!-- Rows -->
+            <Button name="SmartMailRow1" inherits="SmartMailRowTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="SmartMailScrollFrame" relativePoint="TOPLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="SmartMailRow2" inherits="SmartMailRowTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="SmartMailRow1" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="SmartMailRow3" inherits="SmartMailRowTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="SmartMailRow2" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="SmartMailRow4" inherits="SmartMailRowTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="SmartMailRow3" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="SmartMailRow5" inherits="SmartMailRowTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="SmartMailRow4" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="SmartMailRow6" inherits="SmartMailRowTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="SmartMailRow5" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="SmartMailRow7" inherits="SmartMailRowTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="SmartMailRow6" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+            <Button name="SmartMailRow8" inherits="SmartMailRowTemplate">
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="SmartMailRow7" relativePoint="BOTTOMLEFT"/>
+                </Anchors>
+            </Button>
+
+            <!-- Send Buttons -->
+            <Button name="SmartMailBtnSendAll" inherits="UIPanelButtonTemplate" text="Send All">
+                <Size>
+                    <AbsDimension x="120" y="22"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="TOPLEFT" relativeTo="SmartMailScrollFrame" relativePoint="BOTTOMLEFT">
+                        <Offset>
+                            <AbsDimension x="0" y="-15"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <Scripts>
+                    <OnClick>
+                        SmartMail_SendAll();
+                    </OnClick>
+                </Scripts>
+            </Button>
+            <Button name="SmartMailBtnSendSelected" inherits="UIPanelButtonTemplate" text="Send Selected">
+                <Size>
+                    <AbsDimension x="120" y="22"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="TOPRIGHT" relativeTo="SmartMailScrollFrame" relativePoint="BOTTOMRIGHT">
+                        <Offset>
+                            <AbsDimension x="20" y="-15"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <Scripts>
+                    <OnClick>
+                        SmartMail_SendSelected();
+                    </OnClick>
+                </Scripts>
+            </Button>
+
+            <!-- Bottom Buttons -->
+            <Button name="SmartMailBtnOptions" inherits="UIPanelButtonTemplate" text="Options">
+                <Size>
+                    <AbsDimension x="100" y="22"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="BOTTOMLEFT">
+                        <Offset>
+                            <AbsDimension x="20" y="30"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <Scripts>
+                    <OnClick>
+                        SmartMail_OpenOptions();
+                    </OnClick>
+                </Scripts>
+            </Button>
+            <Button name="SmartMailBtnLogWindow" inherits="UIPanelButtonTemplate" text="Log Window">
+                <Size>
+                    <AbsDimension x="100" y="22"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="BOTTOMRIGHT">
+                        <Offset>
+                            <AbsDimension x="-20" y="30"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <Scripts>
+                    <OnClick>
+                        if SmartMailLogFrame:IsShown() then
+                            SmartMailLogFrame:Hide();
+                        else
+                            SmartMailLogFrame:Show();
+                        end
+                    </OnClick>
+                </Scripts>
+            </Button>
+
+            <!-- Close Button (Top Right X) -->
+            <Button name="$parentCloseButton" inherits="UIPanelCloseButton">
+                <Anchors>
+                    <Anchor point="TOPRIGHT">
+                        <Offset>
+                            <AbsDimension x="-2" y="-2"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+        </Frames>
+    </Frame>
+
+    <!-- Log Window -->
+    <Frame name="SmartMailLogFrame" toplevel="true" enableMouse="true" movable="true" parent="UIParent" hidden="true">
+        <Size>
+            <AbsDimension x="400" y="300"/>
+        </Size>
+        <Anchors>
+            <Anchor point="CENTER"/>
+        </Anchors>
+        <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+            <BackgroundInsets>
+                <AbsInset left="11" right="12" top="12" bottom="11"/>
+            </BackgroundInsets>
+            <TileSize>
+                <AbsValue val="32"/>
+            </TileSize>
+            <EdgeSize>
+                <AbsValue val="32"/>
+            </EdgeSize>
+        </Backdrop>
+        <Layers>
+            <Layer level="ARTWORK">
+                <Texture name="$parentHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
+                    <Size>
+                        <AbsDimension x="256" y="64"/>
+                    </Size>
+                    <Anchors>
+                        <Anchor point="TOP">
+                            <Offset>
+                                <AbsDimension x="0" y="12"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </Texture>
+                <FontString inherits="GameFontNormal" text="SmartMail Log">
+                    <Anchors>
+                        <Anchor point="TOP" relativeTo="$parentHeader">
+                            <Offset>
+                                <AbsDimension x="0" y="-14"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </FontString>
+            </Layer>
+        </Layers>
+        <Scripts>
+            <OnLoad>
+                SmartMailLog_OnLoad(self);
+            </OnLoad>
+            <OnDragStart>
+                self:StartMoving();
+            </OnDragStart>
+            <OnDragStop>
+                self:StopMovingOrSizing();
+            </OnDragStop>
+        </Scripts>
+        <Frames>
+            <!-- Close Button (Top Right X) -->
+            <Button name="$parentCloseButton" inherits="UIPanelCloseButton">
+                <Anchors>
+                    <Anchor point="TOPRIGHT">
+                        <Offset>
+                            <AbsDimension x="-2" y="-2"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+            </Button>
+            <ScrollingMessageFrame name="SmartMailLogOutput" displayDuration="10000" maxLines="500">
+                <Size>
+                    <AbsDimension x="360" y="210"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="TOPLEFT">
+                        <Offset>
+                            <AbsDimension x="20" y="-40"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <FontString inherits="ChatFontNormal" justifyH="LEFT"/>
+            </ScrollingMessageFrame>
+            <!-- Bottom Close Button -->
+            <Button name="SmartMailLogBtnClose" inherits="UIPanelButtonTemplate" text="Close">
+                <Size>
+                    <AbsDimension x="100" y="22"/>
+                </Size>
+                <Anchors>
+                    <Anchor point="BOTTOM">
+                        <Offset>
+                            <AbsDimension x="0" y="20"/>
+                        </Offset>
+                    </Anchor>
+                </Anchors>
+                <Scripts>
+                    <OnClick>
+                        SmartMailLogFrame:Hide();
+                    </OnClick>
+                </Scripts>
+            </Button>
+        </Frames>
+    </Frame>
+
+    <!-- Minimap Button -->
+    <Button name="SmartMailMinimapButton" parent="Minimap" enableMouse="true" movable="true" hidden="false">
+        <Size>
+            <AbsDimension x="32" y="32"/>
+        </Size>
+        <Anchors>
+            <Anchor point="TOPLEFT" relativeTo="Minimap" relativePoint="RIGHT">
+                <Offset>
+                    <AbsDimension x="2" y="0"/>
+                </Offset>
+            </Anchor>
+        </Anchors>
+        <Layers>
+            <Layer level="BACKGROUND">
+                <Texture file="Interface\Icons\INV_Letter_15">
+                    <Size>
+                        <AbsDimension x="21" y="21"/>
+                    </Size>
+                    <Anchors>
+                        <Anchor point="TOPLEFT">
+                            <Offset>
+                                <AbsDimension x="7" y="-6"/>
+                            </Offset>
+                        </Anchor>
+                    </Anchors>
+                </Texture>
+            </Layer>
+            <Layer level="OVERLAY">
+                <Texture file="Interface\Minimap\MiniMap-TrackingBorder">
+                    <Size>
+                        <AbsDimension x="56" y="56"/>
+                    </Size>
+                    <Anchors>
+                        <Anchor point="TOPLEFT"/>
+                    </Anchors>
+                </Texture>
+            </Layer>
+        </Layers>
+        <Scripts>
+            <OnLoad>
+                SmartMailMinimap_OnLoad(self);
+            </OnLoad>
+            <OnClick>
+                SmartMailMinimap_OnClick(self, arg1);
+            </OnClick>
+            <OnEnter>
+                SmartMailMinimap_OnEnter(self);
+            </OnEnter>
+            <OnLeave>
+                GameTooltip:Hide();
+            </OnLeave>
+            <OnDragStart>
+                self:StartMoving();
+            </OnDragStart>
+            <OnDragStop>
+                SmartMailMinimap_OnDragStop(self);
+            </OnDragStop>
+        </Scripts>
+    </Button>
 </Ui>

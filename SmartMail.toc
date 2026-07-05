@@ -1,20 +1,18 @@
 ## Interface: 11200
 ## Title: SmartMail
-## Notes: Sends raw banking materials to bank characters via category-based profiles.
 ## Author: OriginD
 ## Version: 0.1.0
+## Notes: Sends raw banking materials to bank characters via category-based profiles.
+## DefaultState: Enabled
+## LoadOnDemand: 1
 ## SavedVariables: SmartMailDB
-## SavedVariablesPerCharacter: SmartMailDB, SmartMailLog
-
-# Libraries (load order matters — Core embed first, then element sets, then tradeskills)
+## SavedVariablesPerCharacter: SmartMailDB,SmartMailLog
 Libs\Core\PTEmbed.lua
 Libs\Elements\Tradeskills\PTEmbedElemTradeskill.lua
 Libs\Tradeskills\PTTradeskillsEmbed.lua
-
-# Addon files
-SmartMail.xml
 SmartMail.lua
 Bridge.lua
 Queue.lua
 Log.lua
 UI.lua
+SmartMail.xml
