@@ -99,7 +99,7 @@ function SmartMailQueue:BuildQueueForProfile(charName)
     return queue
 end
 
-function SmartMailQueue:FlattenConfirmQueue()
+function SmartMailQueue:FlattenConfirmQueue(mode)
     local flatQueue = {}
     if not SmartMail.confirmQueue then return flatQueue end
     
@@ -107,6 +107,14 @@ function SmartMailQueue:FlattenConfirmQueue()
         if itemData.selected == 1 then
             local fNeeded = itemData.sendFull or 0
             local pNeeded = itemData.sendPart or 0
+            
+            if mode == "ALL" then
+                fNeeded = itemData.fullStacks
+                pNeeded = itemData.partialStacks
+            elseif mode == "FULL" then
+                fNeeded = itemData.fullStacks
+                pNeeded = 0
+            end
             
             for _, slotInfo in ipairs(itemData.slots) do
                 local used = false
@@ -140,7 +148,7 @@ function SmartMailQueue:FlattenConfirmQueue()
     return flatQueue
 end
 
-function SmartMailQueue:GenerateDirectFlatQueue(charName)
+function SmartMailQueue:GenerateDirectFlatQueue(charName, mode)
     -- Backup existing confirmQueue
     local oldQueue = SmartMail.confirmQueue
     
@@ -148,7 +156,7 @@ function SmartMailQueue:GenerateDirectFlatQueue(charName)
     SmartMail.confirmQueue = self:BuildQueueForProfile(charName)
     
     -- Flatten it
-    local flat = self:FlattenConfirmQueue()
+    local flat = self:FlattenConfirmQueue(mode)
     
     -- Restore old queue
     SmartMail.confirmQueue = oldQueue

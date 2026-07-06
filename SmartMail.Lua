@@ -78,8 +78,8 @@ function SmartMail_Debug(msg)
 end
 
 -- Slash Command Logic
-SLASH_SMARTMAIL1 = "/sm"
-SLASH_SMARTMAIL2 = "/smartmail"
+SLASH_SMARTMAIL1 = "/smartmail"
+SLASH_SMARTMAIL2 = "/sm"
 SlashCmdList["SMARTMAIL"] = function(msg)
     msg = string.lower(msg or "")
     if msg == "clear" then
@@ -218,6 +218,12 @@ SmartMailDebugFrame:SetScript("OnShow", function()
                 scrollFrame:SetVerticalScroll(0)
             end
         end
+    end
+end)
+
+SmartMailLogFrame:SetScript("OnShow", function()
+    if SmartMail_UpdateLogFrame then
+        SmartMail_UpdateLogFrame()
     end
 end)
 
@@ -373,6 +379,7 @@ function SmartMail_UpdateActionButtons()
     if isPopupOpen then
         if SmartMailMainFrameOpenSelectedButton then SmartMailMainFrameOpenSelectedButton:Disable() end
         if SmartMailMainFrameSendAllButton then SmartMailMainFrameSendAllButton:Disable() end
+        if SmartMailMainFrameSendAllFullButton then SmartMailMainFrameSendAllFullButton:Disable() end
         if SmartMailMainFrameAddButton then SmartMailMainFrameAddButton:Disable() end
         if SmartMailMainFrameEditButton then SmartMailMainFrameEditButton:Disable() end
         if SmartMailMainFrameDeleteButton then SmartMailMainFrameDeleteButton:Disable() end
@@ -381,8 +388,10 @@ function SmartMail_UpdateActionButtons()
         
         if isMailOpen then
             if SmartMailMainFrameSendAllButton then SmartMailMainFrameSendAllButton:Enable() end
+            if SmartMailMainFrameSendAllFullButton then SmartMailMainFrameSendAllFullButton:Enable() end
         else
             if SmartMailMainFrameSendAllButton then SmartMailMainFrameSendAllButton:Disable() end
+            if SmartMailMainFrameSendAllFullButton then SmartMailMainFrameSendAllFullButton:Disable() end
         end
         
         if SmartMail.selectedProfile then
@@ -462,7 +471,9 @@ function SmartMail_UpdateProfileList()
                 SmartMail_Debug("Selected profile: " .. tostring(this.charName))
                 SmartMail_UpdateProfileList()
                 
-                if SmartMailConfirmFrame and SmartMailConfirmFrame:IsVisible() then
+                if SmartMailConfirmFrame and not SmartMailConfirmFrame:IsVisible() then
+                    SmartMailConfirmFrame:Show()
+                else
                     SmartMail_UpdateConfirmList()
                 end
             end)
@@ -515,14 +526,7 @@ SmartMailMainFrameAddButton:SetScript("OnClick", function()
     SmartMail_OpenProfileEditor(nil)
 end)
 
-SmartMailMainFrameOpenSelectedButton:SetScript("OnClick", function()
-    if SmartMail.selectedProfile then
-        SmartMail_Debug("Opening Confirm Frame for profile: " .. SmartMail.selectedProfile)
-        SmartMailConfirmFrame:Show()
-    else
-        SmartMail_Debug("Open Selected clicked, but no profile is selected.")
-    end
-end)
+
 
 function SmartMail_LoadGlobalProfiles()
     if not SmartMailDB or not SmartMailDB.profiles then
@@ -816,7 +820,7 @@ SmartMailDebugFrame:SetScript("OnShow", function()
 end)
 
 -- Hook all child frames to stack logic at the very end to avoid SetScript overwrites
-local function HookFrameStack(frame)
+function SmartMail_HookFrameStack(frame)
     if not frame then return end
     local oldShow = frame:GetScript("OnShow")
     frame:SetScript("OnShow", function()
@@ -836,16 +840,35 @@ local function HookFrameStack(frame)
         if oldHide then oldHide() end
         if SmartMail_UpdateActionButtons then SmartMail_UpdateActionButtons() end
     end)
+    
+    local oldDown = frame:GetScript("OnMouseDown")
+    frame:SetScript("OnMouseDown", function()
+        for i, f in ipairs(SmartMail.openChildFrames) do
+            if f == frame then tremove(SmartMail.openChildFrames, i) break end
+        end
+        tinsert(SmartMail.openChildFrames, frame)
+        if oldDown then oldDown() end
+    end)
+    
+    local oldDrag = frame:GetScript("OnDragStart")
+    frame:SetScript("OnDragStart", function()
+        for i, f in ipairs(SmartMail.openChildFrames) do
+            if f == frame then tremove(SmartMail.openChildFrames, i) break end
+        end
+        tinsert(SmartMail.openChildFrames, frame)
+        if oldDrag then oldDrag() end
+    end)
 end
 
-HookFrameStack(SmartMailOptionsFrame)
-HookFrameStack(SmartMailProfileEditorFrame)
-HookFrameStack(SmartMailDebugFrame)
-HookFrameStack(SmartMailLogFrame)
-HookFrameStack(SmartMailConfirmFrame)
+SmartMail_HookFrameStack(SmartMailOptionsFrame)
+SmartMail_HookFrameStack(SmartMailProfileEditorFrame)
+SmartMail_HookFrameStack(SmartMailDebugFrame)
+SmartMail_HookFrameStack(SmartMailLogFrame)
+SmartMail_HookFrameStack(SmartMailConfirmFrame)
+SmartMail_HookFrameStack(SmartMailCustomSendFrame)
 
 SmartMail.sendAllProfilesQueue = {}
-function SmartMail_SendAll()
+function SmartMail_SendAll(mode)
     if SmartMail.isBusy then return end
     
     -- Gather flat queues for every single profile
@@ -853,7 +876,7 @@ function SmartMail_SendAll()
     
     if SmartMailDB_PerChar and SmartMailDB_PerChar.profiles then
         for charName, _ in pairs(SmartMailDB_PerChar.profiles) do
-            local flat = SmartMailQueue:GenerateDirectFlatQueue(charName)
+            local flat = SmartMailQueue:GenerateDirectFlatQueue(charName, mode)
             if flat and table.getn(flat) > 0 then
                 table.insert(SmartMail.sendAllProfilesQueue, { name = charName, queue = flat })
             end

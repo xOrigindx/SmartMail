@@ -166,7 +166,7 @@
 
       <!-- Middle Row -->
       <Button name="$parentSendAllButton" inherits="UIPanelButtonTemplate" text="Send All">
-        <Size x="110" y="24" />
+        <Size x="90" y="24" />
         <Anchors>
           <Anchor point="TOPLEFT" relativeTo="$parentListFrame" relativePoint="BOTTOMLEFT">
             <Offset x="0" y="-10" />
@@ -174,13 +174,13 @@
         </Anchors>
         <Scripts>
           <OnClick>
-            SmartMail_SendAll()
+            SmartMail_SendAll("ALL")
           </OnClick>
         </Scripts>
       </Button>
 
-      <Button name="$parentOpenSelectedButton" inherits="UIPanelButtonTemplate" text="Open Selected">
-        <Size x="110" y="24" />
+      <Button name="$parentSendAllFullButton" inherits="UIPanelButtonTemplate" text="Send All Full">
+        <Size x="90" y="24" />
         <Anchors>
           <Anchor point="TOPRIGHT" relativeTo="$parentListFrame" relativePoint="BOTTOMRIGHT">
             <Offset x="0" y="-10" />
@@ -188,21 +188,17 @@
         </Anchors>
         <Scripts>
           <OnClick>
-            if SmartMailConfirmFrame:IsVisible() then
-              SmartMailConfirmFrame:Hide()
-            else
-              SmartMailConfirmFrame:Show()
-            end
+            SmartMail_SendAll("FULL")
           </OnClick>
         </Scripts>
       </Button>
 
       <!-- Bottom Row -->
       <Button name="$parentOptionsButton" inherits="UIPanelButtonTemplate" text="Options">
-        <Size x="110" y="24" />
+        <Size x="85" y="24" />
         <Anchors>
           <Anchor point="BOTTOMLEFT">
-            <Offset x="20" y="20" />
+            <Offset x="15" y="20" />
           </Anchor>
         </Anchors>
         <Scripts>
@@ -216,11 +212,29 @@
         </Scripts>
       </Button>
 
+      <Button name="$parentCustomSendButton" inherits="UIPanelButtonTemplate" text="Custom">
+        <Size x="85" y="24" />
+        <Anchors>
+          <Anchor point="BOTTOM">
+            <Offset x="0" y="20" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            if SmartMailCustomSendFrame and SmartMailCustomSendFrame:IsVisible() then
+              SmartMailCustomSendFrame:Hide()
+            else
+              if SmartMailCustomSendFrame then SmartMailCustomSendFrame:Show() end
+            end
+          </OnClick>
+        </Scripts>
+      </Button>
+
       <Button name="$parentLogButton" inherits="UIPanelButtonTemplate" text="Log Window">
-        <Size x="110" y="24" />
+        <Size x="85" y="24" />
         <Anchors>
           <Anchor point="BOTTOMRIGHT">
-            <Offset x="-20" y="20" />
+            <Offset x="-15" y="20" />
           </Anchor>
         </Anchors>
         <Scripts>
@@ -242,15 +256,18 @@
       <OnMouseUp>
         if SmartMailConfirmFrame and SmartMailConfirmFrame:IsVisible() then return end
         if SmartMailProfileEditorFrame and SmartMailProfileEditorFrame:IsVisible() then return end
+        if SmartMailCustomSendFrame and SmartMailCustomSendFrame:IsVisible() then return end
         if SmartMail and SmartMail.selectedProfile then
           SmartMail.selectedProfile = nil
           SmartMail_UpdateProfileList()
         end
       </OnMouseUp>
       <OnDragStart>
+        this:SetFrameStrata("HIGH")
         this:StartMoving()
       </OnDragStart>
       <OnDragStop>
+        this:SetFrameStrata("MEDIUM")
         this:StopMovingOrSizing()
       </OnDragStop>
     </Scripts>
@@ -351,9 +368,11 @@
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
+        this:SetFrameStrata("HIGH")
         this:StartMoving()
       </OnDragStart>
       <OnDragStop>
+        this:SetFrameStrata("MEDIUM")
         this:StopMovingOrSizing()
       </OnDragStop>
     </Scripts>
@@ -440,6 +459,20 @@
             <ScrollChild>
               <Frame name="$parentScrollChild">
                 <Size x="250" y="150" />
+                <Frames>
+                  <EditBox name="SmartMailLogFrameText" multiLine="true" autoFocus="false" enableMouse="true">
+                    <Size x="250" y="150" />
+                    <Anchors>
+                      <Anchor point="TOPLEFT" />
+                    </Anchors>
+                    <Scripts>
+                      <OnEscapePressed>
+                        this:ClearFocus()
+                      </OnEscapePressed>
+                    </Scripts>
+                    <FontString inherits="GameFontHighlightSmall" justifyH="LEFT" justifyV="TOP" />
+                  </EditBox>
+                </Frames>
               </Frame>
             </ScrollChild>
           </ScrollFrame>
@@ -465,9 +498,11 @@
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
+        this:SetFrameStrata("HIGH")
         this:StartMoving()
       </OnDragStart>
       <OnDragStop>
+        this:SetFrameStrata("MEDIUM")
         this:StopMovingOrSizing()
       </OnDragStop>
     </Scripts>
@@ -588,9 +623,11 @@
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
+        this:SetFrameStrata("HIGH")
         this:StartMoving()
       </OnDragStart>
       <OnDragStop>
+        this:SetFrameStrata("MEDIUM")
         this:StopMovingOrSizing()
       </OnDragStop>
     </Scripts>
@@ -688,9 +725,11 @@
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
+        this:SetFrameStrata("HIGH")
         this:StartMoving()
       </OnDragStart>
       <OnDragStop>
+        this:SetFrameStrata("MEDIUM")
         this:StopMovingOrSizing()
       </OnDragStop>
     </Scripts>
@@ -830,9 +869,11 @@
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
+        this:SetFrameStrata("HIGH")
         this:StartMoving()
       </OnDragStart>
       <OnDragStop>
+        this:SetFrameStrata("MEDIUM")
         this:StopMovingOrSizing()
       </OnDragStop>
     </Scripts>

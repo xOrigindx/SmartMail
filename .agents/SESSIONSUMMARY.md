@@ -1,13 +1,16 @@
 # Session Summary
 
 ## Major Changes
-- **Memory/State Persistence**: Overhauled item setting saves ("MAX" string instead of static integer scaling up/down). `Queue.lua` seamlessly resolves "MAX" to current bags' `fullStacks`/`partialStacks`.
-- **UI & Flow Adjustments**: Removed redundant "Delete" button from Profile Editor; correctly aligned Save/Cancel. Ensured `SmartMailDebugFrame` scroll position dynamically snaps to the top on load (latest logs first).
-- **PeriodicTable Routing**: Split out generic `ingredcloth` / `ingredbar` tables to natively support granular sub-categories (`Arcanite Bar`, `Arcane Crystal`, `Mooncloth`, `Felcloth`) by mapping to explicit IDs, allowing high-value materials to route differently. Added `Element` (via `ingredelement`).
-- **Send All Feature**: Built an engine sequence manager (`SmartMail.sendAllProfilesQueue`) that iterates through all profiles, dynamically generates a `flatQueue` for each (respecting skipped partials/MAX configurations), and chains them to `Engine.lua` seamlessly.
-- **Dynamic Hot-Swapping**: Permitted immediate swapping between different character profiles in the main UI list while `SmartMailConfirmFrame` is open to see different character previews fluidly.
+- **Custom Send Overhaul**: Completely built out the Custom Send UI, featuring a dual-list design. The left side scans the bags and categorizes items by type/name. The right side is a dual-purpose panel with a `Custom List` cart and a `Recipient List`.
+- **Cart Logic & Context Popups**: Users can build a cart. `Click` adds items, `Shift-Click` handles bulk amounts contextually. If Shift-Clicking from the Main List, the popup is `Enter Amount` (add). If Shift-Clicking from the Cart, the popup is `Remove Amount` (subtract/delete).
+- **Recipient Validation Engine**: Implemented an advanced recipient validator. Adding a recipient while at a mailbox sends a dummy validation letter. If it triggers a "Cannot find mail recipient" UI error, the invalid recipient is instantly pruned. Added `Waiting` and `Validating...` UI states.
+- **Data Persistence**: Ensured Custom Recipient lists and validation states persist across reloads using `SmartMailDB_PerChar` for character-wide memory.
+- **Engine Infinite Loop Fix**: Upgraded `Engine.lua` to fuzzy-match UI errors containing "recipient" or "money", instantly aborting rather than infinitely retrying. Also added a strict max 3 retries limit for all items to completely eliminate endless loop hazards.
+- **ESC Frame Stack Physics**: Implemented a global `SmartMail_HookFrameStack` system that dynamically intercepts frame logic to ensure child windows, dialog popups, and main frames always close sequentially on ESC based on the order of user interaction, without corrupting Vanilla WoW's global menu logic.
 
 ## Next Session Checklist
 - [ ] Check `AGENTS.md` and `MEMORY.md` immediately upon starting.
-- [ ] Investigate recipient validation logic ("the first time ever you send to a recipient it should either send a empty mail to check if the recipient exist... or we make a popup windows").
-- [ ] Final stress testing of `Send All` queue chaining if any engine stutters occur.
+- [ ] BUG FIX: The Custom Send button has an issue where it might always be sending the max amount instead of respecting the specific amounts chosen in the Custom Cart. This needs to be investigated and fixed immediately.
+- [ ] Continue building out or refining the Custom Send pipeline to the Engine if necessary.
+
+

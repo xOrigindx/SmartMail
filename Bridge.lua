@@ -41,13 +41,22 @@ local VALUABLES_IDS = {
     [12363] = true, -- Arcane Crystal
     [14342] = true, -- Mooncloth
     [14256] = true, -- Felcloth
+    [15417] = true, -- Devilsaur Leather
+    [12810] = true, -- Enchanted Leather
+    [11370] = true, -- Dark Iron Ore
+    [11371] = true, -- Dark Iron Bar
+    [11138] = true, -- Red Power Crystal
+    [11139] = true, -- Blue Power Crystal
+    [11144] = true, -- Yellow Power Crystal
+    [11145] = true, -- Green Power Crystal
 }
 
 -- Ordered names for UI checkboxes
 local CATEGORY_NAMES = {
     "Cloth", "Bolt", "Leather", "Hide", "Scale", "Herbs", 
     "Ore", "Bar", "Gem", "Pearl", "Stone", "Oil", "Element", "Enchanting Mats",
-    "Arcanite Bar", "Arcane Crystal", "Mooncloth", "Felcloth"
+    "Arcanite Bar", "Arcane Crystal", "Mooncloth", "Felcloth", "Devilsaur Leather", "Enchanted Leather",
+    "Dark Iron Ore", "Dark Iron Bar", "Power Crystal"
 }
 
 -- Input: A category name string (e.g. "Herbs")
@@ -59,6 +68,11 @@ function Bridge:GetItemsForCategory(categoryName)
     if categoryName == "Arcane Crystal" then return { [12363] = true } end
     if categoryName == "Mooncloth" then return { [14342] = true } end
     if categoryName == "Felcloth" then return { [14256] = true } end
+    if categoryName == "Devilsaur Leather" then return { [15417] = true } end
+    if categoryName == "Enchanted Leather" then return { [12810] = true } end
+    if categoryName == "Dark Iron Ore" then return { [11370] = true } end
+    if categoryName == "Dark Iron Bar" then return { [11371] = true } end
+    if categoryName == "Power Crystal" then return { [11138] = true, [11139] = true, [11144] = true, [11145] = true } end
     
     local ptSets = CATEGORY_MAP[categoryName]
     

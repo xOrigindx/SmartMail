@@ -17,17 +17,22 @@ engineFrame:SetScript("OnEvent", function()
     
     if event == "MAIL_SEND_SUCCESS" then
         SmartMail_Debug("Engine: MAIL_SEND_SUCCESS received.")
+        SmartMailEngine.successCount = SmartMailEngine.successCount + 1
         SmartMailEngine.currentItem = nil
         SmartMailEngine:Next()
     elseif event == "MAIL_FAILED" then
         SmartMail_Debug("Engine: MAIL_FAILED received.")
+        if GetSendMailItem() then
+            ClickSendMailItemButton()
+            ClearCursor()
+        end
         SmartMailEngine:FailCurrent()
     elseif event == "UI_ERROR_MESSAGE" then
-        if arg1 == "Cannot find mail recipient" then
-            SmartMail_Debug("Engine: FATAL - Cannot find mail recipient!")
+        if string.find(string.lower(arg1), "recipient") then
+            SmartMail_Debug("Engine: FATAL - Cannot find mail recipient! (" .. arg1 .. ")")
             SmartMailEngine:Abort()
-        elseif arg1 == "You do not have enough money" then
-            SmartMail_Debug("Engine: FATAL - Not enough money for postage!")
+        elseif string.find(string.lower(arg1), "money") then
+            SmartMail_Debug("Engine: FATAL - Not enough money for postage! (" .. arg1 .. ")")
             SmartMailEngine:Abort()
         end
     end
@@ -42,24 +47,63 @@ engineFrame:SetScript("OnUpdate", function()
         -- Wait for Tab Switch to register and UI to clear (0.15s)
         waitTime = waitTime + arg1
         if waitTime > 0.15 then
-            waitTime = 0
-            SmartMailEngine.state = 2
+            if GetSendMailItem() then
+                ClickSendMailItemButton()
+                ClearCursor()
+            end
             
-            -- Pick up and attach
             local item = SmartMailEngine.currentItem
+            local texture, itemCount = GetContainerItemInfo(item.bag, item.slot)
+            if not texture then
+                SmartMail_Debug("Engine: Slot empty, treating as success.")
+                SmartMailEngine.successCount = SmartMailEngine.successCount + 1
+                waitTime = 0
+                SmartMailEngine.state = 0
+                SmartMailEngine.currentItem = nil
+                SmartMailEngine:Next()
+                return
+            end
+            
+            waitTime = 0
+            SmartMailEngine.state = 1.5
+            
+            -- Pick up and wait for cursor
             ClearCursor()
-            PickupContainerItem(item.bag, item.slot)
+            if item.amount and item.amount < itemCount then
+                SplitContainerItem(item.bag, item.slot, item.amount)
+            else
+                PickupContainerItem(item.bag, item.slot)
+            end
+        end
+    elseif SmartMailEngine.state == 1.5 then
+        waitTime = waitTime + arg1
+        if CursorHasItem() then
             ClickSendMailItemButton()
+            SmartMailEngine.state = 2
+            waitTime = 0
+        elseif waitTime > 2.0 then
+            SmartMail_Debug("Engine: Timeout waiting for cursor.")
+            ClearCursor()
+            SmartMailEngine:FailCurrent()
         end
     elseif SmartMailEngine.state == 2 then
-        -- Wait for Attachment drop to register (0.2s)
+        -- Wait for Attachment drop to register dynamically
         waitTime = waitTime + arg1
-        if waitTime > 0.2 then
+        if GetSendMailItem() then
             waitTime = 0
             SmartMailEngine.state = 3
             local item = SmartMailEngine.currentItem
             local subject = "SmartMail: " .. tostring(item.category)
             SendMail(SmartMailEngine.target, subject, "")
+        elseif waitTime > 2.0 then
+            SmartMail_Debug("Engine: Timeout waiting for attachment.")
+            waitTime = 0
+            if GetSendMailItem() then
+                ClickSendMailItemButton()
+            end
+            ClearCursor()
+            SmartMailEngine.state = 0
+            SmartMailEngine:FailCurrent()
         end
     end
 end)
@@ -76,6 +120,7 @@ function SmartMailEngine:Start(targetName, queue, onComplete)
     self.retryQueue = {}
     self.isSending = true
     self.state = 0
+    self.successCount = 0
     SmartMail.isBusy = true
     
     SmartMail_Debug("Engine: Starting mail sequence for " .. tostring(self.target) .. " with " .. table.getn(self.flatQueue) .. " items.")
@@ -121,8 +166,13 @@ end
 
 function SmartMailEngine:FailCurrent()
     if self.currentItem then
-        SmartMail_Debug("Engine: Failed to send item, adding to retry queue.")
-        table.insert(self.retryQueue, self.currentItem)
+        self.currentItem.retries = (self.currentItem.retries or 0) + 1
+        if self.currentItem.retries <= 3 then
+            SmartMail_Debug("Engine: Failed to send item (Attempt " .. self.currentItem.retries .. "), adding to retry queue.")
+            table.insert(self.retryQueue, self.currentItem)
+        else
+            SmartMail_Debug("Engine: Max retries exceeded for item, dropping.")
+        end
         self.currentItem = nil
     end
     self:Next()
@@ -139,8 +189,16 @@ function SmartMailEngine:Finish()
     ClearCursor()
     self.isSending = false
     SmartMail.isBusy = false
+    
+    if self.target and self.successCount and self.successCount > 0 then
+        if SmartMail_Log then
+            SmartMail_Log("Successfully sent " .. self.successCount .. " item(s) to " .. tostring(self.target) .. ".")
+        end
+    end
+    
     self.target = nil
     self.currentItem = nil
+    self.successCount = 0
     SmartMail_Debug("Engine: Done.")
     
     if self.onComplete then
