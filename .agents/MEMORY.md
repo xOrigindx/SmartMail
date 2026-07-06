@@ -1,15 +1,12 @@
-# MEMORY.md — Developer Memory Log
+# Next Agent Instructions
+When you start the next session, you MUST immediately read:
+1. `.agents/MEMORY.md` (this file)
+2. `.agents/SESSIONSUMMARY.md` (to get up to speed on the current state)
 
-**NEXT SESSION DIRECTIVE:** Upon loading, please review `SESSIONSUMMARY.md` to understand where the project left off, and `UI.md` to understand the frame structure. You do not need to read the other `.agents` markdown files unless specifically requested.
+Do not read the rest of the `.md` files in `.agents/` unless specifically directed to do so.
 
-This file starts empty and is updated **only when explicitly requested** by the developer.
-It stores long-term developer preferences, past debugging insights, and fixed choices that
-should persist across sessions.
-
-Do not auto-populate this file. Only add entries when the developer says to remember something.
-
----
-
-<!-- Entries added below as requested -->
-
-- **User Preference:** Do not explicitly instruct the user to `/reload` the UI after making changes. They already know to do this.
+# Behavioral Memory
+- Do not type `/rl` for the user.
+- Always include `SmartMail_Debug()` statements for all new logic.
+- UI Style: Symmetrical buttons, main frame close via `ESC`, child frames LIFO close, unselect profile on background click.
+- Memory Persistence: Ensure `MAX` text values vs numeric values are distinctly respected across sessions.

@@ -16,5 +16,8 @@ Libs\Elements\ZG\PTEmbedElemZulGurub.lua
 Libs\Tradeskills\PTTradeskillsEmbed.lua
 
 Bridge.lua
+Queue.lua
+Engine.lua
 SmartMail.xml
 SmartMail.lua
+Inbox.lua

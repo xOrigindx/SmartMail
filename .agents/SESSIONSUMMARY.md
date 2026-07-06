@@ -1,13 +1,13 @@
-# Session Summaries
+# Session Summary
 
-## 2026-07-05 - Session: UI, Profiles, and Save State Isolation
-**Summary of Major Changes:**
-- **Debug System**: Created `SmartMail_Debug` and wired it into a dedicated, scrollable `SmartMailDebugFrame`. Safely auto-initializes `SmartMailLog` globals on demand.
-- **Save State Separation**: Migrated profile storage to a dual-state system. The UI now reads strictly from an isolated, character-specific `SmartMailDB_PerChar` table, while all changes are simultaneously mirrored to the global `SmartMailDB` Account-wide table as a backup.
-- **Profile Editor UI**: Built the `SmartMailProfileEditorFrame` XML popup. Hooked it into `Bridge:GetCategoryNames()` to dynamically generate the 13 category checkboxes. 
-- **Load Global Feature**: Added a "Load Global" button to the main window (`SmartMail_LoadGlobalProfiles`) that allows new characters to clone the global Account-wide profiles into their empty personal database.
+## Major Changes
+- **Memory/State Persistence**: Overhauled item setting saves ("MAX" string instead of static integer scaling up/down). `Queue.lua` seamlessly resolves "MAX" to current bags' `fullStacks`/`partialStacks`.
+- **UI & Flow Adjustments**: Removed redundant "Delete" button from Profile Editor; correctly aligned Save/Cancel. Ensured `SmartMailDebugFrame` scroll position dynamically snaps to the top on load (latest logs first).
+- **PeriodicTable Routing**: Split out generic `ingredcloth` / `ingredbar` tables to natively support granular sub-categories (`Arcanite Bar`, `Arcane Crystal`, `Mooncloth`, `Felcloth`) by mapping to explicit IDs, allowing high-value materials to route differently. Added `Element` (via `ingredelement`).
+- **Send All Feature**: Built an engine sequence manager (`SmartMail.sendAllProfilesQueue`) that iterates through all profiles, dynamically generates a `flatQueue` for each (respecting skipped partials/MAX configurations), and chains them to `Engine.lua` seamlessly.
+- **Dynamic Hot-Swapping**: Permitted immediate swapping between different character profiles in the main UI list while `SmartMailConfirmFrame` is open to see different character previews fluidly.
 
-**Checklist for Next Session:**
-- [ ] Connect the dynamic checkboxes in the Profile Editor to actually reflect the saved state when editing an *existing* profile.
-- [ ] Build the `Queue.lua` engine to loop through the character's inventory, compare it against the active profiles, and physically send the mail.
-- [ ] Implement the `SmartMailConfirmFrame` to display the items about to be mailed and allow individual item removal before sending.
+## Next Session Checklist
+- [ ] Check `AGENTS.md` and `MEMORY.md` immediately upon starting.
+- [ ] Investigate recipient validation logic ("the first time ever you send to a recipient it should either send a empty mail to check if the recipient exist... or we make a popup windows").
+- [ ] Final stress testing of `Send All` queue chaining if any engine stutters occur.

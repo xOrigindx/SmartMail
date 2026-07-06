@@ -31,19 +31,35 @@ local CATEGORY_MAP = {
     ["Pearl"]          = { "ingredpearl" },
     ["Stone"]          = { "ingredstone" },
     ["Oil"]            = { "ingredoil" },
+    ["Element"]        = { "ingredelement" },
     ["Enchanting Mats"]= { "ingreddust", "ingredessence", "ingredshard" },  -- 3 sets, aggregated
+}
+
+-- Items to explicitly move to the 'Valuables' category
+local VALUABLES_IDS = {
+    [12360] = true, -- Arcanite Bar
+    [12363] = true, -- Arcane Crystal
+    [14342] = true, -- Mooncloth
+    [14256] = true, -- Felcloth
 }
 
 -- Ordered names for UI checkboxes
 local CATEGORY_NAMES = {
     "Cloth", "Bolt", "Leather", "Hide", "Scale", "Herbs", 
-    "Ore", "Bar", "Gem", "Pearl", "Stone", "Oil", "Enchanting Mats"
+    "Ore", "Bar", "Gem", "Pearl", "Stone", "Oil", "Element", "Enchanting Mats",
+    "Arcanite Bar", "Arcane Crystal", "Mooncloth", "Felcloth"
 }
 
 -- Input: A category name string (e.g. "Herbs")
 -- Output: { [itemID] = true, ... } — a set of all item IDs in that category
 function Bridge:GetItemsForCategory(categoryName)
     local items = {}
+    
+    if categoryName == "Arcanite Bar" then return { [12360] = true } end
+    if categoryName == "Arcane Crystal" then return { [12363] = true } end
+    if categoryName == "Mooncloth" then return { [14342] = true } end
+    if categoryName == "Felcloth" then return { [14256] = true } end
+    
     local ptSets = CATEGORY_MAP[categoryName]
     
     local PT = GetPT()
@@ -54,7 +70,7 @@ function Bridge:GetItemsForCategory(categoryName)
     for _, setName in ipairs(ptSets) do
         if PT.IterateSet then
             PT:IterateSet(setName, function(itemID)
-                if itemID ~= 20725 then
+                if itemID ~= 20725 and not VALUABLES_IDS[itemID] then
                     items[itemID] = true
                 end
             end)
@@ -62,7 +78,7 @@ function Bridge:GetItemsForCategory(categoryName)
             local setTable = PT:GetSetTable(setName)
             if setTable then
                 for itemID, _ in pairs(setTable) do
-                    if itemID ~= 20725 then
+                    if itemID ~= 20725 and not VALUABLES_IDS[itemID] then
                         items[itemID] = true
                     end
                 end
