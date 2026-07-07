@@ -54,6 +54,7 @@ engineFrame:SetScript("OnUpdate", function()
             
             local item = SmartMailEngine.currentItem
             local texture, itemCount = GetContainerItemInfo(item.bag, item.slot)
+            itemCount = tonumber(itemCount) or 1
             if not texture then
                 SmartMail_Debug("Engine: Slot empty, treating as success.")
                 SmartMailEngine.successCount = SmartMailEngine.successCount + 1
@@ -69,8 +70,9 @@ engineFrame:SetScript("OnUpdate", function()
             
             -- Pick up and wait for cursor
             ClearCursor()
-            if item.amount and item.amount < itemCount then
-                SplitContainerItem(item.bag, item.slot, item.amount)
+            local amt = tonumber(item.amount)
+            if amt and amt < itemCount then
+                SplitContainerItem(item.bag, item.slot, amt)
             else
                 PickupContainerItem(item.bag, item.slot)
             end

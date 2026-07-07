@@ -93,8 +93,10 @@ function SmartMailCustom:ScanInventory()
                                     amountToSend = 0
                                 }
                             end
-                            temp[itemID].totalCount = temp[itemID].totalCount + itemCount
-                            table.insert(temp[itemID].slots, {bag = bag, slot = slot, count = itemCount})
+                            if temp[itemID] then
+                                temp[itemID].totalCount = temp[itemID].totalCount + (tonumber(itemCount) or 1)
+                                table.insert(temp[itemID].slots, {bag = bag, slot = slot, count = (tonumber(itemCount) or 1)})
+                            end
                         end
                     end
                 end
@@ -159,7 +161,7 @@ function SmartMailCustom:BuildQueue()
             for _, slotInfo in ipairs(itemData.slots) do
                 if remaining <= 0 then break end
                 
-                local take = slotInfo.count
+                local take = tonumber(slotInfo.count) or 1
                 if remaining < take then take = remaining end
                 
                 table.insert(queue, {
@@ -612,18 +614,64 @@ sideTitle:SetPoint("TOP", sideHeader, "TOP", 0, -14)
 sideTitle:SetText("Recipient List")
 
 local sideAddBtn = CreateFrame("Button", nil, sidePanel, "UIPanelButtonTemplate")
-sideAddBtn:SetWidth(80)
+sideAddBtn:SetWidth(56)
 sideAddBtn:SetHeight(24)
-sideAddBtn:SetPoint("TOPLEFT", sidePanel, "TOPLEFT", 20, -40)
+sideAddBtn:SetPoint("TOPLEFT", sidePanel, "TOPLEFT", 14, -40)
 sideAddBtn:SetText("Add")
 sideAddBtn:SetScript("OnClick", function()
     StaticPopup_Show("SMARTMAIL_CUSTOM_ADD_RECIPIENT")
 end)
 
+local histDropdown = CreateFrame("Frame", "SmartMailRecipientHistoryDropdown", sidePanel, "UIDropDownMenuTemplate")
+histDropdown:Hide()
+
+function SmartMailRecipientHistoryDropdown_Initialize()
+    local added = false
+    for name, status in pairs(SmartMailDB_PerChar.validatedRecipients or {}) do
+        if status == true then
+            local exists = false
+            for _, r in ipairs(SmartMailDB_PerChar.customRecipients or {}) do
+                if r == name then exists = true; break end
+            end
+            if not exists then
+                local info = {}
+                info.text = name
+                info.func = function()
+                    if not SmartMailDB_PerChar.customRecipients then SmartMailDB_PerChar.customRecipients = {} end
+                    table.insert(SmartMailDB_PerChar.customRecipients, name)
+                    SmartMailCustom.selectedRecipient = name
+                    SmartMail_UpdateCustomRecipientList()
+                end
+                info.notCheckable = 1
+                UIDropDownMenu_AddButton(info)
+                added = true
+            end
+        end
+    end
+    
+    if not added then
+        local info = {}
+        info.text = "No saved recipients"
+        info.notCheckable = 1
+        info.disabled = 1
+        UIDropDownMenu_AddButton(info)
+    end
+end
+
+local sideHistBtn = CreateFrame("Button", "SmartMailCustomHistBtn", sidePanel, "UIPanelButtonTemplate")
+sideHistBtn:SetWidth(56)
+sideHistBtn:SetHeight(24)
+sideHistBtn:SetPoint("LEFT", sideAddBtn, "RIGHT", 2, 0)
+sideHistBtn:SetText("Hist")
+sideHistBtn:SetScript("OnClick", function()
+    UIDropDownMenu_Initialize(SmartMailRecipientHistoryDropdown, SmartMailRecipientHistoryDropdown_Initialize, "MENU")
+    ToggleDropDownMenu(1, nil, SmartMailRecipientHistoryDropdown, "SmartMailCustomHistBtn", 0, 0)
+end)
+
 local sideDelBtn = CreateFrame("Button", nil, sidePanel, "UIPanelButtonTemplate")
-sideDelBtn:SetWidth(80)
+sideDelBtn:SetWidth(56)
 sideDelBtn:SetHeight(24)
-sideDelBtn:SetPoint("TOPRIGHT", sidePanel, "TOPRIGHT", -20, -40)
+sideDelBtn:SetPoint("LEFT", sideHistBtn, "RIGHT", 2, 0)
 sideDelBtn:SetText("Delete")
 sideDelBtn:SetScript("OnClick", function()
     if SmartMailCustom.selectedRecipient then
