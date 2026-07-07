@@ -53,7 +53,7 @@ engineFrame:SetScript("OnUpdate", function()
             end
             
             local item = SmartMailEngine.currentItem
-            local texture, itemCount = GetContainerItemInfo(item.bag, item.slot)
+            local texture, itemCount, locked = GetContainerItemInfo(item.bag, item.slot)
             itemCount = tonumber(itemCount) or 1
             if not texture then
                 SmartMail_Debug("Engine: Slot empty, treating as success.")
@@ -65,17 +65,58 @@ engineFrame:SetScript("OnUpdate", function()
                 return
             end
             
-            waitTime = 0
-            SmartMailEngine.state = 1.5
+            if locked then return end
             
-            -- Pick up and wait for cursor
             ClearCursor()
             local amt = tonumber(item.amount)
             if amt and amt < itemCount then
+                local eBag, eSlot = SmartMailEngine:FindEmptySlot()
+                if not eBag then
+                    SmartMail_Debug("Engine: Bags full! Cannot split item.")
+                    waitTime = 0
+                    SmartMailEngine.state = 0
+                    SmartMailEngine:FailCurrent()
+                    return
+                end
+                SmartMailEngine.splitBag = eBag
+                SmartMailEngine.splitSlot = eSlot
                 SplitContainerItem(item.bag, item.slot, amt)
+                SmartMailEngine.state = 1.1
+                waitTime = 0
             else
                 PickupContainerItem(item.bag, item.slot)
+                SmartMailEngine.state = 1.5
+                waitTime = 0
             end
+        end
+    elseif SmartMailEngine.state == 1.1 then
+        waitTime = waitTime + arg1
+        if CursorHasItem() then
+            PickupContainerItem(SmartMailEngine.splitBag, SmartMailEngine.splitSlot)
+            SmartMailEngine.state = 1.2
+            waitTime = 0
+        elseif waitTime > 2.0 then
+            SmartMail_Debug("Engine: Timeout waiting for split to cursor.")
+            ClearCursor()
+            SmartMailEngine.state = 0
+            SmartMailEngine:FailCurrent()
+        end
+    elseif SmartMailEngine.state == 1.2 then
+        waitTime = waitTime + arg1
+        local tex, _, locked1 = GetContainerItemInfo(SmartMailEngine.splitBag, SmartMailEngine.splitSlot)
+        local _, _, locked2 = GetContainerItemInfo(SmartMailEngine.currentItem.bag, SmartMailEngine.currentItem.slot)
+        
+        if tex and not locked1 and not locked2 then
+            SmartMailEngine.currentItem.bag = SmartMailEngine.splitBag
+            SmartMailEngine.currentItem.slot = SmartMailEngine.splitSlot
+            SmartMailEngine.currentItem.amount = nil
+            SmartMailEngine.state = 1
+            waitTime = 0
+        elseif waitTime > 3.0 then
+            SmartMail_Debug("Engine: Timeout waiting for split to settle.")
+            ClearCursor()
+            SmartMailEngine.state = 0
+            SmartMailEngine:FailCurrent()
         end
     elseif SmartMailEngine.state == 1.5 then
         waitTime = waitTime + arg1
@@ -109,6 +150,18 @@ engineFrame:SetScript("OnUpdate", function()
         end
     end
 end)
+
+function SmartMailEngine:FindEmptySlot()
+    for slot = 1, GetContainerNumSlots(0) do
+        if not GetContainerItemInfo(0, slot) then return 0, slot end
+    end
+    for bag = 1, 4 do
+        for slot = 1, GetContainerNumSlots(bag) do
+            if not GetContainerItemInfo(bag, slot) then return bag, slot end
+        end
+    end
+    return nil, nil
+end
 
 function SmartMailEngine:Start(targetName, queue, onComplete)
     if not MailFrame or not MailFrame:IsVisible() then

@@ -10,7 +10,7 @@
 
 ## Next Session Checklist
 - [ ] Check `AGENTS.md` and `MEMORY.md` immediately upon starting.
-- [x] BUG FIX: The Custom Send button has an issue where it might always be sending the max amount instead of respecting the specific amounts chosen in the Custom Cart. This needs to be investigated and fixed immediately.
+- [ ] BUG FIX: The Custom Send button has an issue where it might always be sending the max amount instead of respecting the specific amounts chosen in the Custom Cart. This needs to be investigated and fixed immediately.
 - [ ] Continue building out or refining the Custom Send pipeline to the Engine if necessary.
 
 
