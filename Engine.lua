@@ -18,6 +18,13 @@ engineFrame:SetScript("OnEvent", function()
     if event == "MAIL_SEND_SUCCESS" then
         SmartMail_Debug("Engine: MAIL_SEND_SUCCESS received.")
         SmartMailEngine.successCount = SmartMailEngine.successCount + 1
+        local item = SmartMailEngine.currentItem
+        if item then
+            local n = item.name or item.category or "Unknown Item"
+            local amt = item.amount or item.count or 1
+            if not SmartMailEngine.sentItems[n] then SmartMailEngine.sentItems[n] = 0 end
+            SmartMailEngine.sentItems[n] = SmartMailEngine.sentItems[n] + amt
+        end
         SmartMailEngine.currentItem = nil
         SmartMailEngine:Next()
     elseif event == "MAIL_FAILED" then
@@ -148,10 +155,23 @@ engineFrame:SetScript("OnUpdate", function()
             SmartMailEngine.state = 0
             SmartMailEngine:FailCurrent()
         end
+    elseif SmartMailEngine.state == 3 then
+        waitTime = waitTime + arg1
+        if waitTime > 4.0 then
+            SmartMail_Debug("Engine: Timeout waiting for MAIL_SEND_SUCCESS.")
+            if GetSendMailItem() then
+                ClickSendMailItemButton()
+                ClearCursor()
+            end
+            SmartMailEngine.state = 0
+            waitTime = 0
+            SmartMailEngine:FailCurrent()
+        end
     end
 end)
 
 function SmartMailEngine:FindEmptySlot()
+    SmartMail_Debug("SmartMailEngine:FindEmptySlot called...")
     for slot = 1, GetContainerNumSlots(0) do
         if not GetContainerItemInfo(0, slot) then return 0, slot end
     end
@@ -164,6 +184,7 @@ function SmartMailEngine:FindEmptySlot()
 end
 
 function SmartMailEngine:Start(targetName, queue, onComplete)
+    SmartMail_Debug("SmartMailEngine:Start called...")
     if not MailFrame or not MailFrame:IsVisible() then
         SmartMail_Debug("Engine Error: Mailbox is not open!")
         return
@@ -176,6 +197,7 @@ function SmartMailEngine:Start(targetName, queue, onComplete)
     self.isSending = true
     self.state = 0
     self.successCount = 0
+    self.sentItems = {}
     SmartMail.isBusy = true
     
     SmartMail_Debug("Engine: Starting mail sequence for " .. tostring(self.target) .. " with " .. table.getn(self.flatQueue) .. " items.")
@@ -183,6 +205,7 @@ function SmartMailEngine:Start(targetName, queue, onComplete)
 end
 
 function SmartMailEngine:Next()
+    SmartMail_Debug("SmartMailEngine:Next called...")
     if table.getn(self.flatQueue) == 0 then
         if table.getn(self.retryQueue) > 0 then
             SmartMail_Debug("Engine: Main queue empty, processing " .. table.getn(self.retryQueue) .. " retries...")
@@ -199,7 +222,27 @@ function SmartMailEngine:Next()
     local item = table.remove(self.flatQueue, 1)
     self.currentItem = item
     
-    SmartMail_Debug("Engine: Sending item ID " .. item.itemID .. " from bag " .. item.bag .. " slot " .. item.slot)
+    if item.isMoney then
+        SmartMail_Debug("Engine: Sending Money (" .. tostring(item.amount) .. "c)")
+        if not SendMailFrame or not SendMailFrame:IsVisible() then
+            if MailFrameTab2 and MailFrameTab2:GetScript("OnClick") then
+                local onClick = MailFrameTab2:GetScript("OnClick")
+                local oldThis = this
+                this = MailFrameTab2
+                onClick()
+                this = oldThis
+            else
+                MailFrameTab_OnClick(2)
+            end
+        end
+        SetSendMailMoney(item.amount)
+        SendMail(self.target, "SmartMail: Funds", "")
+        waitTime = 0
+        self.state = 3
+        return
+    end
+    
+    SmartMail_Debug("Engine: Sending item ID " .. tostring(item.itemID) .. " from bag " .. tostring(item.bag) .. " slot " .. tostring(item.slot))
     
     -- Switch Tab
     if not SendMailFrame or not SendMailFrame:IsVisible() then
@@ -220,6 +263,7 @@ function SmartMailEngine:Next()
 end
 
 function SmartMailEngine:FailCurrent()
+    SmartMail_Debug("SmartMailEngine:FailCurrent called...")
     if self.currentItem then
         self.currentItem.retries = (self.currentItem.retries or 0) + 1
         if self.currentItem.retries <= 3 then
@@ -234,6 +278,7 @@ function SmartMailEngine:FailCurrent()
 end
 
 function SmartMailEngine:Abort()
+    SmartMail_Debug("SmartMailEngine:Abort called...")
     SmartMail_Debug("Engine: Aborting sequence!")
     self.flatQueue = {}
     self.retryQueue = {}
@@ -241,13 +286,58 @@ function SmartMailEngine:Abort()
 end
 
 function SmartMailEngine:Finish()
+    SmartMail_Debug("SmartMailEngine:Finish called...")
     ClearCursor()
     self.isSending = false
     SmartMail.isBusy = false
     
-    if self.target and self.successCount and self.successCount > 0 then
-        if SmartMail_Log then
-            SmartMail_Log("Successfully sent " .. self.successCount .. " item(s) to " .. tostring(self.target) .. ".")
+    if self.target and self.successCount > 0 then
+        local msgs = {}
+        
+        -- Create Ledger if missing
+        if not SmartMailDB then SmartMailDB = {} end
+        if not SmartMailDB.ledger then SmartMailDB.ledger = {} end
+        
+        local tx = {
+            sender = UnitName("player"),
+            recipient = self.target,
+            time = time(),
+            date = date("%Y-%m-%d %H:%M:%S"),
+            items = {}
+        }
+
+        local hasItems = false
+        for n, amt in pairs(self.sentItems or {}) do
+            if n == "MONEY" then
+                local g = math.floor(amt / 10000)
+                local s = math.floor(math.mod(amt, 10000) / 100)
+                local c = math.mod(amt, 100)
+                local mStr = ""
+                if g > 0 then mStr = mStr .. g .. "g " end
+                if s > 0 then mStr = mStr .. s .. "s " end
+                if c > 0 or mStr == "" then mStr = mStr .. c .. "c" end
+                mStr = string.gsub(mStr, " $", "")
+                
+                if SmartMail_Log then
+                    SmartMail_Log("Sent " .. mStr .. " to " .. tostring(self.target), "OUTGOING")
+                end
+                table.insert(tx.items, { name = "Money", count = mStr })
+                hasItems = true
+            else
+                if SmartMail_Log then
+                    SmartMail_Log("Sent " .. amt .. " " .. n .. " to " .. tostring(self.target), "OUTGOING")
+                end
+                table.insert(tx.items, { name = n, count = amt })
+                hasItems = true
+            end
+        end
+        
+        table.insert(SmartMailDB.ledger, tx)
+        
+        if not hasItems then
+            if SmartMail_Log then
+                SmartMail_Log("Successfully sent " .. self.successCount .. " item(s) to " .. tostring(self.target), "OUTGOING")
+            end
         end
     end
     

@@ -2,6 +2,7 @@ Bridge = {}
 
 -- Dynamically fetch PeriodicTable to avoid stale references if another addon upgrades the lib during load
 local function GetPT()
+    SmartMail_Debug("GetPT called...")
     local pt
     if AceLibrary and AceLibrary:HasInstance("PeriodicTable-3.1") then
         pt = AceLibrary("PeriodicTable-3.1")
@@ -45,10 +46,10 @@ local VALUABLES_IDS = {
     [12810] = true, -- Enchanted Leather
     [11370] = true, -- Dark Iron Ore
     [11371] = true, -- Dark Iron Bar
-    [11138] = true, -- Red Power Crystal
-    [11139] = true, -- Blue Power Crystal
-    [11144] = true, -- Yellow Power Crystal
-    [11145] = true, -- Green Power Crystal
+    [11520] = true, -- Red Power Crystal
+    [11521] = true, -- Blue Power Crystal
+    [11522] = true, -- Yellow Power Crystal
+    [11523] = true, -- Green Power Crystal
 }
 
 -- Ordered names for UI checkboxes
@@ -62,6 +63,7 @@ local CATEGORY_NAMES = {
 -- Input: A category name string (e.g. "Herbs")
 -- Output: { [itemID] = true, ... } — a set of all item IDs in that category
 function Bridge:GetItemsForCategory(categoryName)
+    SmartMail_Debug("Bridge:GetItemsForCategory called...")
     local items = {}
     
     if categoryName == "Arcanite Bar" then return { [12360] = true } end
@@ -72,7 +74,7 @@ function Bridge:GetItemsForCategory(categoryName)
     if categoryName == "Enchanted Leather" then return { [12810] = true } end
     if categoryName == "Dark Iron Ore" then return { [11370] = true } end
     if categoryName == "Dark Iron Bar" then return { [11371] = true } end
-    if categoryName == "Power Crystal" then return { [11138] = true, [11139] = true, [11144] = true, [11145] = true } end
+    if categoryName == "Power Crystal" then return { [11520] = true, [11521] = true, [11522] = true, [11523] = true } end
     
     local ptSets = CATEGORY_MAP[categoryName]
     
@@ -116,6 +118,7 @@ end
 -- Output: { [itemID] = categoryName, ... } — maps every known item ID to its category
 -- Usage: Called once at queue-build time for O(1) conflict detection.
 function Bridge:GetAllCategoryItems()
+    SmartMail_Debug("Bridge:GetAllCategoryItems called...")
     local map = {}
     for _, catName in ipairs(CATEGORY_NAMES) do
         local items = self:GetItemsForCategory(catName)
@@ -129,5 +132,6 @@ end
 -- Output: Ordered list of all 13 category name strings.
 -- Usage: UI uses this to populate checkboxes in the profile editor.
 function Bridge:GetCategoryNames()
+    SmartMail_Debug("Bridge:GetCategoryNames called...")
     return CATEGORY_NAMES
 end

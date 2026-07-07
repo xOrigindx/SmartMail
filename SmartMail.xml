@@ -11,6 +11,7 @@
     </Anchors>
     <Scripts>
       <OnClick>
+        SmartMail_Debug("SmartMailToggleButton clicked")
         if SmartMailMainFrame:IsVisible() then
           SmartMailMainFrame:Hide()
         else
@@ -65,7 +66,12 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailMainFrameCloseButton clicked")
+            SmartMail.forceCloseAll = true
             this:GetParent():Hide()
+            if SmartMailLogFrame then SmartMailLogFrame:Hide() end
+            if SmartMailCustomSendFrame then SmartMailCustomSendFrame:Hide() end
+            if SmartMailCustomConfirmFrame then SmartMailCustomConfirmFrame:Hide() end
           </OnClick>
         </Scripts>
       </Button>
@@ -80,6 +86,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailMainFrameAddButton clicked")
             SmartMail_OpenProfileEditor(nil)
           </OnClick>
         </Scripts>
@@ -94,6 +101,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailMainFrameDeleteButton clicked")
             if SmartMail.selectedProfile then
                 SmartMail_DeleteProfile(SmartMail.selectedProfile)
             end
@@ -110,6 +118,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailMainFrameEditButton clicked")
             if SmartMail.selectedProfile then
                 SmartMail_OpenProfileEditor(SmartMail.selectedProfile)
             end
@@ -174,6 +183,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailMainFrameSendAllButton clicked")
             SmartMail_SendAll("ALL")
           </OnClick>
         </Scripts>
@@ -188,32 +198,15 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailMainFrameSendAllFullButton clicked")
             SmartMail_SendAll("FULL")
           </OnClick>
         </Scripts>
       </Button>
 
       <!-- Bottom Row -->
-      <Button name="$parentOptionsButton" inherits="UIPanelButtonTemplate" text="Options">
-        <Size x="85" y="24" />
-        <Anchors>
-          <Anchor point="BOTTOMLEFT">
-            <Offset x="15" y="20" />
-          </Anchor>
-        </Anchors>
-        <Scripts>
-          <OnClick>
-            if SmartMailOptionsFrame:IsVisible() then
-              SmartMailOptionsFrame:Hide()
-            else
-              SmartMailOptionsFrame:Show()
-            end
-          </OnClick>
-        </Scripts>
-      </Button>
-
       <Button name="$parentCustomSendButton" inherits="UIPanelButtonTemplate" text="Custom">
-        <Size x="85" y="24" />
+        <Size x="90" y="24" />
         <Anchors>
           <Anchor point="BOTTOM">
             <Offset x="0" y="20" />
@@ -221,6 +214,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailMainFrameCustomSendButton clicked")
             if SmartMailCustomSendFrame and SmartMailCustomSendFrame:IsVisible() then
               SmartMailCustomSendFrame:Hide()
             else
@@ -230,15 +224,35 @@
         </Scripts>
       </Button>
 
-      <Button name="$parentLogButton" inherits="UIPanelButtonTemplate" text="Log Window">
-        <Size x="85" y="24" />
+      <Button name="$parentOptionsButton" inherits="UIPanelButtonTemplate" text="Options">
+        <Size x="90" y="24" />
         <Anchors>
-          <Anchor point="BOTTOMRIGHT">
-            <Offset x="-15" y="20" />
+          <Anchor point="RIGHT" relativeTo="$parentCustomSendButton" relativePoint="LEFT">
+            <Offset x="-5" y="0" />
           </Anchor>
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailMainFrameOptionsButton clicked")
+            if SmartMailOptionsFrame:IsVisible() then
+              SmartMailOptionsFrame:Hide()
+            else
+              SmartMailOptionsFrame:Show()
+            end
+          </OnClick>
+        </Scripts>
+      </Button>
+
+      <Button name="$parentLogButton" inherits="UIPanelButtonTemplate" text="Log Window">
+        <Size x="90" y="24" />
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentCustomSendButton" relativePoint="RIGHT">
+            <Offset x="5" y="0" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailMainFrameLogButton clicked")
             if SmartMailLogFrame:IsVisible() then
               SmartMailLogFrame:Hide()
             else
@@ -321,6 +335,7 @@
         </Anchors>
         <Scripts>
           <OnEscapePressed>
+            SmartMail_Debug("Escape pressed in SmartMailProfileEditorFrameNameEditBox")
             this:ClearFocus()
           </OnEscapePressed>
         </Scripts>
@@ -344,6 +359,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailProfileEditorFrameCancelButton clicked")
             this:GetParent():Hide()
           </OnClick>
         </Scripts>
@@ -358,6 +374,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailProfileEditorFrameSaveButton clicked")
             SmartMail_SaveProfile()
           </OnClick>
         </Scripts>
@@ -421,6 +438,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailLogFrameCloseXButton clicked")
             this:GetParent():Hide()
           </OnClick>
         </Scripts>
@@ -458,29 +476,42 @@
             </Anchors>
             <ScrollChild>
               <Frame name="$parentScrollChild">
-                <Size x="250" y="150" />
-                <Frames>
-                  <EditBox name="SmartMailLogFrameText" multiLine="true" autoFocus="false" enableMouse="true">
-                    <Size x="250" y="150" />
-                    <Anchors>
-                      <Anchor point="TOPLEFT" />
-                    </Anchors>
-                    <Scripts>
-                      <OnEscapePressed>
-                        this:ClearFocus()
-                      </OnEscapePressed>
-                    </Scripts>
-                    <FontString inherits="GameFontHighlightSmall" justifyH="LEFT" justifyV="TOP" />
-                  </EditBox>
-                </Frames>
+                <Size x="280" y="150" />
+                <Layers>
+                  <Layer level="ARTWORK">
+                    <FontString name="SmartMailLogFrameText" inherits="GameFontHighlightSmall" justifyH="LEFT" justifyV="TOP">
+                      <Size x="260" y="0" />
+                      <Anchors>
+                        <Anchor point="TOPLEFT">
+                          <Offset x="8" y="-8" />
+                        </Anchor>
+                      </Anchors>
+                    </FontString>
+                  </Layer>
+                </Layers>
               </Frame>
             </ScrollChild>
           </ScrollFrame>
         </Frames>
       </Frame>
 
-      <Button name="$parentCloseButton" inherits="UIPanelButtonTemplate" text="Close">
-        <Size x="100" y="24" />
+      <Button name="$parentClearButton" inherits="UIPanelButtonTemplate" text="Clear">
+        <Size x="65" y="24" />
+        <Anchors>
+          <Anchor point="BOTTOMLEFT">
+            <Offset x="20" y="20" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailLogFrameClearButton clicked")
+            StaticPopup_Show("SMARTMAIL_CLEAR_LOG")
+          </OnClick>
+        </Scripts>
+      </Button>
+
+      <Button name="$parentTabIn" inherits="UIPanelButtonTemplate" text="In">
+        <Size x="45" y="24" />
         <Anchors>
           <Anchor point="BOTTOM">
             <Offset x="0" y="20" />
@@ -488,6 +519,55 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailLogFrameTabIn clicked")
+            SmartMailLogMode = "INCOMING"
+            SmartMail_UpdateLogFrame()
+          </OnClick>
+        </Scripts>
+      </Button>
+
+      <Button name="$parentTabAll" inherits="UIPanelButtonTemplate" text="All">
+        <Size x="45" y="24" />
+        <Anchors>
+          <Anchor point="RIGHT" relativeTo="$parentTabIn" relativePoint="LEFT">
+            <Offset x="-5" y="0" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailLogFrameTabAll clicked")
+            SmartMailLogMode = "ALL"
+            SmartMail_UpdateLogFrame()
+          </OnClick>
+        </Scripts>
+      </Button>
+      
+      <Button name="$parentTabOut" inherits="UIPanelButtonTemplate" text="Out">
+        <Size x="45" y="24" />
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentTabIn" relativePoint="RIGHT">
+            <Offset x="5" y="0" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailLogFrameTabOut clicked")
+            SmartMailLogMode = "OUTGOING"
+            SmartMail_UpdateLogFrame()
+          </OnClick>
+        </Scripts>
+      </Button>
+
+      <Button name="$parentCloseButton" inherits="UIPanelButtonTemplate" text="Close">
+        <Size x="65" y="24" />
+        <Anchors>
+          <Anchor point="BOTTOMRIGHT">
+            <Offset x="-20" y="20" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailLogFrameCloseButton clicked")
             this:GetParent():Hide()
           </OnClick>
         </Scripts>
@@ -541,6 +621,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailDebugFrameCloseXButton clicked")
             this:GetParent():Hide()
           </OnClick>
         </Scripts>
@@ -576,34 +657,32 @@
               </Anchor>
             </Anchors>
             <ScrollChild>
-              <Frame name="$parentScrollChild">
-                <Size x="380" y="250" />
-                <Frames>
-                  <EditBox name="SmartMailDebugFrameText" multiLine="true" autoFocus="false" enableMouse="true">
-                    <Size x="370" y="250" />
-                    <Anchors>
-                      <Anchor point="TOPLEFT">
-                        <Offset x="5" y="-5" />
-                      </Anchor>
-                      <Anchor point="TOPRIGHT">
-                        <Offset x="-5" y="-5" />
-                      </Anchor>
-                    </Anchors>
-                    <Scripts>
-                      <OnLoad>
-                        this:SetFontObject("GameFontHighlightSmall")
-                      </OnLoad>
-                      <OnEscapePressed>
-                        this:ClearFocus()
-                      </OnEscapePressed>
-                    </Scripts>
-                  </EditBox>
-                </Frames>
-              </Frame>
+              <EditBox name="SmartMailDebugFrameText" multiLine="true" enableMouse="false" autoFocus="false">
+                <Size x="400" y="260" />
+                <Scripts>
+                  <OnLoad>
+                    this:SetFontObject("GameFontHighlightSmall")
+                  </OnLoad>
+                </Scripts>
+              </EditBox>
             </ScrollChild>
           </ScrollFrame>
         </Frames>
       </Frame>
+      <Button name="$parentCopyButton" inherits="UIPanelButtonTemplate" text="Copy Text">
+        <Size x="100" y="24" />
+        <Anchors>
+          <Anchor point="BOTTOMLEFT">
+            <Offset x="20" y="20" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailDebugFrameCopyButton clicked")
+            SmartMail_OpenCopyFrame()
+          </OnClick>
+        </Scripts>
+      </Button>
       <Button name="$parentCloseButton" inherits="UIPanelButtonTemplate" text="Close">
         <Size x="100" y="24" />
         <Anchors>
@@ -613,6 +692,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailDebugFrameCloseButton clicked")
             this:GetParent():Hide()
           </OnClick>
         </Scripts>
@@ -628,6 +708,87 @@
       </OnDragStart>
       <OnDragStop>
         this:SetFrameStrata("MEDIUM")
+        this:StopMovingOrSizing()
+      </OnDragStop>
+    </Scripts>
+  </Frame>
+
+  <!-- SmartMail Copy Popup -->
+  <Frame name="SmartMailCopyFrame" toplevel="true" parent="UIParent" movable="true" enableMouse="true" hidden="true">
+    <Size x="450" y="350" />
+    <Anchors>
+      <Anchor point="CENTER">
+        <Offset x="0" y="0" />
+      </Anchor>
+    </Anchors>
+    <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+      <BackgroundInsets left="11" right="12" top="12" bottom="11" />
+      <TileSize val="32" />
+      <EdgeSize val="32" />
+    </Backdrop>
+    <Layers>
+      <Layer level="ARTWORK">
+        <FontString name="$parentTitle" inherits="GameFontNormal" text="Copy Debug Log">
+          <Anchors>
+            <Anchor point="TOP">
+              <Offset x="0" y="-15" />
+            </Anchor>
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+    <Frames>
+      <ScrollFrame name="$parentScrollFrame" inherits="UIPanelScrollFrameTemplate">
+        <Size x="400" y="260" />
+        <Anchors>
+          <Anchor point="TOPLEFT">
+            <Offset x="15" y="-35" />
+          </Anchor>
+        </Anchors>
+        <ScrollChild>
+          <EditBox name="SmartMailCopyFrameText" multiLine="true" autoFocus="true" enableMouse="true">
+            <Size x="390" y="260" />
+            <Anchors>
+              <Anchor point="TOPLEFT">
+                <Offset x="0" y="0" />
+              </Anchor>
+            </Anchors>
+            <Scripts>
+              <OnLoad>
+                this:SetFontObject("GameFontHighlightSmall")
+              </OnLoad>
+              <OnEscapePressed>
+                SmartMail_Debug("Escape pressed in SmartMailCopyFrameText")
+                this:ClearFocus()
+              </OnEscapePressed>
+            </Scripts>
+          </EditBox>
+        </ScrollChild>
+      </ScrollFrame>
+      <Button name="$parentCloseButton" inherits="UIPanelButtonTemplate" text="Close">
+        <Size x="100" y="24" />
+        <Anchors>
+          <Anchor point="BOTTOM">
+            <Offset x="0" y="15" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailCopyFrameCloseButton clicked")
+            this:GetParent():Hide()
+          </OnClick>
+        </Scripts>
+      </Button>
+    </Frames>
+    <Scripts>
+      <OnLoad>
+        this:RegisterForDrag("LeftButton")
+      </OnLoad>
+      <OnDragStart>
+        this:SetFrameStrata("FULLSCREEN_DIALOG")
+        this:StartMoving()
+      </OnDragStart>
+      <OnDragStop>
         this:StopMovingOrSizing()
       </OnDragStop>
     </Scripts>
@@ -674,6 +835,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailOptionsFrameCloseXButton clicked")
             this:GetParent():Hide()
           </OnClick>
         </Scripts>
@@ -697,6 +859,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailOptionsFrameDebugButton clicked")
             if SmartMailDebugFrame:IsVisible() then
               SmartMailDebugFrame:Hide()
             else
@@ -715,6 +878,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailOptionsFrameCloseButton clicked")
             this:GetParent():Hide()
           </OnClick>
         </Scripts>
@@ -798,6 +962,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailConfirmFrameCloseXButton clicked")
             this:GetParent():Hide()
           </OnClick>
         </Scripts>
@@ -859,6 +1024,7 @@
         </Anchors>
         <Scripts>
           <OnClick>
+            SmartMail_Debug("SmartMailConfirmFrameCancelButton clicked")
             this:GetParent():Hide()
           </OnClick>
         </Scripts>

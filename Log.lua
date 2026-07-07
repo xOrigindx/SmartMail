@@ -1,21 +1,16 @@
-function SmartMail_Log(msg)
+SmartMailLogMode = "ALL"
+
+function SmartMail_Log(msg, category)
+    SmartMail_Debug("SmartMail_Log called...")
     local h, m = GetGameTime()
     local timeStr = string.format("%02d:%02d", h, m)
-    local logMsg = "[" .. timeStr .. "] " .. tostring(msg)
+    category = category or "SYSTEM"
     
-    if not SmartMailLog then SmartMailLog = {} end
-    if not SmartMailLog.history then SmartMailLog.history = {} end
-    table.insert(SmartMailLog.history, 1, logMsg)
-    if table.getn(SmartMailLog.history) > 100 then
-        table.remove(SmartMailLog.history)
-    end
+    local entry = { time = timeStr, text = msg, cat = category }
     
     if not SmartMailLog_PerChar then SmartMailLog_PerChar = {} end
     if not SmartMailLog_PerChar.history then SmartMailLog_PerChar.history = {} end
-    table.insert(SmartMailLog_PerChar.history, 1, logMsg)
-    if table.getn(SmartMailLog_PerChar.history) > 100 then
-        table.remove(SmartMailLog_PerChar.history)
-    end
+    table.insert(SmartMailLog_PerChar.history, 1, entry)
     
     if SmartMailLogFrame and SmartMailLogFrame:IsVisible() then
         SmartMail_UpdateLogFrame()
@@ -23,16 +18,71 @@ function SmartMail_Log(msg)
 end
 
 function SmartMail_UpdateLogFrame()
-    if SmartMailLog and SmartMailLog.history then
-        local text = table.concat(SmartMailLog.history, "\n")
+    SmartMail_Debug("SmartMail_UpdateLogFrame called...")
+    if SmartMailLog_PerChar and SmartMailLog_PerChar.history then
+        local lines = {}
+        for _, entry in ipairs(SmartMailLog_PerChar.history) do
+            local cat = "SYSTEM"
+            local time = ""
+            local text = ""
+            if type(entry) == "table" then
+                cat = entry.cat or "SYSTEM"
+                time = entry.time or ""
+                text = entry.text or ""
+            else
+                text = tostring(entry)
+            end
+            
+            if SmartMailLogMode == "ALL" or SmartMailLogMode == cat then
+                local formatted = ""
+                if time ~= "" then formatted = "[" .. time .. "] " end
+                
+                if cat == "INCOMING" then
+                    formatted = "|cff00ff00" .. formatted .. text .. "|r"
+                elseif cat == "OUTGOING" then
+                    formatted = "|cffff0000" .. formatted .. text .. "|r"
+                else
+                    formatted = formatted .. text
+                end
+                
+                table.insert(lines, formatted)
+            end
+        end
+        
+        local fullText = table.concat(lines, "\n")
         if SmartMailLogFrameText then
-            SmartMailLogFrameText:SetText(text)
+            SmartMailLogFrameText:SetText(fullText)
             
             local scrollFrame = SmartMailLogFrameContentFrameScrollFrame
             if scrollFrame then
+                local textHeight = SmartMailLogFrameText:GetHeight()
+                if textHeight < 150 then textHeight = 150 end
+                SmartMailLogFrameContentFrameScrollFrameScrollChild:SetHeight(textHeight)
+                
                 scrollFrame:UpdateScrollChildRect()
                 scrollFrame:SetVerticalScroll(0)
             end
         end
+    end
+end
+
+StaticPopupDialogs["SMARTMAIL_CLEAR_LOG"] = {
+    text = "Are you sure you want to clear the entire mail log?",
+    button1 = "Yes",
+    button2 = "No",
+    OnAccept = function()
+        SmartMail_Debug("OnAccept (Clear Log) called...")
+        SmartMail_ClearLog()
+    end,
+    timeout = 0,
+    whileDead = true,
+    hideOnEscape = true,
+}
+
+function SmartMail_ClearLog()
+    SmartMail_Debug("SmartMail_ClearLog called...")
+    if SmartMailLog_PerChar then SmartMailLog_PerChar.history = {} end
+    if SmartMailLogFrame and SmartMailLogFrame:IsVisible() then
+        SmartMail_UpdateLogFrame()
     end
 end

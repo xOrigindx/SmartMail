@@ -35,46 +35,47 @@ end)
 
 function SmartMail_Debug(msg)
     if SmartMail.debug then
-        local formattedMsg = "|cff00ffff[SmartMail Debug]|r " .. tostring(msg)
+        local formattedMsg = "|cff00ffff[SmartMail]|r " .. tostring(msg)
         DEFAULT_CHAT_FRAME:AddMessage(formattedMsg)
         
-        local h, m = GetGameTime()
-        local timeStr = string.format("%02d:%02d", h, m)
+        local timeStr = date("%H:%M:%S")
         local logMsg = "[" .. timeStr .. "] " .. tostring(msg)
         
         -- Safe initialization of SavedVariable
         if not SmartMailLog then SmartMailLog = {} end
         if not SmartMailLog.debugLog then SmartMailLog.debugLog = {} end
         table.insert(SmartMailLog.debugLog, 1, logMsg)
-        if table.getn(SmartMailLog.debugLog) > 50 then
-            table.remove(SmartMailLog.debugLog)
-        end
         
         -- Backup
         if not SmartMailLog_PerChar then SmartMailLog_PerChar = {} end
         if not SmartMailLog_PerChar.debugLog then SmartMailLog_PerChar.debugLog = {} end
         table.insert(SmartMailLog_PerChar.debugLog, 1, logMsg)
-        if table.getn(SmartMailLog_PerChar.debugLog) > 50 then
-            table.remove(SmartMailLog_PerChar.debugLog)
-        end
         
-        -- Update UI Debug Window
-        if SmartMailDebugFrameText then
-            local currentText = SmartMailDebugFrameText:GetText() or ""
-            if currentText ~= "" then
-                SmartMailDebugFrameText:SetText(logMsg .. "\n" .. currentText)
-            else
-                SmartMailDebugFrameText:SetText(logMsg)
-            end
-            
-            -- Auto scroll up
-            local scrollFrame = SmartMailDebugFrameContentFrameScrollFrame
-            if scrollFrame then
-                scrollFrame:UpdateScrollChildRect()
-                scrollFrame:SetVerticalScroll(0)
+        -- Update UI Debug Window using EditBox SetText for newest-on-top
+        if SmartMailDebugFrame and SmartMailDebugFrame:IsVisible() then
+            if SmartMailDebugFrameText then
+                SmartMailDebugFrameText:SetText(table.concat(SmartMailLog_PerChar.debugLog, "\n"))
             end
         end
     end
+end
+
+function SmartMail_OpenCopyFrame()
+    SmartMail_Debug("SmartMail_OpenCopyFrame called...")
+    if not SmartMailLog_PerChar or not SmartMailLog_PerChar.debugLog then return end
+    
+    local fullText = ""
+    -- The user requested newest logs at the top of the copy text for easier reading.
+    for i = 1, table.getn(SmartMailLog_PerChar.debugLog) do
+        fullText = fullText .. SmartMailLog_PerChar.debugLog[i] .. "\n"
+    end
+    
+    if SmartMailCopyFrameText then
+        SmartMailCopyFrameText:SetText(fullText)
+        SmartMailCopyFrameText:HighlightText()
+    end
+    
+    SmartMailCopyFrame:Show()
 end
 
 -- Slash Command Logic
@@ -85,7 +86,7 @@ SlashCmdList["SMARTMAIL"] = function(msg)
     if msg == "clear" then
         if SmartMailLog then SmartMailLog.debugLog = {} end
         if SmartMailLog_PerChar then SmartMailLog_PerChar.debugLog = {} end
-        if SmartMailDebugFrameText then SmartMailDebugFrameText:SetText("") end
+        if SmartMailDebugFrameText then SmartMailDebugFrameText:Clear() end
         DEFAULT_CHAT_FRAME:AddMessage("SmartMail: Debug logs cleared.")
     elseif msg == "scan" then
         SmartMail_ScanInventory()
@@ -127,6 +128,7 @@ SlashCmdList["SMARTMAIL"] = function(msg)
 end
 
 function SmartMail_ScanInventory()
+    SmartMail_Debug("SmartMail_ScanInventory called...")
     if not SmartMailLog then SmartMailLog = { sessions = {} } end
     if not SmartMailLog.debugScan then SmartMailLog.debugScan = {} end
     
@@ -181,6 +183,26 @@ local originalMainFrameHide = SmartMailMainFrame.Hide
 SmartMailMainFrame.Hide = function(self)
     SmartMail_Debug("SmartMailMainFrame:Hide() called.")
     
+    if SmartMail.forceCloseAll then
+        SmartMail.forceCloseAll = false
+        SmartMail_Debug("Force closing all child frames...")
+        for i = 1, table.getn(SmartMail.openChildFrames) do
+            local child = SmartMail.openChildFrames[i]
+            if child and child:IsVisible() then
+                -- Unhook briefly or just call hide, since hide might pop from stack, we iterate carefully or clear stack
+                -- Actually the OnHide of children will pop them, but let's just clear it.
+                child:Hide()
+            end
+        end
+        SmartMail.openChildFrames = {}
+        
+        SmartMail_Debug("MainFrame closing: Unselected current profile.")
+        SmartMail.selectedProfile = nil
+        SmartMail_UpdateProfileList()
+        originalMainFrameHide(self)
+        return
+    end
+    
     -- Pop frames from the stack until we find one that is visible
     while table.getn(SmartMail.openChildFrames) > 0 do
         local topFrame = SmartMail.openChildFrames[table.getn(SmartMail.openChildFrames)]
@@ -206,22 +228,16 @@ end
 
 -- Populate Debug Window from saved variables when opened
 SmartMailDebugFrame:SetScript("OnShow", function()
+    SmartMail_Debug("SmartMailDebugFrame shown (Lua SetScript)")
     if SmartMailLog and SmartMailLog.debugLog then
-        local text = table.concat(SmartMailLog.debugLog, "\n")
         if SmartMailDebugFrameText then
-            SmartMailDebugFrameText:SetText(text)
-            
-            -- Scroll to top (newest is on top)
-            local scrollFrame = SmartMailDebugFrameContentFrameScrollFrame
-            if scrollFrame then
-                scrollFrame:UpdateScrollChildRect()
-                scrollFrame:SetVerticalScroll(0)
-            end
+            SmartMailDebugFrameText:SetText(table.concat(SmartMailLog_PerChar.debugLog, "\n"))
         end
     end
 end)
 
 SmartMailLogFrame:SetScript("OnShow", function()
+    SmartMail_Debug("SmartMailLogFrame shown (Lua SetScript)")
     if SmartMail_UpdateLogFrame then
         SmartMail_UpdateLogFrame()
     end
@@ -230,6 +246,7 @@ end)
 -- Profile Editor Logic
 local createdCheckboxes = false
 function SmartMail_InitializeProfileCheckboxes()
+    SmartMail_Debug("SmartMail_InitializeProfileCheckboxes called...")
     if createdCheckboxes then return end
     SmartMail_Debug("Initializing Category Checkboxes...")
     
@@ -258,6 +275,7 @@ function SmartMail_InitializeProfileCheckboxes()
 end
 
 function SmartMail_OpenProfileEditor(characterName)
+    SmartMail_Debug("SmartMail_OpenProfileEditor called...")
     SmartMail_Debug("Opening Profile Editor for: " .. tostring(characterName or "NEW"))
     SmartMail_InitializeProfileCheckboxes()
     SmartMail.editingProfileName = characterName
@@ -280,6 +298,7 @@ function SmartMail_OpenProfileEditor(characterName)
 end
 
 function SmartMail_SaveProfile()
+    SmartMail_Debug("SmartMail_SaveProfile called...")
     local charName = SmartMailProfileEditorFrameNameEditBox:GetText()
     SmartMail_Debug("Attempting to save profile for: " .. tostring(charName))
     
@@ -312,6 +331,7 @@ function SmartMail_SaveProfile()
 end
 
 function SmartMail_CommitSaveProfile(charName)
+    SmartMail_Debug("SmartMail_CommitSaveProfile called...")
     if not SmartMailDB then SmartMailDB = { profiles = {} } end
     if not SmartMailDB.profiles then SmartMailDB.profiles = {} end
     
@@ -345,6 +365,7 @@ function SmartMail_CommitSaveProfile(charName)
 end
 
 function SmartMail_DeleteProfile(charName)
+    SmartMail_Debug("SmartMail_DeleteProfile called...")
     if not charName then return end
     
     StaticPopupDialogs["SMARTMAIL_DELETE_PROFILE"] = {
@@ -370,6 +391,7 @@ function SmartMail_DeleteProfile(charName)
 end
 
 function SmartMail_UpdateActionButtons()
+    SmartMail_Debug("SmartMail_UpdateActionButtons called...")
     local isPopupOpen = false
     if SmartMailConfirmFrame and SmartMailConfirmFrame:IsVisible() then isPopupOpen = true end
     if SmartMailProfileEditorFrame and SmartMailProfileEditorFrame:IsVisible() then isPopupOpen = true end
@@ -415,6 +437,7 @@ function SmartMail_UpdateActionButtons()
 end
 
 function SmartMail_UpdateProfileList()
+    SmartMail_Debug("SmartMail_UpdateProfileList called...")
     if not SmartMailDB_PerChar or not SmartMailDB_PerChar.profiles then return end
     
     local scrollChild = SmartMailMainFrameListFrameScrollFrameScrollChild
@@ -462,6 +485,7 @@ function SmartMail_UpdateProfileList()
             line.bg = bg
             
             line:SetScript("OnClick", function()
+                SmartMail_Debug("Profile list line clicked (Lua SetScript)")
                 if SmartMailProfileEditorFrame and SmartMailProfileEditorFrame:IsVisible() then
                     SmartMail_Debug("Blocked profile selection: Editor Window is open.")
                     return
@@ -517,11 +541,13 @@ function SmartMail_UpdateProfileList()
 end
 
 SmartMailMainFrame:SetScript("OnShow", function()
+    SmartMail_Debug("SmartMailMainFrame shown (Lua SetScript)")
     SmartMail_UpdateProfileList()
 end)
 
 -- Wire up Add Button on Main UI
 SmartMailMainFrameAddButton:SetScript("OnClick", function()
+    SmartMail_Debug("SmartMailMainFrameAddButton clicked (Lua SetScript)")
     SmartMail_Debug("Add Button clicked")
     SmartMail_OpenProfileEditor(nil)
 end)
@@ -529,6 +555,7 @@ end)
 
 
 function SmartMail_LoadGlobalProfiles()
+    SmartMail_Debug("SmartMail_LoadGlobalProfiles called...")
     if not SmartMailDB or not SmartMailDB.profiles then
         SmartMail_Debug("No global profiles to load.")
         return
@@ -551,10 +578,12 @@ function SmartMail_LoadGlobalProfiles()
 end
 
 SmartMailOptionsFrameLoadGlobalButton:SetScript("OnClick", function()
+    SmartMail_Debug("SmartMailOptionsFrameLoadGlobalButton clicked (Lua SetScript)")
     SmartMail_LoadGlobalProfiles()
 end)
 
 function SmartMail_SaveItemSetting(profileName, itemID, key, value)
+    SmartMail_Debug("SmartMail_SaveItemSetting called...")
     if not SmartMailDB_PerChar then return end
     if not SmartMailDB_PerChar.profiles[profileName] then return end
     
@@ -566,6 +595,7 @@ function SmartMail_SaveItemSetting(profileName, itemID, key, value)
     end
     
     SmartMailDB_PerChar.profiles[profileName].itemSettings[itemID][key] = value
+    SmartMail_Debug("ConfirmList: Saved item setting (" .. tostring(itemID) .. ") key '" .. tostring(key) .. "' = " .. tostring(value))
 end
 
 function SmartMail_UpdateConfirmList()
@@ -612,6 +642,7 @@ function SmartMail_UpdateConfirmList()
             minusBtn:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-Down")
             minusBtn:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight", "ADD")
             minusBtn:SetScript("OnClick", function()
+                SmartMail_Debug("ConfirmFrame minusBtn clicked (Lua SetScript)")
                 local edit = this:GetParent().fullEdit
                 local maxF = SmartMail.confirmQueue[this:GetParent().index].fullStacks
                 local val = tonumber(edit:GetText())
@@ -682,6 +713,7 @@ function SmartMail_UpdateConfirmList()
             plusBtn:SetPushedTexture("Interface\\Buttons\\UI-PlusButton-Down")
             plusBtn:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight", "ADD")
             plusBtn:SetScript("OnClick", function()
+                SmartMail_Debug("ConfirmFrame plusBtn clicked (Lua SetScript)")
                 local edit = this:GetParent().fullEdit
                 local index = this:GetParent().index
                 local maxF = SmartMail.confirmQueue[index].fullStacks
@@ -710,6 +742,7 @@ function SmartMail_UpdateConfirmList()
             partCheck:SetPoint("LEFT", btn, "LEFT", 329, 0)
             
             partCheck:SetScript("OnClick", function()
+                SmartMail_Debug("ConfirmFrame partCheck clicked (Lua SetScript)")
                 local index = this:GetParent().index
                 local state = this:GetChecked()
                 local itemData = SmartMail.confirmQueue[index]
@@ -720,6 +753,7 @@ function SmartMail_UpdateConfirmList()
             btn.partCheck = partCheck
             
             btn:SetScript("OnClick", function()
+                SmartMail_Debug("ConfirmFrame item btn clicked (Lua SetScript)")
                 local index = this.index
                 local state = this:GetChecked()
                 local itemData = SmartMail.confirmQueue[index]
@@ -782,10 +816,12 @@ function SmartMail_UpdateConfirmList()
 end
 
 SmartMailConfirmFrame:SetScript("OnShow", function()
+    SmartMail_Debug("SmartMailConfirmFrame shown (Lua SetScript)")
     SmartMail_UpdateConfirmList()
 end)
 
 SmartMailConfirmFrameSendButton:SetScript("OnClick", function()
+    SmartMail_Debug("SmartMailConfirmFrameSendButton clicked (Lua SetScript)")
     local flatQueue = SmartMailQueue:FlattenConfirmQueue()
     local totalItems = table.getn(flatQueue)
     if totalItems == 0 then
@@ -804,26 +840,15 @@ SmartMailConfirmFrameSendButton:SetScript("OnClick", function()
     end
 end)
 
-SmartMailDebugFrame:SetScript("OnShow", function()
-    if not SmartMailLog then SmartMailLog = {} end
-    if not SmartMailLog.debugLog then SmartMailLog.debugLog = {} end
-    
-    local fullText = table.concat(SmartMailLog.debugLog, "\n")
-    if SmartMailDebugFrameText then
-        SmartMailDebugFrameText:SetText(fullText)
-        local scrollFrame = SmartMailDebugFrameContentFrameScrollFrame
-        if scrollFrame then
-            scrollFrame:UpdateScrollChildRect()
-            scrollFrame:SetVerticalScroll(0)
-        end
-    end
-end)
+
 
 -- Hook all child frames to stack logic at the very end to avoid SetScript overwrites
 function SmartMail_HookFrameStack(frame)
+    SmartMail_Debug("SmartMail_HookFrameStack called...")
     if not frame then return end
     local oldShow = frame:GetScript("OnShow")
     frame:SetScript("OnShow", function()
+        SmartMail_Debug((frame:GetName() or "UnknownFrame") .. " shown (HookFrameStack)")
         for i, f in ipairs(SmartMail.openChildFrames) do
             if f == frame then tremove(SmartMail.openChildFrames, i) break end
         end
@@ -834,6 +859,7 @@ function SmartMail_HookFrameStack(frame)
     
     local oldHide = frame:GetScript("OnHide")
     frame:SetScript("OnHide", function()
+        SmartMail_Debug((frame:GetName() or "UnknownFrame") .. " hidden (HookFrameStack)")
         for i, f in ipairs(SmartMail.openChildFrames) do
             if f == frame then tremove(SmartMail.openChildFrames, i) break end
         end
@@ -869,6 +895,7 @@ SmartMail_HookFrameStack(SmartMailCustomSendFrame)
 
 SmartMail.sendAllProfilesQueue = {}
 function SmartMail_SendAll(mode)
+    SmartMail_Debug("SmartMail_SendAll called...")
     if SmartMail.isBusy then return end
     
     -- Gather flat queues for every single profile

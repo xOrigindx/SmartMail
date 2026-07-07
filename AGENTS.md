@@ -1,4 +1,7 @@
 # Workspace Rules
+**STRICTLY ENFORCED** Do NOT tell the user to type `/rl`, `/reload`, or any variation of it. Never mention it.
+**STRICTLY ENFORCED** Do NOT push any code to GitHub (`git push`) unless the user explicitly asks for it. Always keep commits local unless instructed otherwise.
+
 
 - **Do Not Modify the Libs Folder**: The `Libs/` directory contains external libraries. Do not edit, delete, or create files inside `Libs/` under any circumstances.
 - **Load Agent Directives**: Always check the `.agents/MEMORY.md` file first upon loading. If there is no specific directive in it, check all `.md` files in the `.agents/` folder.

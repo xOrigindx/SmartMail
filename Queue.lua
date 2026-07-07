@@ -1,6 +1,7 @@
 SmartMailQueue = {}
 
 function SmartMailQueue:BuildQueueForProfile(charName)
+    SmartMail_Debug("SmartMailQueue:BuildQueueForProfile called...")
     SmartMail_Debug("SmartMailQueue: Building queue for profile '" .. tostring(charName) .. "'")
     local profile = nil
     if SmartMailDB_PerChar and SmartMailDB_PerChar.profiles then
@@ -100,6 +101,7 @@ function SmartMailQueue:BuildQueueForProfile(charName)
 end
 
 function SmartMailQueue:FlattenConfirmQueue(mode)
+    SmartMail_Debug("SmartMailQueue:FlattenConfirmQueue called...")
     local flatQueue = {}
     if not SmartMail.confirmQueue then return flatQueue end
     
@@ -124,6 +126,8 @@ function SmartMailQueue:FlattenConfirmQueue(mode)
                         slot = slotInfo.slot,
                         itemID = itemData.itemID,
                         count = slotInfo.count,
+                        amount = slotInfo.count,
+                        name = itemData.itemName,
                         category = itemData.category
                     })
                     fNeeded = fNeeded - 1
@@ -134,6 +138,8 @@ function SmartMailQueue:FlattenConfirmQueue(mode)
                         slot = slotInfo.slot,
                         itemID = itemData.itemID,
                         count = slotInfo.count,
+                        amount = slotInfo.count,
+                        name = itemData.itemName,
                         category = itemData.category
                     })
                     pNeeded = pNeeded - 1
@@ -149,6 +155,7 @@ function SmartMailQueue:FlattenConfirmQueue(mode)
 end
 
 function SmartMailQueue:GenerateDirectFlatQueue(charName, mode)
+    SmartMail_Debug("SmartMailQueue:GenerateDirectFlatQueue called...")
     -- Backup existing confirmQueue
     local oldQueue = SmartMail.confirmQueue
     

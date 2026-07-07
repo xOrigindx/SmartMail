@@ -7,6 +7,7 @@ local scannerTooltip = CreateFrame("GameTooltip", "SmartMailScannerTooltip", nil
 scannerTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
 
 function SmartMailCustom:IsItemSoulbound(bag, slot)
+    SmartMail_Debug("SmartMailCustom:IsItemSoulbound called...")
     scannerTooltip:ClearLines()
     scannerTooltip:SetBagItem(bag, slot)
     for i = 1, scannerTooltip:NumLines() do
@@ -22,6 +23,7 @@ function SmartMailCustom:IsItemSoulbound(bag, slot)
 end
 
 function SmartMailCustom:ScanInventory()
+    SmartMail_Debug("SmartMailCustom:ScanInventory called...")
     self.items = {}
     local temp = {}
     local categories = Bridge:GetAllCategoryItems()
@@ -154,6 +156,7 @@ function SmartMailCustom:ScanInventory()
 end
 
 function SmartMailCustom:BuildQueue()
+    SmartMail_Debug("SmartMailCustom:BuildQueue called...")
     local queue = {}
     for _, itemData in ipairs(self.items) do
         if itemData.amountToSend > 0 then
@@ -170,6 +173,7 @@ function SmartMailCustom:BuildQueue()
                     itemID = itemData.itemID,
                     count = slotInfo.count,
                     amount = take,
+                    name = itemData.itemName,
                     category = "Custom"
                 })
                 
@@ -177,10 +181,22 @@ function SmartMailCustom:BuildQueue()
             end
         end
     end
+    
+    local copper = SmartMailCustom.moneyToSend or 0
+    if copper > 0 then
+        table.insert(queue, {
+            isMoney = true,
+            name = "MONEY",
+            amount = copper,
+            count = copper
+        })
+    end
+    
     return queue
 end
 
 function SmartMailCustom:Send()
+    SmartMail_Debug("SmartMailCustom:Send called...")
     if not self.selectedRecipient or self.selectedRecipient == "" then
         SmartMail_Debug("CustomSend: No recipient specified.")
         return
@@ -199,6 +215,10 @@ function SmartMailCustom:Send()
         for _, itemData in ipairs(SmartMailCustom.items or {}) do
             itemData.amountToSend = 0
         end
+        if SmartMailCustomMoneyInput then
+            MoneyInputFrame_SetCopper(SmartMailCustomMoneyInput, 0)
+        end
+        SmartMailCustom.moneyToSend = 0
         if SmartMail_UpdateCustomCartList then
             SmartMail_UpdateCustomCartList()
         end
@@ -209,6 +229,7 @@ function SmartMailCustom:Send()
 end
 
 function SmartMail_UpdateCustomList()
+    SmartMail_Debug("SmartMail_UpdateCustomList called...")
     local scrollChild = getglobal("SmartMailCustomSendFrameListFrameScrollFrameScrollChild")
     if not scrollChild then return end
     
@@ -218,7 +239,7 @@ function SmartMail_UpdateCustomList()
         child:Hide()
     end
     
-    local yOffset = 0
+    local yOffset = 5
     for i, itemDataTemp in ipairs(SmartMailCustom.items) do
         local itemData = itemDataTemp
         local rowName = "SmartMailCustomItemRow" .. i
@@ -227,6 +248,8 @@ function SmartMail_UpdateCustomList()
             row = CreateFrame("Button", rowName, scrollChild)
             row:SetWidth(240)
             row:SetHeight(32)
+            
+            row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
             
             local icon = row:CreateTexture(rowName .. "Icon", "ARTWORK")
             icon:SetWidth(24)
@@ -247,17 +270,40 @@ function SmartMail_UpdateCustomList()
             
             row:SetScript("OnClick", function()
                 local itemData = SmartMailCustom.items[this:GetID()]
-                if IsShiftKeyDown() then
+                if not itemData.amountToSend then itemData.amountToSend = 0 end
+                
+                if arg1 == "RightButton" then
+                    if IsShiftKeyDown() then
+                        local _, _, _, _, _, _, maxStack = GetItemInfo(itemData.itemID)
+                        maxStack = tonumber(maxStack) or 20
+                        if maxStack < 1 then maxStack = 20 end
+                        itemData.amountToSend = itemData.amountToSend - maxStack
+                        if itemData.amountToSend < 0 then itemData.amountToSend = 0 end
+                        SmartMail_Debug("CustomList: Shift+Right-Click removed stack of " .. itemData.itemName .. ". New amount: " .. itemData.amountToSend)
+                    else
+                        itemData.amountToSend = itemData.amountToSend - 1
+                        if itemData.amountToSend < 0 then itemData.amountToSend = 0 end
+                        SmartMail_Debug("CustomList: Right-Click removed 1 " .. itemData.itemName .. ". New amount: " .. itemData.amountToSend)
+                    end
+                elseif IsControlKeyDown() then
                     SmartMailCustomAmountFrame.mode = "add"
                     if SmartMailCustomAmountTitle then SmartMailCustomAmountTitle:SetText("Enter Amount") end
                     SmartMailCustomAmountFrame.itemData = itemData
                     SmartMailCustomAmountFrame:Show()
+                elseif IsShiftKeyDown() then
+                    local _, _, _, _, _, _, maxStack = GetItemInfo(itemData.itemID)
+                    maxStack = tonumber(maxStack) or 20
+                    if maxStack < 1 then maxStack = 20 end
+                    itemData.amountToSend = itemData.amountToSend + maxStack
+                    if itemData.amountToSend > itemData.totalCount then itemData.amountToSend = itemData.totalCount end
+                    SmartMail_Debug("CustomList: Shift+Left-Click added max stack of " .. itemData.itemName .. ". New amount: " .. itemData.amountToSend)
                 else
-                    if not itemData.amountToSend then itemData.amountToSend = 0 end
                     itemData.amountToSend = itemData.amountToSend + 1
                     if itemData.amountToSend > itemData.totalCount then itemData.amountToSend = itemData.totalCount end
+                    SmartMail_Debug("CustomList: Left-Click added 1 " .. itemData.itemName .. ". New amount: " .. itemData.amountToSend)
                 end
-                SmartMail_UpdateCustomCartList()
+                
+                if SmartMail_UpdateCustomCartList then SmartMail_UpdateCustomCartList() end
                 SmartMail_UpdateCustomList()
             end)
         end
@@ -287,7 +333,13 @@ StaticPopupDialogs["SMARTMAIL_CUSTOM_ADD_RECIPIENT"] = {
         if text and text ~= "" then
             if not SmartMailDB_PerChar then SmartMailDB_PerChar = {} end
             if not SmartMailDB_PerChar.customRecipients then SmartMailDB_PerChar.customRecipients = {} end
-            table.insert(SmartMailDB_PerChar.customRecipients, text)
+            local exists = false
+            for _, r in ipairs(SmartMailDB_PerChar.customRecipients) do
+                if r == text then exists = true; break end
+            end
+            if not exists then
+                table.insert(SmartMailDB_PerChar.customRecipients, text)
+            end
             SmartMailCustom.selectedRecipient = text
             if SmartMailValidator_Validate then SmartMailValidator_Validate(text) end
             if SmartMail_UpdateCustomRecipientList then
@@ -368,7 +420,7 @@ closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -5, -5)
 
 local listFrame = CreateFrame("Frame", "SmartMailCustomSendFrameListFrame", frame)
 listFrame:SetWidth(280)
-listFrame:SetHeight(320)
+listFrame:SetHeight(280)
 listFrame:SetPoint("TOP", frame, "TOP", 0, -40)
 listFrame:SetBackdrop({
     bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
@@ -379,13 +431,44 @@ listFrame:SetBackdrop({
 listFrame:SetBackdropColor(0, 0, 0, 0.6)
 
 local scrollFrame = CreateFrame("ScrollFrame", "SmartMailCustomSendFrameListFrameScrollFrame", listFrame, "UIPanelScrollFrameTemplate")
-scrollFrame:SetPoint("TOPLEFT", listFrame, "TOPLEFT", 4, -4)
-scrollFrame:SetPoint("BOTTOMRIGHT", listFrame, "BOTTOMRIGHT", -26, 4)
+scrollFrame:SetPoint("TOPLEFT", listFrame, "TOPLEFT", 8, -8)
+scrollFrame:SetPoint("BOTTOMRIGHT", listFrame, "BOTTOMRIGHT", -28, 8)
 
 local scrollChild = CreateFrame("Frame", "SmartMailCustomSendFrameListFrameScrollFrameScrollChild", scrollFrame)
 scrollChild:SetWidth(250)
-scrollChild:SetHeight(280)
+scrollChild:SetHeight(260)
 scrollFrame:SetScrollChild(scrollChild)
+
+local moneyInput = CreateFrame("Frame", "SmartMailCustomMoneyInput", frame, "MoneyInputFrameTemplate")
+moneyInput:SetPoint("TOP", listFrame, "BOTTOM", 10, -5)
+MoneyInputFrame_SetCopper(moneyInput, 0)
+
+local gBox = getglobal("SmartMailCustomMoneyInputGold")
+local sBox = getglobal("SmartMailCustomMoneyInputSilver")
+local cBox = getglobal("SmartMailCustomMoneyInputCopper")
+
+if gBox then gBox:SetWidth(35) end
+if sBox then sBox:SetWidth(35) end
+if cBox then cBox:SetWidth(35) end
+
+local addMoneyBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+addMoneyBtn:SetWidth(40)
+addMoneyBtn:SetHeight(20)
+if cBox then
+    addMoneyBtn:SetPoint("LEFT", cBox, "RIGHT", 5, 0)
+else
+    addMoneyBtn:SetPoint("LEFT", moneyInput, "RIGHT", 5, 0)
+end
+addMoneyBtn:SetText("Add")
+addMoneyBtn:SetScript("OnClick", function()
+    local copper = MoneyInputFrame_GetCopper(moneyInput)
+    if copper > 0 then
+        SmartMailCustom.moneyToSend = (SmartMailCustom.moneyToSend or 0) + copper
+        SmartMail_Debug("CustomSend: Added " .. copper .. " copper to cart. Total money queued: " .. SmartMailCustom.moneyToSend)
+        MoneyInputFrame_SetCopper(moneyInput, 0)
+        if SmartMail_UpdateCustomCartList then SmartMail_UpdateCustomCartList() end
+    end
+end)
 
 local sendBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 sendBtn:SetWidth(100)
@@ -408,6 +491,7 @@ end)
 frame:SetScript("OnShow", function()
     SmartMailCustom:ScanInventory()
     for _, item in ipairs(SmartMailCustom.items) do item.amountToSend = 0 end
+    SmartMailCustom.moneyToSend = 0
     SmartMail_UpdateCustomList()
     SmartMail_UpdateCustomCartList()
     if SmartMail_UpdateCustomRecipientList then
@@ -448,10 +532,13 @@ amtEdit:SetScript("OnEnterPressed", function()
         local val = tonumber(this:GetText()) or 0
         if amtFrame.mode == "remove" then
             val = amtFrame.itemData.amountToSend - val
-            if val < 0 then val = 0 end
+        else
+            val = amtFrame.itemData.amountToSend + val
         end
+        if val < 0 then val = 0 end
         if val > amtFrame.itemData.totalCount then val = amtFrame.itemData.totalCount end
         amtFrame.itemData.amountToSend = val
+        SmartMail_Debug("CustomSend Popup: Set " .. amtFrame.itemData.itemName .. " amount to " .. val)
         SmartMail_UpdateCustomCartList()
         SmartMail_UpdateCustomList()
     end
@@ -467,8 +554,10 @@ amtMaxBtn:SetScript("OnClick", function()
     if amtFrame.itemData then
         if amtFrame.mode == "remove" then
             amtFrame.itemData.amountToSend = 0
+            SmartMail_Debug("CustomSend Popup: Set " .. amtFrame.itemData.itemName .. " amount to 0 via Max")
         else
             amtFrame.itemData.amountToSend = amtFrame.itemData.totalCount
+            SmartMail_Debug("CustomSend Popup: Set " .. amtFrame.itemData.itemName .. " amount to max (" .. amtFrame.itemData.totalCount .. ")")
         end
         SmartMail_UpdateCustomCartList()
         SmartMail_UpdateCustomList()
@@ -486,10 +575,13 @@ amtOkBtn:SetScript("OnClick", function()
         local val = tonumber(amtEdit:GetText()) or 0
         if amtFrame.mode == "remove" then
             val = amtFrame.itemData.amountToSend - val
-            if val < 0 then val = 0 end
+        else
+            val = amtFrame.itemData.amountToSend + val
         end
+        if val < 0 then val = 0 end
         if val > amtFrame.itemData.totalCount then val = amtFrame.itemData.totalCount end
         amtFrame.itemData.amountToSend = val
+        SmartMail_Debug("CustomSend Popup: Set " .. amtFrame.itemData.itemName .. " amount to " .. val)
         SmartMail_UpdateCustomCartList()
         SmartMail_UpdateCustomList()
     end
@@ -576,6 +668,7 @@ SmartMailValidator:SetScript("OnEvent", function()
 end)
 
 function SmartMailValidator_Validate(name)
+    SmartMail_Debug("SmartMailValidator_Validate called...")
     if not SmartMailDB_PerChar then SmartMailDB_PerChar = {} end
     if not SmartMailDB_PerChar.validatedRecipients then SmartMailDB_PerChar.validatedRecipients = {} end
     if SmartMailDB_PerChar.validatedRecipients[name] == true then return end
@@ -616,7 +709,7 @@ sideTitle:SetText("Recipient List")
 local sideAddBtn = CreateFrame("Button", nil, sidePanel, "UIPanelButtonTemplate")
 sideAddBtn:SetWidth(56)
 sideAddBtn:SetHeight(24)
-sideAddBtn:SetPoint("TOPLEFT", sidePanel, "TOPLEFT", 14, -40)
+sideAddBtn:SetPoint("TOPLEFT", sidePanel, "TOPLEFT", 34, -40)
 sideAddBtn:SetText("Add")
 sideAddBtn:SetScript("OnClick", function()
     StaticPopup_Show("SMARTMAIL_CUSTOM_ADD_RECIPIENT")
@@ -625,27 +718,35 @@ end)
 local histDropdown = CreateFrame("Frame", "SmartMailRecipientHistoryDropdown", sidePanel, "UIDropDownMenuTemplate")
 histDropdown:Hide()
 
+function SmartMailRecipientHistoryDropdown_OnClick()
+    SmartMail_Debug("SmartMailRecipientHistoryDropdown_OnClick called...")
+    local name = this.value
+    if name then
+        if not SmartMailDB_PerChar.customRecipients then SmartMailDB_PerChar.customRecipients = {} end
+        local exists = false
+        for _, r in ipairs(SmartMailDB_PerChar.customRecipients) do
+            if r == name then exists = true; break end
+        end
+        if not exists then
+            table.insert(SmartMailDB_PerChar.customRecipients, name)
+        end
+        SmartMailCustom.selectedRecipient = name
+        SmartMail_UpdateCustomRecipientList()
+    end
+end
+
 function SmartMailRecipientHistoryDropdown_Initialize()
+    SmartMail_Debug("SmartMailRecipientHistoryDropdown_Initialize called...")
     local added = false
     for name, status in pairs(SmartMailDB_PerChar.validatedRecipients or {}) do
         if status == true then
-            local exists = false
-            for _, r in ipairs(SmartMailDB_PerChar.customRecipients or {}) do
-                if r == name then exists = true; break end
-            end
-            if not exists then
-                local info = {}
-                info.text = name
-                info.func = function()
-                    if not SmartMailDB_PerChar.customRecipients then SmartMailDB_PerChar.customRecipients = {} end
-                    table.insert(SmartMailDB_PerChar.customRecipients, name)
-                    SmartMailCustom.selectedRecipient = name
-                    SmartMail_UpdateCustomRecipientList()
-                end
-                info.notCheckable = 1
-                UIDropDownMenu_AddButton(info)
-                added = true
-            end
+            local info = {}
+            info.text = name
+            info.value = name
+            info.func = SmartMailRecipientHistoryDropdown_OnClick
+            info.notCheckable = 1
+            UIDropDownMenu_AddButton(info)
+            added = true
         end
     end
     
@@ -699,8 +800,8 @@ sideListFrame:SetBackdrop({
 sideListFrame:SetBackdropColor(0, 0, 0, 1)
 
 local sideScrollFrame = CreateFrame("ScrollFrame", "SmartMailCustomRecipientScrollFrame", sideListFrame, "UIPanelScrollFrameTemplate")
-sideScrollFrame:SetPoint("TOPLEFT", sideListFrame, "TOPLEFT", 4, -4)
-sideScrollFrame:SetPoint("BOTTOMRIGHT", sideListFrame, "BOTTOMRIGHT", -26, 4)
+sideScrollFrame:SetPoint("TOPLEFT", sideListFrame, "TOPLEFT", 8, -8)
+sideScrollFrame:SetPoint("BOTTOMRIGHT", sideListFrame, "BOTTOMRIGHT", -28, 8)
 
 local sideScrollChild = CreateFrame("Frame", "SmartMailCustomRecipientScrollChild", sideScrollFrame)
 sideScrollChild:SetWidth(170)
@@ -724,8 +825,8 @@ customListFrame:SetBackdrop({
 customListFrame:SetBackdropColor(0, 0, 0, 1)
 
 local customListScrollFrame = CreateFrame("ScrollFrame", "SmartMailCustomListSideScrollFrame", customListFrame, "UIPanelScrollFrameTemplate")
-customListScrollFrame:SetPoint("TOPLEFT", customListFrame, "TOPLEFT", 4, -4)
-customListScrollFrame:SetPoint("BOTTOMRIGHT", customListFrame, "BOTTOMRIGHT", -26, 4)
+customListScrollFrame:SetPoint("TOPLEFT", customListFrame, "TOPLEFT", 8, -8)
+customListScrollFrame:SetPoint("BOTTOMRIGHT", customListFrame, "BOTTOMRIGHT", -28, 8)
 
 local customListScrollChild = CreateFrame("Frame", "SmartMailCustomListSideScrollChild", customListScrollFrame)
 customListScrollChild:SetWidth(170)
@@ -735,10 +836,21 @@ customListScrollFrame:SetScrollChild(customListScrollChild)
 function SmartMail_UpdateCustomRecipientList()
     if not SmartMailDB_PerChar then SmartMailDB_PerChar = {} end
     if not SmartMailDB_PerChar.customRecipients then SmartMailDB_PerChar.customRecipients = {} end
+    
+    local seen = {}
+    local cleaned = {}
+    for _, recip in ipairs(SmartMailDB_PerChar.customRecipients) do
+        if not seen[recip] then
+            seen[recip] = true
+            table.insert(cleaned, recip)
+        end
+    end
+    SmartMailDB_PerChar.customRecipients = cleaned
+    
     local children = {sideScrollChild:GetChildren()}
     for _, child in ipairs(children) do child:Hide() end
     
-    local yOffset = 0
+    local yOffset = 5
     for i, recip in ipairs(SmartMailDB_PerChar.customRecipients) do
         local rowName = "SmartMailCustomRecipRow" .. i
         local row = getglobal(rowName)
@@ -793,7 +905,11 @@ function SmartMail_UpdateCustomRecipientList()
                     DEFAULT_CHAT_FRAME:AddMessage("SmartMail: You must be at a mailbox to validate this recipient.")
                 end
             else
-                SmartMailCustom.selectedRecipient = currentRecip
+                if SmartMailCustom.selectedRecipient == currentRecip then
+                    SmartMailCustom.selectedRecipient = nil
+                else
+                    SmartMailCustom.selectedRecipient = currentRecip
+                end
             end
             SmartMail_UpdateCustomRecipientList()
         end)
@@ -807,8 +923,52 @@ function SmartMail_UpdateCustomCartList()
     local children = {customListScrollChild:GetChildren()}
     for _, child in ipairs(children) do child:Hide() end
     
-    local yOffset = 0
+    local yOffset = 5
     local cartIndex = 1
+    
+    local copper = SmartMailCustom.moneyToSend or 0
+    if copper > 0 then
+        local rowName = "SmartMailCustomCartRow" .. cartIndex
+        local row = getglobal(rowName)
+        if not row then
+            row = CreateFrame("Button", rowName, customListScrollChild)
+            row:SetWidth(170)
+            row:SetHeight(20)
+            
+            local text = row:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+            text:SetPoint("LEFT", row, "LEFT", 5, 0)
+            text:SetWidth(160)
+            text:SetJustifyH("LEFT")
+            row.text = text
+            
+            local highlight = row:CreateTexture(nil, "HIGHLIGHT")
+            highlight:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+            highlight:SetBlendMode("ADD")
+            highlight:SetAllPoints(row)
+        end
+        
+        local g = math.floor(copper / 10000)
+        local s = math.floor(math.mod(copper, 10000) / 100)
+        local c = math.mod(copper, 100)
+        local mStr = ""
+        if g > 0 then mStr = mStr .. g .. "g " end
+        if s > 0 then mStr = mStr .. s .. "s " end
+        if c > 0 or mStr == "" then mStr = mStr .. c .. "c" end
+        mStr = string.gsub(mStr, " $", "")
+        
+        row.text:SetText("|cFFFFFF00Funds:|r " .. mStr)
+        row:SetScript("OnClick", function()
+            SmartMail_Debug("CustomCart: Removed all money from cart.")
+            SmartMailCustom.moneyToSend = 0
+            if SmartMail_UpdateCustomCartList then SmartMail_UpdateCustomCartList() end
+        end)
+        
+        row:SetPoint("TOPLEFT", customListScrollChild, "TOPLEFT", 0, -yOffset)
+        row:Show()
+        yOffset = yOffset + 20
+        cartIndex = cartIndex + 1
+    end
+    
     for _, itemData in ipairs(SmartMailCustom.items or {}) do
         if itemData.amountToSend and itemData.amountToSend > 0 then
             local rowName = "SmartMailCustomCartRow" .. cartIndex
@@ -841,6 +1001,8 @@ function SmartMail_UpdateCustomCartList()
                     SmartMailCustomAmountFrame:Show()
                 else
                     dataRef.amountToSend = dataRef.amountToSend - 1
+                    if dataRef.amountToSend < 0 then dataRef.amountToSend = 0 end
+                    SmartMail_Debug("CustomCart: Left-Click removed 1 " .. dataRef.itemName .. " from cart. New amount: " .. dataRef.amountToSend)
                 end
                 SmartMail_UpdateCustomCartList()
                 SmartMail_UpdateCustomList()

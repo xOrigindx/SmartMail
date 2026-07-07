@@ -10,4 +10,6 @@ Do not read the rest of the `.md` files in `.agents/` unless specifically direct
 - Always include `SmartMail_Debug()` statements for all new logic.
 - UI Style: Symmetrical buttons, main frame close via `ESC`, child frames LIFO close, unselect profile on background click.
 - Memory Persistence: Ensure `MAX` text values vs numeric values are distinctly respected across sessions.
-- Screenshots: When asked to view an image or "check last image", first run a Python script via `run_command` to convert `.tga` files in `C:\World of Warcraft - 1.12.1 - Microbot\Screenshots` to `.jpg` and delete the `.tga` files. Then list the directory and use `view_file` on the most recent `WoWScrnShot_MMDDYY_HHMMSS.jpg` filename.
+- Screenshots: When the user says "check image" or "check last image", it ALWAYS refers to the newest `.tga` file in `C:\World of Warcraft - 1.12.1 - Microbot\Screenshots\`. You MUST immediately run a Python script via `run_command` to convert that newest `.tga` file to `.jpg`, DELETE the original `.tga` file, and then use `view_file` on the resulting `.jpg` to inspect it.
+- STRICTLY ENFORCED: Do NOT push any code to GitHub (`git push`) unless the user explicitly asks for it. Always keep commits local unless instructed otherwise.
+- USER COMMUNICATION: The user uses CAPITAL letters to indicate IMPORTANT information. When reading user requests, treat any fully capitalized words as critical priority details that dictate exact behavior.

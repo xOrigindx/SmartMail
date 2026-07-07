@@ -10,6 +10,7 @@ inboxFrame:RegisterEvent("UI_ERROR_MESSAGE")
 local openAllButton = nil
 
 local function CreateOpenAllButton()
+    SmartMail_Debug("CreateOpenAllButton called...")
     if openAllButton then return end
     if not InboxFrame then return end
     
@@ -20,6 +21,7 @@ local function CreateOpenAllButton()
     openAllButton:SetText("Open All")
     
     openAllButton:SetScript("OnClick", function()
+        SmartMail_Debug("SmartMailOpenAllButton clicked (Lua SetScript)")
         if SmartMailInbox.isOpenAllRunning then
             SmartMailInbox:Abort()
         else
@@ -29,6 +31,7 @@ local function CreateOpenAllButton()
 end
 
 function SmartMailInbox:Start()
+    SmartMail_Debug("SmartMailInbox:Start called...")
     if not InboxFrame or not InboxFrame:IsVisible() then return end
     
     SmartMail_Debug("Inbox: Starting Open All...")
@@ -43,6 +46,7 @@ function SmartMailInbox:Start()
 end
 
 function SmartMailInbox:Abort()
+    SmartMail_Debug("SmartMailInbox:Abort called...")
     SmartMail_Debug("Inbox: Open All stopped.")
     self.isOpenAllRunning = false
     if openAllButton then
@@ -67,6 +71,9 @@ end)
 
 inboxFrame:SetScript("OnEvent", function()
     if event == "MAIL_INBOX_UPDATE" then
+        if GetInboxNumItems() == 0 then
+            MiniMapMailFrame:Hide()
+        end
         if SmartMailInbox.isOpenAllRunning then
             waitTime = 0
             waitingForUpdate = true
@@ -87,33 +94,60 @@ inboxFrame:SetScript("OnEvent", function()
 end)
 
 function SmartMailInbox:ProcessNext()
+    SmartMail_Debug("SmartMailInbox:ProcessNext called...")
     local numItems = GetInboxNumItems()
-    if self.currentIndex > numItems then 
-        self.currentIndex = numItems 
+    if numItems == 0 then
+        MiniMapMailFrame:Hide()
+        SmartMail_Debug("Inbox: Open All complete.")
+        self:Abort()
+        return
     end
-    
-    while self.currentIndex >= 1 do
-        local _, _, _, _, money, CODAmount, _, hasItem, _, _, _, _, isGM = GetInboxHeaderInfo(self.currentIndex)
-        
-        if CODAmount > 0 or isGM then
-            SmartMail_Debug("Inbox: Skipping mail at index " .. self.currentIndex .. " (COD or GM)")
-            self.currentIndex = self.currentIndex - 1
-        else
-            SmartMail_Debug("Inbox: Processing mail at index " .. self.currentIndex)
-            
-            if money > 0 then TakeInboxMoney(self.currentIndex) end
-            if hasItem then TakeInboxItem(self.currentIndex) end
-            DeleteInboxItem(self.currentIndex)
-            
-            self.currentIndex = self.currentIndex - 1
-            
-            -- Wait for MAIL_INBOX_UPDATE
-            return 
+
+    local processableIndex = nil
+    for i = 1, numItems do
+        local _, _, _, _, _, CODAmount, _, _, _, _, _, _, isGM = GetInboxHeaderInfo(i)
+        if CODAmount == 0 and not isGM then
+            processableIndex = i
+            break
         end
     end
-    
-    SmartMail_Debug("Inbox: Open All complete.")
-    self:Abort()
+
+    if not processableIndex then
+        SmartMail_Debug("Inbox: Open All complete. (Remaining mails are COD/GM)")
+        self:Abort()
+        return
+    end
+
+    local _, _, sender, _, money, _, _, hasItem = GetInboxHeaderInfo(processableIndex)
+
+    GetInboxText(processableIndex) -- Force server to mark as read
+
+    if money > 0 then
+        SmartMail_Debug("Inbox: Taking money at index " .. processableIndex)
+        local g = math.floor(money / 10000)
+        local s = math.floor(math.mod(money, 10000) / 100)
+        local c = math.mod(money, 100)
+        local mStr = ""
+        if g > 0 then mStr = mStr .. g .. "g " end
+        if s > 0 then mStr = mStr .. s .. "s " end
+        if c > 0 or mStr == "" then mStr = mStr .. c .. "c" end
+        mStr = string.gsub(mStr, " $", "")
+        if SmartMail_Log then SmartMail_Log("Received " .. mStr .. " from " .. (sender or "Unknown"), "INCOMING") end
+        
+        TakeInboxMoney(processableIndex)
+        return
+    elseif hasItem then
+        SmartMail_Debug("Inbox: Taking item at index " .. processableIndex)
+        local itemName, _, count = GetInboxItem(processableIndex)
+        if SmartMail_Log then SmartMail_Log("Received " .. (count or 1) .. " " .. (itemName or "Unknown Item") .. " from " .. (sender or "Unknown"), "INCOMING") end
+        
+        TakeInboxItem(processableIndex)
+        return
+    else
+        SmartMail_Debug("Inbox: Deleting empty mail at index " .. processableIndex)
+        DeleteInboxItem(processableIndex)
+        return
+    end
 end
 
 -- Hook into MAIL_SHOW to create the button
