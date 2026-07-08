@@ -1,0 +1,10 @@
+
+VoiceOverDB = {
+	["profileKeys"] = {
+		["Ewwor - Microbot Vanilla"] = "Ewwor - Microbot Vanilla",
+	},
+	["profiles"] = {
+		["Ewwor - Microbot Vanilla"] = {
+		},
+	},
+}

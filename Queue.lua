@@ -106,7 +106,12 @@ function SmartMailQueue:FlattenConfirmQueue(mode)
     if not SmartMail.confirmQueue then return flatQueue end
     
     for _, itemData in ipairs(SmartMail.confirmQueue) do
-        if itemData.selected == 1 then
+        local isSelected = (itemData.selected == 1)
+        if mode == "ALL" or mode == "FULL" then
+            isSelected = true
+        end
+        
+        if isSelected then
             local fNeeded = itemData.sendFull or 0
             local pNeeded = itemData.sendPart or 0
             

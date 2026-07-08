@@ -1,0 +1,54 @@
+
+SM_VARS = {
+	["windowHeight"] = 600,
+	["monoFont"] = 0,
+	["macroTip1"] = 1,
+	["printColor"] = {
+		["r"] = 1,
+		["g"] = 1,
+		["b"] = 1,
+	},
+	["showMenu"] = 1,
+	["minimap"] = 1,
+	["windowWidth"] = 800,
+	["checkCooldown"] = 1,
+	["hideAction"] = 0,
+	["editBoxFontSize"] = 12,
+	["replaceIcon"] = 1,
+	["wordWrap"] = 0,
+	["tabShown"] = "regular",
+	["macroTip2"] = 0,
+}
+SM_EXTEND = {
+}
+SM_ACTION_SUPER = {
+	["Ewwor of Microbot Vanilla"] = {
+	},
+}
+SM_SUPER = {
+	["SmartTarget"] = {
+		[1] = "SmartTarget",
+		[2] = "Interface\\Icons\\Ability_CheapShot",
+		[3] = "/script ----[[\n\nlocal u = \"target\"\n\n\n\nif (not UnitAffectingCombat(\"player\") or not UnitExists(u) or UnitIsFriend(\"player\", u) or UnitIsDead(u)) and UnitExists(\"mouseover\") and not UnitIsFriend(\"player\", \"mouseover\") and not UnitIsDead(\"mouseover\") then\n\n    u = \"mouseover\"\n\nend\n\n\n\nif IsControlKeyDown() then\n\n    if GetRaidTargetIndex(\"player\") then\n\n        SetRaidTarget(\"player\", 0)\n\n    else\n\n        for n=1,8 do SetRaidTarget(\"player\", n) end\n\n    end\n\n    RunLine(\".z clear ccmark\")\n\n    RunLine(\".z clear focus\")\n\n    RunLine(\".z ccmark moon\")\n\n    RunLine(\".z focus skull\")\n\nelseif not UnitIsFriend(\"player\", u) and not UnitIsDead(u) and (u == \"target\" or not UnitAffectingCombat(\"player\") or not GetRaidTargetIndex(u)) then\n\n    local i, m\n\n    if IsShiftKeyDown() then\n\n        i, m = 8, \"skull\"\n\n    elseif IsAltKeyDown() then\n\n        i, m = 5, \"moon\"\n\n    end\n\n\n\n    if i then\n\n        if GetRaidTargetIndex(u) == i then\n\n            SetRaidTarget(u, 0)\n\n        else\n\n            SetRaidTarget(u, i)\n\n            if IsShiftKeyDown() then\n\n                RunLine(\".z focus \" .. m)\n\n            elseif IsAltKeyDown() then\n\n                RunLine(\".z ccmark \" .. m)\n\n            end\n\n        end\n\n    end\n\nend\n\n----]]",
+	},
+	["Mark4"] = {
+		[1] = "Mark4",
+		[2] = "Interface\\Icons\\Ability_Creature_Cursed_02",
+		[3] = "/script ----[[\nlocal u = \"target\"\n\nif (not UnitAffectingCombat(\"player\") or not UnitExists(u) or UnitIsFriend(\"player\", u) or UnitIsDead(u)) and UnitExists(\"mouseover\") and not UnitIsFriend(\"player\", \"mouseover\") and not UnitIsDead(\"mouseover\") then\n    u = \"mouseover\"\nend\n\nif IsControlKeyDown() then\n    if GetRaidTargetIndex(\"player\") then\n        SetRaidTarget(\"player\", 0)\n    else\n        for n=1,8 do SetRaidTarget(\"player\", n) end\n    end\n    RunLine(\".z clear ccmark\")\n    RunLine(\".z clear focus\")\n    RunLine(\".z ccmark moon\")\n    RunLine(\".z focus skull\")\nelseif not UnitIsFriend(\"player\", u) and not UnitIsDead(u) and (u == \"target\" or not UnitAffectingCombat(\"player\") or not GetRaidTargetIndex(u)) then\n    local i, m\n    if IsShiftKeyDown() then\n        i, m = 3, \"diamond\"\n    elseif IsAltKeyDown() then\n        i, m = 4, \"triangle\"\n    end\n\n    if i then\n        if GetRaidTargetIndex(u) == i then\n            SetRaidTarget(u, 0)\n        else\n            SetRaidTarget(u, i)\n            if IsShiftKeyDown() then\n                RunLine(\".z focus \" .. m)\n            elseif IsAltKeyDown() then\n                RunLine(\".z ccmark \" .. m)\n            end\n        end\n    end\nend\n----]]",
+	},
+	["Mark3"] = {
+		[1] = "Mark3",
+		[2] = "Interface\\Icons\\Ability_Creature_Cursed_02",
+		[3] = "/script ----[[\nlocal u = \"target\"\n\nif (not UnitAffectingCombat(\"player\") or not UnitExists(u) or UnitIsFriend(\"player\", u) or UnitIsDead(u)) and UnitExists(\"mouseover\") and not UnitIsFriend(\"player\", \"mouseover\") and not UnitIsDead(\"mouseover\") then\n    u = \"mouseover\"\nend\n\nif IsControlKeyDown() then\n    if GetRaidTargetIndex(\"player\") then\n        SetRaidTarget(\"player\", 0)\n    else\n        for n=1,8 do SetRaidTarget(\"player\", n) end\n    end\n    RunLine(\".z clear ccmark\")\n    RunLine(\".z clear focus\")\n    RunLine(\".z ccmark moon\")\n    RunLine(\".z focus skull\")\nelseif not UnitIsFriend(\"player\", u) and not UnitIsDead(u) and (u == \"target\" or not UnitAffectingCombat(\"player\") or not GetRaidTargetIndex(u)) then\n    local i, m\n    if IsShiftKeyDown() then\n        i, m = 1, \"star\"\n    elseif IsAltKeyDown() then\n        i, m = 6, \"square\"\n    end\n\n    if i then\n        if GetRaidTargetIndex(u) == i then\n            SetRaidTarget(u, 0)\n        else\n            SetRaidTarget(u, i)\n            if IsShiftKeyDown() then\n                RunLine(\".z focus \" .. m)\n            elseif IsAltKeyDown() then\n                RunLine(\".z ccmark \" .. m)\n            end\n        end\n    end\nend\n----]]",
+	},
+	["Mark1"] = {
+		[1] = "Mark1",
+		[2] = "Interface\\Icons\\Ability_Creature_Cursed_02",
+		[3] = "/script ----[[\nlocal u = \"target\"\n\nif (not UnitAffectingCombat(\"player\") or not UnitExists(u) or UnitIsFriend(\"player\", u) or UnitIsDead(u)) and UnitExists(\"mouseover\") and not UnitIsFriend(\"player\", \"mouseover\") and not UnitIsDead(\"mouseover\") then\n    u = \"mouseover\"\nend\n\nif IsControlKeyDown() then\n    if GetRaidTargetIndex(\"player\") then\n        SetRaidTarget(\"player\", 0)\n    else\n        for n=1,8 do SetRaidTarget(\"player\", n) end\n    end\n    RunLine(\".z clear ccmark\")\n    RunLine(\".z clear focus\")\n    RunLine(\".z ccmark moon\")\n    RunLine(\".z focus skull\")\nelseif not UnitIsFriend(\"player\", u) and not UnitIsDead(u) and (u == \"target\" or not UnitAffectingCombat(\"player\") or not GetRaidTargetIndex(u)) then\n    local i, m\n    if IsShiftKeyDown() then\n        i, m = 8, \"skull\"\n    elseif IsAltKeyDown() then\n        i, m = 5, \"moon\"\n    end\n\n    if i then\n        if GetRaidTargetIndex(u) == i then\n            SetRaidTarget(u, 0)\n        else\n            SetRaidTarget(u, i)\n            if IsShiftKeyDown() then\n                RunLine(\".z focus \" .. m)\n            elseif IsAltKeyDown() then\n                RunLine(\".z ccmark \" .. m)\n            end\n        end\n    end\nend\n----]]",
+	},
+	["Mark2"] = {
+		[1] = "Mark2",
+		[2] = "Interface\\Icons\\Ability_Creature_Cursed_02",
+		[3] = "/script ----[[\nlocal u = \"target\"\n\nif (not UnitAffectingCombat(\"player\") or not UnitExists(u) or UnitIsFriend(\"player\", u) or UnitIsDead(u)) and UnitExists(\"mouseover\") and not UnitIsFriend(\"player\", \"mouseover\") and not UnitIsDead(\"mouseover\") then\n    u = \"mouseover\"\nend\n\nif IsControlKeyDown() then\n    if GetRaidTargetIndex(\"player\") then\n        SetRaidTarget(\"player\", 0)\n    else\n        for n=1,8 do SetRaidTarget(\"player\", n) end\n    end\n    RunLine(\".z clear ccmark\")\n    RunLine(\".z clear focus\")\n    RunLine(\".z ccmark moon\")\n    RunLine(\".z focus skull\")\nelseif not UnitIsFriend(\"player\", u) and not UnitIsDead(u) and (u == \"target\" or not UnitAffectingCombat(\"player\") or not GetRaidTargetIndex(u)) then\n    local i, m\n    if IsShiftKeyDown() then\n        i, m = 7, \"cross\"\n    elseif IsAltKeyDown() then\n        i, m = 2, \"circle\"\n    end\n\n    if i then\n        if GetRaidTargetIndex(u) == i then\n            SetRaidTarget(u, 0)\n        else\n            SetRaidTarget(u, i)\n            if IsShiftKeyDown() then\n                RunLine(\".z focus \" .. m)\n            elseif IsAltKeyDown() then\n                RunLine(\".z ccmark \" .. m)\n            end\n        end\n    end\nend\n----]]",
+	},
+}

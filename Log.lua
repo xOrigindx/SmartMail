@@ -8,9 +8,9 @@ function SmartMail_Log(msg, category)
     
     local entry = { time = timeStr, text = msg, cat = category }
     
-    if not SmartMailLog_PerChar then SmartMailLog_PerChar = {} end
-    if not SmartMailLog_PerChar.history then SmartMailLog_PerChar.history = {} end
-    table.insert(SmartMailLog_PerChar.history, 1, entry)
+    if not SmartMailMailLog_PerChar then SmartMailMailLog_PerChar = {} end
+    if not SmartMailMailLog_PerChar.history then SmartMailMailLog_PerChar.history = {} end
+    table.insert(SmartMailMailLog_PerChar.history, 1, entry)
     
     if SmartMailLogFrame and SmartMailLogFrame:IsVisible() then
         SmartMail_UpdateLogFrame()
@@ -19,9 +19,9 @@ end
 
 function SmartMail_UpdateLogFrame()
     SmartMail_Debug("SmartMail_UpdateLogFrame called...")
-    if SmartMailLog_PerChar and SmartMailLog_PerChar.history then
+    if SmartMailMailLog_PerChar and SmartMailMailLog_PerChar.history then
         local lines = {}
-        for _, entry in ipairs(SmartMailLog_PerChar.history) do
+        for _, entry in ipairs(SmartMailMailLog_PerChar.history) do
             local cat = "SYSTEM"
             local time = ""
             local text = ""
@@ -81,7 +81,7 @@ StaticPopupDialogs["SMARTMAIL_CLEAR_LOG"] = {
 
 function SmartMail_ClearLog()
     SmartMail_Debug("SmartMail_ClearLog called...")
-    if SmartMailLog_PerChar then SmartMailLog_PerChar.history = {} end
+    if SmartMailMailLog_PerChar then SmartMailMailLog_PerChar.history = {} end
     if SmartMailLogFrame and SmartMailLogFrame:IsVisible() then
         SmartMail_UpdateLogFrame()
     end

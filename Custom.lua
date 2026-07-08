@@ -207,11 +207,33 @@ function SmartMailCustom:Send()
         SmartMail_Debug("CustomSend: No items selected to send.")
         return
     end
+    local expectedCount = table.getn(queue)
+    local expectedMsg = "SmartMail: Starting Custom Send. Expected to send " .. expectedCount .. " item(s)."
+    DEFAULT_CHAT_FRAME:AddMessage(expectedMsg, 1, 1, 0)
+    SmartMail_Debug("CustomSend: " .. expectedMsg)
     
     if SmartMailCustomSendFrame then SmartMailCustomSendFrame:Hide() end
-    if SmartMailMainFrame then SmartMailMainFrame:Hide() end
-    SmartMailEngine:Start(self.selectedRecipient, queue, function()
-        SmartMail_Debug("CustomSend: Completed!")
+    SmartMailEngine:Start(self.selectedRecipient, queue, function(successCount, failCount, abortReason, failedItems)
+        local msg = "SmartMail: Custom Send Complete! Expected: " .. expectedCount .. ". Sent: " .. (successCount or 0) .. ". Failed: " .. (failCount or 0) .. "."
+        if failCount and failCount > 0 then 
+            local r = abortReason or "Max Retries Reached"
+            msg = msg .. " (" .. r .. ")." 
+        end
+        DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 0)
+        SmartMail_Debug("CustomSend: " .. msg)
+        
+        if failCount and failCount > 0 and failedItems then
+            for _, fi in ipairs(failedItems) do
+                local it = fi.item
+                local reason = fi.reason or "Unknown Error"
+                if it.isMoney then
+                    DEFAULT_CHAT_FRAME:AddMessage("  - Failed: Money (" .. tostring(it.amount) .. "c) - " .. reason, 1, 0.5, 0)
+                else
+                    DEFAULT_CHAT_FRAME:AddMessage("  - Failed: " .. tostring(it.name or "Item") .. " (Bag " .. tostring(it.bag or "?") .. " Slot " .. tostring(it.slot or "?") .. ") - " .. reason, 1, 0.5, 0)
+                end
+            end
+        end
+        
         for _, itemData in ipairs(SmartMailCustom.items or {}) do
             itemData.amountToSend = 0
         end
@@ -267,6 +289,29 @@ function SmartMail_UpdateCustomList()
             nameText:SetWidth(120)
             nameText:SetJustifyH("LEFT")
             row.nameText = nameText
+            
+            row:SetScript("OnEnter", function()
+                local itemData = SmartMailCustom.items[this:GetID()]
+                if itemData and itemData.itemID then
+                    GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
+                    local _, link = GetItemInfo(itemData.itemID)
+                    if link then
+                        GameTooltip:SetHyperlink(string.gsub(link, "|cff%x%x%x%x%x%x|H(.-)|h.-|h|r", "%1"))
+                    else
+                        GameTooltip:SetText(itemData.itemName)
+                    end
+                    GameTooltip:AddLine(" ")
+                    GameTooltip:AddLine("Left-Click: Add 1", 0, 1, 0)
+                    GameTooltip:AddLine("Shift+Left-Click: Add max stack", 0, 1, 0)
+                    GameTooltip:AddLine("Right-Click: Remove 1", 1, 0, 0)
+                    GameTooltip:AddLine("Shift+Right-Click: Remove max stack", 1, 0, 0)
+                    GameTooltip:Show()
+                end
+            end)
+            
+            row:SetScript("OnLeave", function()
+                GameTooltip:Hide()
+            end)
             
             row:SetScript("OnClick", function()
                 local itemData = SmartMailCustom.items[this:GetID()]
@@ -447,17 +492,13 @@ local gBox = getglobal("SmartMailCustomMoneyInputGold")
 local sBox = getglobal("SmartMailCustomMoneyInputSilver")
 local cBox = getglobal("SmartMailCustomMoneyInputCopper")
 
-if gBox then gBox:SetWidth(35) end
-if sBox then sBox:SetWidth(35) end
-if cBox then cBox:SetWidth(35) end
-
 local addMoneyBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 addMoneyBtn:SetWidth(40)
 addMoneyBtn:SetHeight(20)
 if cBox then
-    addMoneyBtn:SetPoint("LEFT", cBox, "RIGHT", 5, 0)
+    addMoneyBtn:SetPoint("LEFT", cBox, "RIGHT", 25, 0)
 else
-    addMoneyBtn:SetPoint("LEFT", moneyInput, "RIGHT", 5, 0)
+    addMoneyBtn:SetPoint("LEFT", moneyInput, "RIGHT", 25, 0)
 end
 addMoneyBtn:SetText("Add")
 addMoneyBtn:SetScript("OnClick", function()
@@ -992,6 +1033,28 @@ function SmartMail_UpdateCustomCartList()
             
             row.text:SetText(itemData.itemName .. " (x" .. itemData.amountToSend .. ")")
             local dataRef = itemData
+            
+            row:SetScript("OnEnter", function()
+                GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
+                if dataRef and dataRef.itemID then
+                    local _, link = GetItemInfo(dataRef.itemID)
+                    if link then
+                        GameTooltip:SetHyperlink(string.gsub(link, "|cff%x%x%x%x%x%x|H(.-)|h.-|h|r", "%1"))
+                    else
+                        GameTooltip:SetText(dataRef.itemName)
+                    end
+                else
+                    GameTooltip:SetText(dataRef.itemName)
+                end
+                GameTooltip:AddLine(" ")
+                GameTooltip:AddLine("Left-Click: Remove 1 from cart", 1, 0, 0)
+                GameTooltip:AddLine("Shift-Click: Remove specific amount", 1, 0.5, 0)
+                GameTooltip:Show()
+            end)
+            
+            row:SetScript("OnLeave", function()
+                GameTooltip:Hide()
+            end)
             
             row:SetScript("OnClick", function()
                 if IsShiftKeyDown() then

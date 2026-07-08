@@ -1,0 +1,23 @@
+
+TTC_Save = {
+	["Microbot Vanilla|Daidinn"] = {
+		["Transmutes"] = {
+			["LastCheck"] = 1782283652,
+			["Cooldown"] = 172744.6492075581,
+		},
+		["Class"] = "PALADIN",
+		["Mooncloth"] = {
+			["LastCheck"] = 1782283652,
+			["Cooldown"] = 339367.5351300752,
+		},
+		["Salt Shaker"] = {
+			["LastCheck"] = 1782283403,
+			["Cooldown"] = 86369.53399999999,
+		},
+	},
+}
+TTC_Settings = {
+	["notify"] = true,
+	["cleanlist"] = false,
+	["minimap"] = true,
+}

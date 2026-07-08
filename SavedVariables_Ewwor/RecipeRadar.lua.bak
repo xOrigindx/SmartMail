@@ -1,0 +1,32 @@
+
+RecipeRadar_Options = {
+	["CurrentContinent"] = 2,
+	["CurrentProfession"] = "Leatherworking",
+	["CurrentRegion"] = "Stranglethorn Vale",
+	["AutoSelectRegion"] = true,
+	["AutoMapVendors"] = false,
+	["Version"] = "1.15.1",
+	["ActiveTab"] = 1,
+	["MinimapButtonPosition"] = 256,
+	["ShowMinimapButton"] = true,
+	["Locked"] = true,
+	["RealmAvailability"] = true,
+}
+RecipeRadar_Filters = {
+	["Teams"] = {
+		["Horde"] = true,
+		["Alliance"] = false,
+	},
+	["Professions"] = {
+		["Leatherworking"] = false,
+	},
+	["PersonAvails"] = {
+	},
+	["RealmAvails"] = {
+		["ProspectForAlt"] = false,
+		["NotApplicable"] = false,
+		["ProspectForPlayer"] = true,
+		["KnownByAlt"] = true,
+		["KnownByPlayer"] = true,
+	},
+}

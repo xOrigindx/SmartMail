@@ -46,10 +46,10 @@ local VALUABLES_IDS = {
     [12810] = true, -- Enchanted Leather
     [11370] = true, -- Dark Iron Ore
     [11371] = true, -- Dark Iron Bar
-    [11520] = true, -- Red Power Crystal
-    [11521] = true, -- Blue Power Crystal
-    [11522] = true, -- Yellow Power Crystal
-    [11523] = true, -- Green Power Crystal
+    [11184] = true, -- Blue Power Crystal
+    [11185] = true, -- Green Power Crystal
+    [11186] = true, -- Red Power Crystal
+    [11188] = true, -- Yellow Power Crystal
 }
 
 -- Ordered names for UI checkboxes
@@ -74,7 +74,7 @@ function Bridge:GetItemsForCategory(categoryName)
     if categoryName == "Enchanted Leather" then return { [12810] = true } end
     if categoryName == "Dark Iron Ore" then return { [11370] = true } end
     if categoryName == "Dark Iron Bar" then return { [11371] = true } end
-    if categoryName == "Power Crystal" then return { [11520] = true, [11521] = true, [11522] = true, [11523] = true } end
+    if categoryName == "Power Crystal" then return { [11184] = true, [11185] = true, [11186] = true, [11188] = true } end
     
     local ptSets = CATEGORY_MAP[categoryName]
     

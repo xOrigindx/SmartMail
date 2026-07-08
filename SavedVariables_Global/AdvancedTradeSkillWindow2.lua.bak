@@ -1,0 +1,270 @@
+
+ATSW_Characters = {
+	["Microbot Vanilla"] = {
+		[1] = {
+			["Class"] = "PALADIN",
+			["Name"] = "Daidinn",
+		},
+	},
+}
+ATSW_Profession = {
+	["Microbot Vanilla"] = {
+	},
+}
+ATSW_SelectedRecipe = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_SortBy = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_SearchString = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_SubClassFilter = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_InvSlotFilter = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_ScrollOffset = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_PreviousRecipes = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_Tasks = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_TimeCost = {
+}
+ATSW_NecessaryReagents = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_ContractedCategories = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_Amount = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_Bags = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+			[1] = {
+			},
+			[2] = {
+				[1] = {
+					["Eternal Smoked Desert Dumplings"] = 1,
+				},
+				[2] = {
+					["Major Healing Potion"] = 5,
+				},
+				[3] = {
+					["Major Healing Potion"] = 5,
+				},
+				[4] = {
+					["Major Mana Potion"] = 5,
+				},
+				[5] = {
+					["Strong Fishing Pole"] = 1,
+				},
+				[6] = {
+					["Major Healing Potion"] = 5,
+				},
+				[7] = {
+					["Wildheart Spaulders"] = 1,
+				},
+				[8] = {
+					["Blood Stained Pike"] = 1,
+				},
+				[9] = {
+					["Smoked Desert Dumplings"] = 20,
+				},
+				[10] = {
+					["Eternal Tender Wolf Steak"] = 1,
+				},
+				[11] = {
+					["Major Mana Potion"] = 2,
+				},
+				[12] = {
+					["Rugged Leather"] = 6,
+				},
+				[13] = {
+					["Major Mana Potion"] = 5,
+				},
+				[14] = {
+					["Major Healing Potion"] = 4,
+				},
+				[15] = {
+					["Runecloth"] = 8,
+				},
+				[16] = {
+					["Carrot on a Stick"] = 1,
+				},
+			},
+			[3] = {
+				[7] = {
+					["Scroll of Agility IV"] = 1,
+				},
+				[9] = {
+					["Symbol of Kings"] = 1,
+				},
+				[10] = {
+					["Rune of the Dawn"] = 1,
+				},
+				[11] = {
+					["Major Healing Potion"] = 5,
+				},
+				[12] = {
+					["Unadorned Seal of Ascension"] = 1,
+				},
+				[13] = {
+					["Field Repair Bot 74B"] = 1,
+				},
+				[14] = {
+					["Field Repair Bot 74A"] = 1,
+				},
+				[15] = {
+					["Deathbone Gauntlets"] = 1,
+				},
+				[16] = {
+					["Eternal Dense Dynamite"] = 1,
+				},
+			},
+			[4] = {
+			},
+			[5] = {
+			},
+			[6] = {
+			},
+			[7] = {
+			},
+			[8] = {
+			},
+			[9] = {
+			},
+			[10] = {
+			},
+			[0] = {
+				[1] = {
+					["Major Rejuvenation Potion"] = 1,
+				},
+				[2] = {
+					["Bone Dust"] = 2,
+				},
+				[3] = {
+					["Hearthstone"] = 1,
+				},
+				[4] = {
+					["Swiftness Potion"] = 3,
+				},
+				[5] = {
+					["Thick Leather"] = 8,
+				},
+				[6] = {
+					["Artisan Mining Pick"] = 1,
+				},
+				[7] = {
+					["Dark Iron Scraps"] = 48,
+				},
+				[8] = {
+					["Parachute Cloak"] = 1,
+				},
+				[9] = {
+					["Deathbone Sabatons"] = 1,
+				},
+				[10] = {
+					["Major Rejuvenation Potion"] = 5,
+				},
+				[11] = {
+					["Skinning Knife"] = 1,
+				},
+				[12] = {
+					["Rugged Leather"] = 20,
+				},
+				[13] = {
+					["Heart of Fire"] = 1,
+				},
+				[14] = {
+					["Enriched Manna Biscuit"] = 7,
+				},
+				[15] = {
+					["Rugged Hide"] = 2,
+				},
+				[16] = {
+					["Lesser Mana Oil"] = 1,
+				},
+			},
+		},
+	},
+}
+ATSW_Bank = {
+}
+ATSW_Merchant = {
+}
+ATSW_Options = {
+	["Unified"] = true,
+	["ConsiderAlts"] = false,
+	["ConsiderBank"] = false,
+	["RecipeTooltip"] = true,
+	["AutoBuy"] = false,
+	["ConsiderMerchants"] = false,
+	["DisplayShoppingList"] = true,
+}
+ATSW_CustomCategories = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_CSOpenCategory = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_CSSelected = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_Attributes = {
+	["Microbot Vanilla"] = {
+		["Daidinn"] = {
+		},
+	},
+}
+ATSW_Debug = false

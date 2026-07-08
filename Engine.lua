@@ -16,7 +16,8 @@ engineFrame:SetScript("OnEvent", function()
     if not SmartMailEngine.isSending then return end
     
     if event == "MAIL_SEND_SUCCESS" then
-        SmartMail_Debug("Engine: MAIL_SEND_SUCCESS received.")
+        local elapsed = GetTime() - (SmartMailEngine.lastSendTime or GetTime())
+        SmartMail_Debug(string.format("Engine: MAIL_SEND_SUCCESS received (elapsed: %.3fs)", elapsed))
         SmartMailEngine.successCount = SmartMailEngine.successCount + 1
         local item = SmartMailEngine.currentItem
         if item then
@@ -26,9 +27,24 @@ engineFrame:SetScript("OnEvent", function()
             SmartMailEngine.sentItems[n] = SmartMailEngine.sentItems[n] + amt
         end
         SmartMailEngine.currentItem = nil
-        SmartMailEngine:Next()
+        
+        local delay = SmartMail.SendDelay or 0.15
+        if delay > 0 then
+            waitTime = 0
+            SmartMailEngine.state = 4
+        else
+            SmartMailEngine:Next()
+        end
     elseif event == "MAIL_FAILED" then
-        SmartMail_Debug("Engine: MAIL_FAILED received.")
+        local elapsed = GetTime() - (SmartMailEngine.lastSendTime or GetTime())
+        SmartMail_Debug(string.format("Engine: MAIL_FAILED received (elapsed: %.3fs)", elapsed))
+        
+        -- Ignore phantom failures if we already succeeded and are just waiting out the delay
+        if SmartMailEngine.state == 4 then
+            SmartMail_Debug("Engine: Ignoring MAIL_FAILED (already succeeded, waiting for delay)")
+            return
+        end
+        
         if GetSendMailItem() then
             ClickSendMailItemButton()
             ClearCursor()
@@ -37,10 +53,10 @@ engineFrame:SetScript("OnEvent", function()
     elseif event == "UI_ERROR_MESSAGE" then
         if string.find(string.lower(arg1), "recipient") then
             SmartMail_Debug("Engine: FATAL - Cannot find mail recipient! (" .. arg1 .. ")")
-            SmartMailEngine:Abort()
+            SmartMailEngine:Abort("Unknown Recipient")
         elseif string.find(string.lower(arg1), "money") then
             SmartMail_Debug("Engine: FATAL - Not enough money for postage! (" .. arg1 .. ")")
-            SmartMailEngine:Abort()
+            SmartMailEngine:Abort("Not Enough Money")
         end
     end
 end)
@@ -144,6 +160,7 @@ engineFrame:SetScript("OnUpdate", function()
             SmartMailEngine.state = 3
             local item = SmartMailEngine.currentItem
             local subject = "SmartMail: " .. tostring(item.category)
+            SmartMailEngine.lastSendTime = GetTime()
             SendMail(SmartMailEngine.target, subject, "")
         elseif waitTime > 2.0 then
             SmartMail_Debug("Engine: Timeout waiting for attachment.")
@@ -166,6 +183,14 @@ engineFrame:SetScript("OnUpdate", function()
             SmartMailEngine.state = 0
             waitTime = 0
             SmartMailEngine:FailCurrent()
+        end
+    elseif SmartMailEngine.state == 4 then
+        waitTime = waitTime + arg1
+        local delay = SmartMail.SendDelay or 0.15
+        if waitTime > delay then
+            SmartMailEngine.state = 0
+            waitTime = 0
+            SmartMailEngine:Next()
         end
     end
 end)
@@ -197,7 +222,9 @@ function SmartMailEngine:Start(targetName, queue, onComplete)
     self.isSending = true
     self.state = 0
     self.successCount = 0
+    self.failCount = 0
     self.sentItems = {}
+    self.failedItems = {}
     SmartMail.isBusy = true
     
     SmartMail_Debug("Engine: Starting mail sequence for " .. tostring(self.target) .. " with " .. table.getn(self.flatQueue) .. " items.")
@@ -236,6 +263,7 @@ function SmartMailEngine:Next()
             end
         end
         SetSendMailMoney(item.amount)
+        SmartMailEngine.lastSendTime = GetTime()
         SendMail(self.target, "SmartMail: Funds", "")
         waitTime = 0
         self.state = 3
@@ -265,23 +293,46 @@ end
 function SmartMailEngine:FailCurrent()
     SmartMail_Debug("SmartMailEngine:FailCurrent called...")
     if self.currentItem then
-        self.currentItem.retries = (self.currentItem.retries or 0) + 1
-        if self.currentItem.retries <= 3 then
+        self.currentItem.retries = (self.currentItem.retries or 0)
+        local maxRetries = 3
+        if SmartMail and SmartMail.infiniteRetries then maxRetries = 999999 end
+        if self.currentItem.retries < maxRetries then
+            self.currentItem.retries = self.currentItem.retries + 1
             SmartMail_Debug("Engine: Failed to send item (Attempt " .. self.currentItem.retries .. "), adding to retry queue.")
             table.insert(self.retryQueue, self.currentItem)
         else
             SmartMail_Debug("Engine: Max retries exceeded for item, dropping.")
+            self.failCount = (self.failCount or 0) + 1
+            if not self.failedItems then self.failedItems = {} end
+            table.insert(self.failedItems, { item = self.currentItem, reason = "Max Retries Reached" })
         end
         self.currentItem = nil
     end
     self:Next()
 end
 
-function SmartMailEngine:Abort()
+function SmartMailEngine:Abort(reason)
     SmartMail_Debug("SmartMailEngine:Abort called...")
     SmartMail_Debug("Engine: Aborting sequence!")
+    self.abortReason = reason or "Aborted"
+    if not self.failedItems then self.failedItems = {} end
+    
+    if self.currentItem then
+        self.failCount = (self.failCount or 0) + 1
+        table.insert(self.failedItems, { item = self.currentItem, reason = self.abortReason })
+    end
+    for _, it in ipairs(self.flatQueue or {}) do
+        self.failCount = (self.failCount or 0) + 1
+        table.insert(self.failedItems, { item = it, reason = self.abortReason })
+    end
+    for _, it in ipairs(self.retryQueue or {}) do
+        self.failCount = (self.failCount or 0) + 1
+        table.insert(self.failedItems, { item = it, reason = self.abortReason })
+    end
+    
     self.flatQueue = {}
     self.retryQueue = {}
+    self.currentItem = nil
     self:Finish()
 end
 
@@ -341,15 +392,32 @@ function SmartMailEngine:Finish()
         end
     end
     
-    self.target = nil
-    self.currentItem = nil
-    self.successCount = 0
     SmartMail_Debug("Engine: Done.")
     
     if self.onComplete then
         local cb = self.onComplete
+        local s = self.successCount
+        local f = self.failCount or 0
+        local reason = self.abortReason or (f > 0 and "Max Retries Reached" or nil)
+        local fItems = self.failedItems or {}
+        
+        -- Reset engine state AFTER capturing stats for callback
+        self.target = nil
+        self.currentItem = nil
+        self.successCount = 0
+        self.failCount = 0
+        self.failedItems = {}
         self.onComplete = nil
-        cb()
+        self.abortReason = nil
+        
+        cb(s, f, reason, fItems)
+    else
+        self.target = nil
+        self.currentItem = nil
+        self.successCount = 0
+        self.failCount = 0
+        self.failedItems = {}
+        self.abortReason = nil
     end
 end
 

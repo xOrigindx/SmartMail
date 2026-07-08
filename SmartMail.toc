@@ -2,8 +2,8 @@
 ## Title: SmartMail
 ## Notes: Automated mail routing system.
 ## Version: Alpha 0.1
-## SavedVariables: SmartMailDB, SmartMailLog
-## SavedVariablesPerCharacter: SmartMailDB_PerChar, SmartMailLog_PerChar
+## SavedVariables: SmartMailDB, SmartMailDebugLog, SmartMailMailLog, SmartMailStressLog
+## SavedVariablesPerCharacter: SmartMailDB_PerChar, SmartMailDebugLog_PerChar, SmartMailMailLog_PerChar
 
 Libs\Core\PTEmbed.lua
 Libs\Elements\AQ\PTEmbedElemAhnQiraj.lua
@@ -24,3 +24,4 @@ Log.lua
 SmartMail.xml
 SmartMail.lua
 Inbox.lua
+Stress.lua

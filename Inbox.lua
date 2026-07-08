@@ -34,6 +34,11 @@ function SmartMailInbox:Start()
     SmartMail_Debug("SmartMailInbox:Start called...")
     if not InboxFrame or not InboxFrame:IsVisible() then return end
     
+    self.startCount = GetInboxNumItems()
+    local expectedMsg = "SmartMail: Starting Open All. Expected to process " .. self.startCount .. " mail(s)."
+    DEFAULT_CHAT_FRAME:AddMessage(expectedMsg, 1, 1, 0)
+    SmartMail_Debug("Inbox: " .. expectedMsg)
+    
     SmartMail_Debug("Inbox: Starting Open All...")
     self.isOpenAllRunning = true
     self.currentIndex = GetInboxNumItems()
@@ -82,6 +87,7 @@ inboxFrame:SetScript("OnEvent", function()
         if SmartMailInbox.isOpenAllRunning then
             if arg1 == ERR_INV_FULL then
                 SmartMail_Debug("Inbox: Inventory full, aborting Open All.")
+                DEFAULT_CHAT_FRAME:AddMessage("SmartMail: Open All aborted (Inventory Full).", 1, 0, 0)
                 SmartMailInbox:Abort()
             elseif arg1 == ERR_ITEM_MAX_COUNT then
                 SmartMail_Debug("Inbox: Unique item cap reached, skipping mail.")
@@ -99,21 +105,42 @@ function SmartMailInbox:ProcessNext()
     if numItems == 0 then
         MiniMapMailFrame:Hide()
         SmartMail_Debug("Inbox: Open All complete.")
+        local msg = "SmartMail: Open All Complete! Processed " .. (self.startCount or 0) .. " mail(s)."
+        DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 0)
         self:Abort()
         return
     end
 
     local processableIndex = nil
-    for i = 1, numItems do
-        local _, _, _, _, _, CODAmount, _, _, _, _, _, _, isGM = GetInboxHeaderInfo(i)
-        if CODAmount == 0 and not isGM then
-            processableIndex = i
-            break
+    
+    if SmartMailInbox.isRandom then
+        local validIndices = {}
+        for i = 1, numItems do
+            local _, _, _, _, _, CODAmount, _, _, _, _, _, _, isGM = GetInboxHeaderInfo(i)
+            if CODAmount == 0 and not isGM then
+                table.insert(validIndices, i)
+            end
+        end
+        if table.getn(validIndices) > 0 then
+            processableIndex = validIndices[math.random(1, table.getn(validIndices))]
+        end
+    else
+        for i = 1, numItems do
+            local _, _, _, _, _, CODAmount, _, _, _, _, _, _, isGM = GetInboxHeaderInfo(i)
+            if CODAmount == 0 and not isGM then
+                processableIndex = i
+                break
+            end
         end
     end
 
     if not processableIndex then
         SmartMail_Debug("Inbox: Open All complete. (Remaining mails are COD/GM)")
+        local remaining = GetInboxNumItems()
+        local processed = (self.startCount or remaining) - remaining
+        local expected = self.startCount or remaining
+        local msg = "SmartMail: Open All Complete! Expected: " .. expected .. ". Processed: " .. processed .. ". Skipped: " .. remaining .. "."
+        DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 0)
         self:Abort()
         return
     end

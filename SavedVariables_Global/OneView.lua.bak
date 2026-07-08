@@ -1,0 +1,20 @@
+
+OneViewDB = {
+	["profiles"] = {
+		["Default"] = {
+			["point"] = {
+				["top"] = 716.098622141799,
+				["parent"] = "UIParent",
+				["left"] = 586.6666324933375,
+			},
+		},
+	},
+}
+OneViewButtonDB = {
+	["profiles"] = {
+		["Default"] = {
+			["detachedTooltip"] = {
+			},
+		},
+	},
+}

@@ -5,6 +5,17 @@ SmartMail = {
     log         = nil,
     debug       = true,
 }
+local orig_errorhandler = geterrorhandler()
+seterrorhandler(function(msg)
+    if msg and string.find(tostring(msg), "SmartMail") then
+        if SmartMail_Debug then
+            SmartMail_Debug("|cffff0000[LUA ERROR]|r " .. tostring(msg))
+        end
+    end
+    if orig_errorhandler then
+        orig_errorhandler(msg)
+    end
+end)
 
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
@@ -14,14 +25,14 @@ eventFrame:SetScript("OnEvent", function()
     if event == "ADDON_LOADED" and arg1 == "SmartMail" then
         if not SmartMailDB then SmartMailDB = { profiles = {} } end
         if not SmartMailDB.profiles then SmartMailDB.profiles = {} end
-        if not SmartMailLog then SmartMailLog = {} end
-        if not SmartMailLog.debugLog then SmartMailLog.debugLog = {} end
+        if not SmartMailDebugLog then SmartMailDebugLog = {} end
+        if not SmartMailDebugLog.debugLog then SmartMailDebugLog.debugLog = {} end
         
         -- Backups
         if not SmartMailDB_PerChar then SmartMailDB_PerChar = { profiles = {} } end
         if not SmartMailDB_PerChar.profiles then SmartMailDB_PerChar.profiles = {} end
-        if not SmartMailLog_PerChar then SmartMailLog_PerChar = {} end
-        if not SmartMailLog_PerChar.debugLog then SmartMailLog_PerChar.debugLog = {} end
+        if not SmartMailDebugLog_PerChar then SmartMailDebugLog_PerChar = {} end
+        if not SmartMailDebugLog_PerChar.debugLog then SmartMailDebugLog_PerChar.debugLog = {} end
     elseif event == "MAIL_SHOW" or event == "MAIL_CLOSED" then
         if event == "MAIL_SHOW" then
             if SmartMailMainFrame then SmartMailMainFrame:Show() end
@@ -33,49 +44,251 @@ eventFrame:SetScript("OnEvent", function()
     end
 end)
 
-function SmartMail_Debug(msg)
+function SmartMail_CreateListRow(name, parent, width, height)
+    local row = CreateFrame("Button", name, parent, "SmartMailListRowTemplate")
+    
+    if width then row:SetWidth(width) end
+    if height then row:SetHeight(height) end
+    
+    row.text = getglobal(name .. "Text")
+    row.selection = getglobal(name .. "Selection")
+    
+    row.SetSelected = function(self, isSelected)
+        if isSelected then
+            self.selection:Show()
+        else
+            self.selection:Hide()
+        end
+    end
+    
+    return row
+end
+
+function SmartMail_Debug(msg, category)
     if SmartMail.debug then
-        local formattedMsg = "|cff00ffff[SmartMail]|r " .. tostring(msg)
+        local msgStr = tostring(msg)
+        if not category then
+            local lowerMsg = string.lower(msgStr)
+            if string.find(lowerMsg, "soulbound") then
+                category = "Soulbound"
+            elseif string.find(lowerMsg, "sendall") or string.find(lowerMsg, "send all") or string.find(lowerMsg, "confirm") or string.find(lowerMsg, "custom") or string.find(lowerMsg, "engine:") or string.find(lowerMsg, "smartmailengine") or string.find(lowerMsg, "mail_") or string.find(lowerMsg, "starting send") or string.find(lowerMsg, "routing") then
+                category = "Send"
+            elseif string.find(lowerMsg, "scan") or string.find(lowerMsg, "bridge:") or string.find(lowerMsg, "queue") or string.find(lowerMsg, "getpt") then
+                category = "ScanInventory"
+            elseif string.find(lowerMsg, "inbox") or string.find(lowerMsg, "openall") or string.find(lowerMsg, "open all") then
+                category = "OpenAll"
+            else
+                category = "General"
+            end
+        end
+
+        local formattedMsg = "|cff00ffff[SmartMail]|r " .. msgStr
         DEFAULT_CHAT_FRAME:AddMessage(formattedMsg)
         
-        local timeStr = date("%H:%M:%S")
-        local logMsg = "[" .. timeStr .. "] " .. tostring(msg)
+        local ms = string.format(".%03d", math.mod(GetTime() * 1000, 1000))
+        local timeStr = date("[%H:%M:%S") .. ms .. "] "
+        local logMsg = timeStr .. msgStr
         
-        -- Safe initialization of SavedVariable
-        if not SmartMailLog then SmartMailLog = {} end
-        if not SmartMailLog.debugLog then SmartMailLog.debugLog = {} end
-        table.insert(SmartMailLog.debugLog, 1, logMsg)
+        if SmartMail and SmartMail.isStressTest then
+            if not SmartMailStressLog then SmartMailStressLog = {} end
+            local charName = UnitName("player") or "Unknown"
+            table.insert(SmartMailStressLog, timeStr .. "[" .. charName .. "] [" .. category .. "] " .. msgStr)
+        else
+            -- Backup & Categories
+            if not SmartMailDebugLog_PerChar then SmartMailDebugLog_PerChar = {} end
+            if not SmartMailDebugLog_PerChar.debugLog then SmartMailDebugLog_PerChar.debugLog = {} end
+            table.insert(SmartMailDebugLog_PerChar.debugLog, 1, "["..category.."] " .. logMsg)
+            
+            if not SmartMailDebugLog_PerChar[category] then SmartMailDebugLog_PerChar[category] = {} end
+            table.insert(SmartMailDebugLog_PerChar[category], 1, logMsg)
+        end
         
-        -- Backup
-        if not SmartMailLog_PerChar then SmartMailLog_PerChar = {} end
-        if not SmartMailLog_PerChar.debugLog then SmartMailLog_PerChar.debugLog = {} end
-        table.insert(SmartMailLog_PerChar.debugLog, 1, logMsg)
+        -- Trim logs to prevent massive file sizes (max 5000)
+        if table.getn(SmartMailDebugLog_PerChar.debugLog) > 5000 then
+            table.remove(SmartMailDebugLog_PerChar.debugLog)
+        end
+
+        if table.getn(SmartMailDebugLog_PerChar[category]) > 1000 then
+            table.remove(SmartMailDebugLog_PerChar[category])
+        end
         
-        -- Update UI Debug Window using EditBox SetText for newest-on-top
+        -- Update UI Debug Window
         if SmartMailDebugFrame and SmartMailDebugFrame:IsVisible() then
-            if SmartMailDebugFrameText then
-                SmartMailDebugFrameText:SetText(table.concat(SmartMailLog_PerChar.debugLog, "\n"))
+            if SmartMail_UpdateDebugList then
+                SmartMail_UpdateDebugList()
             end
         end
     end
 end
 
-function SmartMail_OpenCopyFrame()
-    SmartMail_Debug("SmartMail_OpenCopyFrame called...")
-    if not SmartMailLog_PerChar or not SmartMailLog_PerChar.debugLog then return end
+SmartMail.debugCategories = { "debugLog", "Send", "ScanInventory", "OpenAll", "Soulbound", "General" }
+SmartMail.currentDebugCategoryIndex = 1
+
+function SmartMailDebugCategoryDropDown_Initialize()
+    local info = {}
+    for i, cat in ipairs(SmartMail.debugCategories) do
+        local dispName = cat
+        if cat == "debugLog" then dispName = "ALL" end
+        info.text = dispName
+        info.value = i
+        info.func = SmartMailDebugCategoryDropDown_OnClick
+        info.checked = (SmartMail.currentDebugCategoryIndex == i)
+        UIDropDownMenu_AddButton(info)
+    end
+end
+
+function SmartMailDebugCategoryDropDown_OnClick()
+    SmartMail.currentDebugCategoryIndex = this.value
+    UIDropDownMenu_SetSelectedValue(SmartMailDebugCategoryDropDown, this.value)
+    UIDropDownMenu_SetText(this:GetText(), SmartMailDebugCategoryDropDown)
     
-    local fullText = ""
-    -- The user requested newest logs at the top of the copy text for easier reading.
-    for i = 1, table.getn(SmartMailLog_PerChar.debugLog) do
-        fullText = fullText .. SmartMailLog_PerChar.debugLog[i] .. "\n"
+    SmartMail.debugSelection = {}
+    SmartMail.lastDebugClick = nil
+    
+    local scrollFrame = SmartMailDebugFrameContentFrameScrollFrame
+    if scrollFrame then
+        FauxScrollFrame_SetOffset(scrollFrame, 0)
+        scrollFrame:SetVerticalScroll(0)
     end
     
+    SmartMail_UpdateDebugList()
+end
+
+function SmartMail_OpenCopyFrame()
+    local cat = "debugLog"
+    if SmartMail.currentDebugCategoryIndex and SmartMail.debugCategories then
+        cat = SmartMail.debugCategories[SmartMail.currentDebugCategoryIndex] or "debugLog"
+    end
+    
+    local fullText = ""
+    local hasSelection = false
+    
+    if not SmartMail then SmartMail = {} end
+    if not SmartMail.debugSelection then SmartMail.debugSelection = {} end
+    
+    for _, selected in pairs(SmartMail.debugSelection) do
+        if selected then hasSelection = true break end
+    end
+    
+    local logTable = (SmartMailDebugLog_PerChar and SmartMailDebugLog_PerChar[cat]) or {}
+    
     if SmartMailCopyFrameText then
-        SmartMailCopyFrameText:SetText(fullText)
-        SmartMailCopyFrameText:HighlightText()
+        SmartMailCopyFrameText:SetMaxLetters(0)
+        SmartMailCopyFrameText:SetText("")
+    end
+    
+    SmartMail.copyQueue = {}
+    for i = table.getn(logTable), 1, -1 do
+        if not hasSelection or SmartMail.debugSelection[i] then
+            table.insert(SmartMail.copyQueue, logTable[i])
+        end
     end
     
     SmartMailCopyFrame:Show()
+end
+
+function SmartMailCopyFrame_OnUpdate()
+    if SmartMail.copyQueue and table.getn(SmartMail.copyQueue) > 0 then
+        for i = 1, 5 do
+            if table.getn(SmartMail.copyQueue) > 0 then
+                local line = table.remove(SmartMail.copyQueue, 1)
+                if SmartMailCopyFrameText then
+                    SmartMailCopyFrameText:Insert(line .. "\n")
+                end
+            else
+                break
+            end
+        end
+        -- Do not auto-highlight, so the user doesn't accidentally overwrite it
+        if table.getn(SmartMail.copyQueue) == 0 and SmartMailCopyFrameText then
+            -- Done streaming
+        end
+    end
+end
+
+SmartMail.debugSelection = {}
+SmartMail.lastDebugClick = nil
+
+function SmartMail_UpdateDebugList()
+    local cat = "debugLog"
+    if SmartMail.currentDebugCategoryIndex and SmartMail.debugCategories then
+        cat = SmartMail.debugCategories[SmartMail.currentDebugCategoryIndex] or "debugLog"
+    end
+    local numItems = 0
+    if SmartMailDebugLog_PerChar and SmartMailDebugLog_PerChar[cat] then
+        numItems = table.getn(SmartMailDebugLog_PerChar[cat])
+    end
+    local scrollFrame = SmartMailDebugFrameContentFrameScrollFrame
+    if not scrollFrame then return end
+    
+    FauxScrollFrame_Update(scrollFrame, numItems, 14, 16)
+    local offset = FauxScrollFrame_GetOffset(scrollFrame)
+    
+    if not scrollFrame.buttons then scrollFrame.buttons = {} end
+    
+    for i = 1, 14 do
+        local index = offset + i
+        local btn = scrollFrame.buttons[i]
+        
+        if not btn then
+            btn = SmartMail_CreateListRow("SmartMailDebugRow" .. i, SmartMailDebugFrameContentFrame, 400, 16)
+            
+            if i == 1 then
+                btn:SetPoint("TOPLEFT", SmartMailDebugFrameContentFrame, "TOPLEFT", 4, -4)
+            else
+                btn:SetPoint("TOPLEFT", scrollFrame.buttons[i-1], "BOTTOMLEFT", 0, 0)
+            end
+            
+            btn.text:SetFontObject("GameFontHighlightSmall")
+            btn.text:SetPoint("RIGHT", btn, "RIGHT", -2, 0)
+            
+            btn:SetScript("OnClick", function()
+                local clickedIdx = this.logIndex
+                if not clickedIdx then return end
+                
+                if IsShiftKeyDown() and SmartMail.lastDebugClick then
+                    local startIdx = math.min(SmartMail.lastDebugClick, clickedIdx)
+                    local endIdx = math.max(SmartMail.lastDebugClick, clickedIdx)
+                    for j = startIdx, endIdx do
+                        SmartMail.debugSelection[j] = true
+                    end
+                else
+                    if SmartMail.debugSelection[clickedIdx] then
+                        SmartMail.debugSelection[clickedIdx] = nil
+                    else
+                        SmartMail.debugSelection[clickedIdx] = true
+                    end
+                    SmartMail.lastDebugClick = clickedIdx
+                end
+                SmartMail_UpdateDebugList()
+            end)
+            
+            table.insert(scrollFrame.buttons, btn)
+        end
+        
+        btn.logIndex = index
+        
+        if index <= numItems then
+            local cat = "debugLog"
+            if SmartMail.currentDebugCategoryIndex and SmartMail.debugCategories then
+                cat = SmartMail.debugCategories[SmartMail.currentDebugCategoryIndex] or "debugLog"
+            end
+            local textStr = SmartMailDebugLog_PerChar[cat][index]
+            if textStr then
+                btn.text:SetText(tostring(index) .. ". " .. textStr)
+                if SmartMail.debugSelection[index] then
+                    btn:SetSelected(true)
+                else
+                    btn:SetSelected(false)
+                end
+            else
+                btn:SetSelected(false)
+            end
+            btn:Show()
+        else
+            btn:Hide()
+        end
+    end
 end
 
 -- Slash Command Logic
@@ -84,9 +297,12 @@ SLASH_SMARTMAIL2 = "/sm"
 SlashCmdList["SMARTMAIL"] = function(msg)
     msg = string.lower(msg or "")
     if msg == "clear" then
-        if SmartMailLog then SmartMailLog.debugLog = {} end
-        if SmartMailLog_PerChar then SmartMailLog_PerChar.debugLog = {} end
-        if SmartMailDebugFrameText then SmartMailDebugFrameText:Clear() end
+        if SmartMailDebugLog then SmartMailDebugLog.debugLog = {} end
+        if SmartMailDebugLog_PerChar then SmartMailDebugLog_PerChar.debugLog = {} end
+        if SmartMail then SmartMail.debugSelection = {} SmartMail.lastDebugClick = nil end
+        if SmartMailDebugFrame and SmartMailDebugFrame:IsVisible() then
+            SmartMail_UpdateDebugList()
+        end
         DEFAULT_CHAT_FRAME:AddMessage("SmartMail: Debug logs cleared.")
     elseif msg == "scan" then
         SmartMail_ScanInventory()
@@ -129,8 +345,8 @@ end
 
 function SmartMail_ScanInventory()
     SmartMail_Debug("SmartMail_ScanInventory called...")
-    if not SmartMailLog then SmartMailLog = { sessions = {} } end
-    if not SmartMailLog.debugScan then SmartMailLog.debugScan = {} end
+    if not SmartMailDebugLog then SmartMailDebugLog = { sessions = {} } end
+    if not SmartMailDebugLog.debugScan then SmartMailDebugLog.debugScan = {} end
     
     local success, map = pcall(function() return Bridge:GetAllCategoryItems() end)
     if not success then
@@ -168,7 +384,7 @@ function SmartMail_ScanInventory()
         end
     end
     
-    SmartMailLog.debugScan[GetTime()] = scanResults
+    SmartMailDebugLog.debugScan[GetTime()] = scanResults
     SmartMail_Debug("Scan complete. Found " .. found .. " categorised items.")
 end
 
@@ -229,11 +445,7 @@ end
 -- Populate Debug Window from saved variables when opened
 SmartMailDebugFrame:SetScript("OnShow", function()
     SmartMail_Debug("SmartMailDebugFrame shown (Lua SetScript)")
-    if SmartMailLog and SmartMailLog.debugLog then
-        if SmartMailDebugFrameText then
-            SmartMailDebugFrameText:SetText(table.concat(SmartMailLog_PerChar.debugLog, "\n"))
-        end
-    end
+    SmartMail_UpdateDebugList()
 end)
 
 SmartMailLogFrame:SetScript("OnShow", function()
@@ -252,48 +464,153 @@ function SmartMail_InitializeProfileCheckboxes()
     
     local parent = SmartMailProfileEditorFrameCheckboxContainer
     local categories = Bridge:GetCategoryNames()
-    SmartMail.checkboxes = {}
+    SmartMail.categoryButtons = {}
+    
+    -- Create Active Frame Backdrop
+    local activeBG = CreateFrame("Frame", nil, parent)
+    activeBG:SetBackdrop({
+        bgFile = "Interface\Tooltips\UI-Tooltip-Background",
+        edgeFile = "Interface\Tooltips\UI-Tooltip-Border",
+        tile = true, tileSize = 16, edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    })
+    activeBG:SetBackdropColor(0, 0, 0, 0.6)
+    activeBG:SetBackdropBorderColor(0, 1, 0, 0.8)
+    SmartMail.activeBG = activeBG
+    
+    local activeHeader = activeBG:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    activeHeader:SetText("Active Categories (Click to Remove)")
+    activeHeader:SetTextColor(0, 1, 0)
+    activeHeader:SetPoint("TOPLEFT", activeBG, "TOPLEFT", 10, -10)
+    SmartMail.activeHeader = activeHeader
+    
+    -- Create Available Frame Backdrop
+    local availableBG = CreateFrame("Frame", nil, parent)
+    availableBG:SetBackdrop({
+        bgFile = "Interface\Tooltips\UI-Tooltip-Background",
+        edgeFile = "Interface\Tooltips\UI-Tooltip-Border",
+        tile = true, tileSize = 16, edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    })
+    availableBG:SetBackdropColor(0, 0, 0, 0.6)
+    availableBG:SetBackdropBorderColor(1, 1, 0, 0.8)
+    SmartMail.availableBG = availableBG
+    
+    local availableHeader = availableBG:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
+    availableHeader:SetText("Available Categories (Click to Add)")
+    availableHeader:SetTextColor(1, 1, 0)
+    availableHeader:SetPoint("TOPLEFT", availableBG, "TOPLEFT", 10, -10)
+    SmartMail.availableHeader = availableHeader
     
     for i, catName in ipairs(categories) do
-        local cb = CreateFrame("CheckButton", "SmartMailProfileEditorCheckbox" .. i, parent, "UICheckButtonTemplate")
-        cb:SetWidth(24)
-        cb:SetHeight(24)
+        local btn = CreateFrame("Button", "SmartMailCategoryBtn" .. i, parent)
+        btn:SetWidth(115)
+        btn:SetHeight(16)
         
-        -- Positioning: 2 columns
-        local col = math.mod(i - 1, 2)
-        local row = math.floor((i - 1) / 2)
-        cb:SetPoint("TOPLEFT", parent, "TOPLEFT", col * 130, -row * 24)
+        local highlight = btn:CreateTexture(nil, "HIGHLIGHT")
+        highlight:SetAllPoints(btn)
+        highlight:SetTexture("Interface\QuestFrame\UI-QuestTitleHighlight")
+        highlight:SetBlendMode("ADD")
         
-        local text = getglobal(cb:GetName() .. "Text")
+        local text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+        text:SetPoint("LEFT", btn, "LEFT", 10, 0)
         text:SetText(catName)
         
-        cb.categoryName = catName
-        table.insert(SmartMail.checkboxes, cb)
+        btn.categoryName = catName
+        btn:SetScript("OnClick", function()
+            local profileData = SmartMail.editingProfileData
+            if not profileData then return end
+            if profileData[this.categoryName] then
+                profileData[this.categoryName] = nil
+            else
+                profileData[this.categoryName] = true
+            end
+            SmartMail_UpdateCategoryLists()
+        end)
+        
+        table.insert(SmartMail.categoryButtons, btn)
     end
     
     createdCheckboxes = true
 end
 
+function SmartMail_UpdateCategoryLists()
+    local profileData = SmartMail.editingProfileData or {}
+    local activeList = {}
+    local availableList = {}
+    
+    for _, btn in ipairs(SmartMail.categoryButtons) do
+        if profileData[btn.categoryName] then
+            table.insert(activeList, btn)
+        else
+            table.insert(availableList, btn)
+        end
+        btn:Hide()
+        btn:SetParent(SmartMailProfileEditorFrameCheckboxContainer) -- default
+    end
+    
+    table.sort(activeList, function(a, b) return a.categoryName < b.categoryName end)
+    table.sort(availableList, function(a, b) return a.categoryName < b.categoryName end)
+    
+    local activeRows = math.ceil(table.getn(activeList) / 2)
+    if activeRows == 0 then activeRows = 1 end
+    local activeHeight = 30 + (activeRows * 16) + 10
+    
+    SmartMail.activeBG:ClearAllPoints()
+    SmartMail.activeBG:SetPoint("TOPLEFT", SmartMailProfileEditorFrameCheckboxContainer, "TOPLEFT", 0, 0)
+    SmartMail.activeBG:SetWidth(260)
+    SmartMail.activeBG:SetHeight(activeHeight)
+    
+    for i, btn in ipairs(activeList) do
+        local col = math.mod(i - 1, 2)
+        local row = math.floor((i - 1) / 2)
+        btn:SetParent(SmartMail.activeBG)
+        btn:ClearAllPoints()
+        btn:SetPoint("TOPLEFT", SmartMail.activeBG, "TOPLEFT", 10 + (col * 125), -30 - (row * 16))
+        btn:Show()
+    end
+    
+    local availableRows = math.ceil(table.getn(availableList) / 2)
+    if availableRows == 0 then availableRows = 1 end
+    local availableHeight = 30 + (availableRows * 16) + 10
+    
+    SmartMail.availableBG:ClearAllPoints()
+    SmartMail.availableBG:SetPoint("TOPLEFT", SmartMail.activeBG, "BOTTOMLEFT", 0, -10)
+    SmartMail.availableBG:SetWidth(260)
+    SmartMail.availableBG:SetHeight(availableHeight)
+    
+    for i, btn in ipairs(availableList) do
+        local col = math.mod(i - 1, 2)
+        local row = math.floor((i - 1) / 2)
+        btn:SetParent(SmartMail.availableBG)
+        btn:ClearAllPoints()
+        btn:SetPoint("TOPLEFT", SmartMail.availableBG, "TOPLEFT", 10 + (col * 125), -30 - (row * 16))
+        btn:Show()
+    end
+end
+
 function SmartMail_OpenProfileEditor(characterName)
     SmartMail_Debug("SmartMail_OpenProfileEditor called...")
+    if SmartMailConfirmFrame and SmartMailConfirmFrame:IsVisible() then SmartMailConfirmFrame:Hide() end
+    if SmartMailCustomSendFrame and SmartMailCustomSendFrame:IsVisible() then SmartMailCustomSendFrame:Hide() end
     SmartMail_Debug("Opening Profile Editor for: " .. tostring(characterName or "NEW"))
+    
     SmartMail_InitializeProfileCheckboxes()
     SmartMail.editingProfileName = characterName
-    
     SmartMailProfileEditorFrameNameEditBox:SetText(characterName or "")
     
     if not SmartMailDB_PerChar then SmartMailDB_PerChar = { profiles = {} } end
     if not SmartMailDB_PerChar.profiles then SmartMailDB_PerChar.profiles = {} end
     local existingProfile = SmartMailDB_PerChar.profiles[characterName]
     
-    for _, cb in ipairs(SmartMail.checkboxes) do
-        if existingProfile and existingProfile[cb.categoryName] then
-            cb:SetChecked(1)
-        else
-            cb:SetChecked(nil)
+    SmartMail.editingProfileData = {}
+    if existingProfile then
+        for k, v in pairs(existingProfile) do
+            SmartMail.editingProfileData[k] = v
         end
     end
     
+    SmartMail_UpdateCategoryLists()
     SmartMailProfileEditorFrame:Show()
 end
 
@@ -337,10 +654,12 @@ function SmartMail_CommitSaveProfile(charName)
     
     local selectedCategories = {}
     local count = 0
-    for _, cb in ipairs(SmartMail.checkboxes) do
-        if cb:GetChecked() then
-            selectedCategories[cb.categoryName] = true
-            count = count + 1
+    if SmartMail.editingProfileData then
+        for k, v in pairs(SmartMail.editingProfileData) do
+            if v then
+                selectedCategories[k] = true
+                count = count + 1
+            end
         end
     end
     
@@ -361,12 +680,16 @@ function SmartMail_CommitSaveProfile(charName)
     SmartMail_Debug("Successfully saved profile '" .. charName .. "' with " .. count .. " categories checked.")
     
     SmartMailProfileEditorFrame:Hide()
+    SmartMail.selectedProfile = charName
     SmartMail_UpdateProfileList()
 end
 
 function SmartMail_DeleteProfile(charName)
     SmartMail_Debug("SmartMail_DeleteProfile called...")
     if not charName then return end
+    
+    if SmartMailConfirmFrame and SmartMailConfirmFrame:IsVisible() then SmartMailConfirmFrame:Hide() end
+    if SmartMailCustomSendFrame and SmartMailCustomSendFrame:IsVisible() then SmartMailCustomSendFrame:Hide() end
     
     StaticPopupDialogs["SMARTMAIL_DELETE_PROFILE"] = {
         text = "Are you sure you want to completely delete the profile for '" .. charName .. "'?",
@@ -393,7 +716,6 @@ end
 function SmartMail_UpdateActionButtons()
     SmartMail_Debug("SmartMail_UpdateActionButtons called...")
     local isPopupOpen = false
-    if SmartMailConfirmFrame and SmartMailConfirmFrame:IsVisible() then isPopupOpen = true end
     if SmartMailProfileEditorFrame and SmartMailProfileEditorFrame:IsVisible() then isPopupOpen = true end
     
     local isMailOpen = MailFrame and MailFrame:IsVisible()
@@ -465,24 +787,9 @@ function SmartMail_UpdateProfileList()
     for charName, categories in pairs(SmartMailDB_PerChar.profiles) do
         local line = scrollChild.profileLines[index]
         if not line then
-            line = CreateFrame("Button", nil, scrollChild)
-            line:SetWidth(270)
-            line:SetHeight(20)
-            
-            local text = line:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-            text:SetJustifyH("LEFT")
-            text:SetPoint("LEFT", line, "LEFT", 10, 0)
-            line.text = text
-            
-            local highlight = line:CreateTexture(nil, "HIGHLIGHT")
-            highlight:SetAllPoints(line)
-            highlight:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
-            highlight:SetBlendMode("ADD")
-            
-            local bg = line:CreateTexture(nil, "BACKGROUND")
-            bg:SetAllPoints(line)
-            bg:SetTexture(1, 1, 1, 0.15)
-            line.bg = bg
+            line = SmartMail_CreateListRow("SmartMailProfileRow" .. index, scrollChild, 270, 20)
+            line.text:SetFontObject("GameFontNormal")
+            line.text:SetPoint("LEFT", line, "LEFT", 10, 0)
             
             line:SetScript("OnClick", function()
                 SmartMail_Debug("Profile list line clicked (Lua SetScript)")
@@ -491,15 +798,23 @@ function SmartMail_UpdateProfileList()
                     return
                 end
                 
-                SmartMail.selectedProfile = this.charName
-                SmartMail_Debug("Selected profile: " .. tostring(this.charName))
-                SmartMail_UpdateProfileList()
-                
-                if SmartMailConfirmFrame and not SmartMailConfirmFrame:IsVisible() then
-                    SmartMailConfirmFrame:Show()
+                if SmartMail.selectedProfile == this.charName then
+                    SmartMail.selectedProfile = nil
+                    SmartMail_Debug("Deselected profile: " .. tostring(this.charName))
+                    if SmartMailConfirmFrame and SmartMailConfirmFrame:IsVisible() then
+                        SmartMailConfirmFrame:Hide()
+                    end
                 else
-                    SmartMail_UpdateConfirmList()
+                    SmartMail.selectedProfile = this.charName
+                    SmartMail_Debug("Selected profile: " .. tostring(this.charName))
+                    if SmartMailConfirmFrame and not SmartMailConfirmFrame:IsVisible() then
+                        SmartMailConfirmFrame:Show()
+                    else
+                        SmartMail_UpdateConfirmList()
+                    end
                 end
+                
+                SmartMail_UpdateProfileList()
             end)
             
             table.insert(scrollChild.profileLines, line)
@@ -524,10 +839,10 @@ function SmartMail_UpdateProfileList()
         
         if SmartMail.selectedProfile == charName then
             line.text:SetTextColor(1, 1, 1) -- White (Selected)
-            line.bg:Show()
+            line:SetSelected(true)
         else
             line.text:SetTextColor(1, 0.82, 0) -- Gold (Normal)
-            line.bg:Hide()
+            line:SetSelected(false)
         end
         
         line:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 0, yOffset)
@@ -582,6 +897,27 @@ SmartMailOptionsFrameLoadGlobalButton:SetScript("OnClick", function()
     SmartMail_LoadGlobalProfiles()
 end)
 
+function SmartMail_ResetConfirmItems()
+    SmartMail_Debug("SmartMail_ResetConfirmItems called...")
+    if not SmartMail.confirmQueue then return end
+    
+    local charName = UIDropDownMenu_GetText(SmartMailMainFrameProfileDropdown)
+    if not charName or charName == "" or not SmartMailDB_PerChar.profiles[charName] then return end
+    local profile = SmartMailDB_PerChar.profiles[charName]
+    
+    if profile.itemSettings then
+        for _, itemData in ipairs(SmartMail.confirmQueue) do
+            local itemID = itemData.itemID
+            if profile.itemSettings[itemID] then
+                profile.itemSettings[itemID] = nil
+            end
+        end
+    end
+    
+    SmartMail.confirmQueue = SmartMailQueue:BuildQueueForProfile(charName)
+    SmartMail_UpdateConfirmList()
+end
+
 function SmartMail_SaveItemSetting(profileName, itemID, key, value)
     SmartMail_Debug("SmartMail_SaveItemSetting called...")
     if not SmartMailDB_PerChar then return end
@@ -601,6 +937,10 @@ end
 function SmartMail_UpdateConfirmList()
     local charName = SmartMail.selectedProfile
     if not charName then return end
+    
+    if SmartMailConfirmFrameTitle then
+        SmartMailConfirmFrameTitle:SetText(charName)
+    end
     
     SmartMail.confirmQueue = SmartMailQueue:BuildQueueForProfile(charName)
     SmartMail_Debug("Confirm Queue built with " .. table.getn(SmartMail.confirmQueue) .. " items.")
@@ -894,34 +1234,70 @@ SmartMail_HookFrameStack(SmartMailConfirmFrame)
 SmartMail_HookFrameStack(SmartMailCustomSendFrame)
 
 SmartMail.sendAllProfilesQueue = {}
+SmartMail.sendAllStats = { success = 0, fail = 0 }
+
 function SmartMail_SendAll(mode)
     SmartMail_Debug("SmartMail_SendAll called...")
     if SmartMail.isBusy then return end
     
     -- Gather flat queues for every single profile
     SmartMail.sendAllProfilesQueue = {}
+    SmartMail.sendAllStats = { expected = 0, success = 0, fail = 0 }
     
     if SmartMailDB_PerChar and SmartMailDB_PerChar.profiles then
         for charName, _ in pairs(SmartMailDB_PerChar.profiles) do
             local flat = SmartMailQueue:GenerateDirectFlatQueue(charName, mode)
             if flat and table.getn(flat) > 0 then
                 table.insert(SmartMail.sendAllProfilesQueue, { name = charName, queue = flat })
+                SmartMail.sendAllStats.expected = SmartMail.sendAllStats.expected + table.getn(flat)
             end
         end
     end
     
     if table.getn(SmartMail.sendAllProfilesQueue) == 0 then
         SmartMail_Debug("SendAll: No items to send for any profile.")
+        DEFAULT_CHAT_FRAME:AddMessage("SmartMail: No items to send.", 1, 1, 0)
         return
     end
     
-    SmartMailMainFrame:Hide()
-    SmartMail_SendAll_Next()
+    local expectedMsg = "SmartMail: Starting Mass Send. Expected to send " .. SmartMail.sendAllStats.expected .. " item(s)."
+    DEFAULT_CHAT_FRAME:AddMessage(expectedMsg, 1, 1, 0)
+    SmartMail_Debug("SendAll: " .. expectedMsg)
+    
+    SmartMail_SendAll_Next(0, 0)
 end
 
-function SmartMail_SendAll_Next()
+function SmartMail_SendAll_Next(successCount, failCount, abortReason, failedItems)
+    SmartMail.sendAllStats.success = SmartMail.sendAllStats.success + (successCount or 0)
+    SmartMail.sendAllStats.fail = SmartMail.sendAllStats.fail + (failCount or 0)
+    if abortReason then SmartMail.sendAllStats.reason = abortReason end
+    if not SmartMail.sendAllStats.failedItemsList then SmartMail.sendAllStats.failedItemsList = {} end
+    if failedItems then
+        for _, fi in ipairs(failedItems) do
+            table.insert(SmartMail.sendAllStats.failedItemsList, fi)
+        end
+    end
+    
     if table.getn(SmartMail.sendAllProfilesQueue) == 0 then
-        SmartMail_Debug("SendAll: All profiles completed successfully!")
+        local msg = "SmartMail: Mass Send Complete! Expected: " .. SmartMail.sendAllStats.expected .. ". Sent: " .. SmartMail.sendAllStats.success .. ". Failed: " .. SmartMail.sendAllStats.fail .. "."
+        if SmartMail.sendAllStats.fail > 0 then
+            local r = SmartMail.sendAllStats.reason or "Max Retries Reached"
+            msg = msg .. " (" .. r .. ")."
+        end
+        DEFAULT_CHAT_FRAME:AddMessage(msg, 1, 1, 0)
+        SmartMail_Debug("SendAll: " .. msg)
+        
+        if SmartMail.sendAllStats.fail > 0 and SmartMail.sendAllStats.failedItemsList then
+            for _, fi in ipairs(SmartMail.sendAllStats.failedItemsList) do
+                local it = fi.item
+                local reason = fi.reason or "Unknown Error"
+                if it.isMoney then
+                    DEFAULT_CHAT_FRAME:AddMessage("  - Failed: Money (" .. tostring(it.amount) .. "c) - " .. reason, 1, 0.5, 0)
+                else
+                    DEFAULT_CHAT_FRAME:AddMessage("  - Failed: " .. tostring(it.name or "Item") .. " (Bag " .. tostring(it.bag or "?") .. " Slot " .. tostring(it.slot or "?") .. ") - " .. reason, 1, 0.5, 0)
+                end
+            end
+        end
         return
     end
     

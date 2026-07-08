@@ -1,0 +1,8 @@
+
+BugGrabberDB = {
+	["limit"] = 100,
+	["errors"] = {
+	},
+	["save"] = true,
+	["session"] = 1,
+}

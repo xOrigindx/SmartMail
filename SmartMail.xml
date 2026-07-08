@@ -1,6 +1,82 @@
 <Ui xmlns="http://www.blizzard.com/wow/ui/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://www.blizzard.com/wow/ui/ ../FrameXML/UI.xsd">
 
+  <!-- Generic Dialog Box Template -->
+  <Frame name="SmartMailDialogTemplate" toplevel="true" enableMouse="true" movable="true" virtual="true">
+    <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
+      <BackgroundInsets>
+        <AbsInset left="11" right="12" top="12" bottom="11"/>
+      </BackgroundInsets>
+      <TileSize>
+        <AbsValue val="32"/>
+      </TileSize>
+      <EdgeSize>
+        <AbsValue val="32"/>
+      </EdgeSize>
+    </Backdrop>
+    <Layers>
+      <Layer level="ARTWORK">
+        <FontString name="$parentTitle" inherits="GameFontNormal" text="Dialog Title">
+          <Anchors>
+            <Anchor point="TOP">
+              <Offset x="0" y="-18"/>
+            </Anchor>
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+    <Frames>
+      <Button name="$parentCloseXButton" inherits="UIPanelCloseButton">
+        <Anchors>
+          <Anchor point="TOPRIGHT">
+            <Offset x="-5" y="-5"/>
+          </Anchor>
+        </Anchors>
+      </Button>
+    </Frames>
+    <Scripts>
+      <OnLoad>
+        this:RegisterForDrag("LeftButton")
+      </OnLoad>
+      <OnDragStart>
+        this:SetFrameStrata("HIGH")
+        this:StartMoving()
+      </OnDragStart>
+      <OnDragStop>
+        this:SetFrameStrata("MEDIUM")
+        this:StopMovingOrSizing()
+      </OnDragStop>
+    </Scripts>
+  </Frame>
+
+  <!-- Generic List Row Template -->
+  <Button name="SmartMailListRowTemplate" virtual="true">
+    <Size>
+      <AbsDimension x="200" y="20"/>
+    </Size>
+    <Layers>
+      <Layer level="BACKGROUND">
+        <Texture name="$parentSelection" file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD" hidden="true">
+          <Color r="0.8" g="0.8" b="1.0" a="0.5"/>
+        </Texture>
+      </Layer>
+      <Layer level="ARTWORK">
+        <FontString name="$parentText" inherits="GameFontNormalSmall" justifyH="LEFT">
+          <Anchors>
+            <Anchor point="LEFT">
+              <Offset x="5" y="0"/>
+            </Anchor>
+          </Anchors>
+        </FontString>
+      </Layer>
+    </Layers>
+    <HighlightTexture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD"/>
+    <Scripts>
+      <OnLoad>
+        self:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+      </OnLoad>
+    </Scripts>
+  </Button>
   <Button name="SmartMailToggleButton" parent="MailFrame" inherits="UIPanelButtonTemplate"
     text="SmartMail">
     <Size x="85" y="22" />
@@ -22,41 +98,13 @@
   </Button>
 
   <!-- SmartMail Main Window -->
-  <Frame name="SmartMailMainFrame" toplevel="true" parent="UIParent" movable="true"
-    enableMouse="true" hidden="true">
+  <Frame name="SmartMailMainFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
     <Size x="320" y="420" />
     <Anchors>
       <Anchor point="TOPLEFT" relativeTo="MailFrame" relativePoint="TOPRIGHT">
         <Offset x="10" y="0" />
       </Anchor>
     </Anchors>
-    <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background"
-      edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-      <BackgroundInsets left="11" right="12" top="12" bottom="11" />
-      <TileSize val="32" />
-      <EdgeSize val="32" />
-    </Backdrop>
-
-    <Layers>
-      <Layer level="ARTWORK">
-        <Texture name="$parentHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
-          <Size x="256" y="64" />
-          <Anchors>
-            <Anchor point="TOP">
-              <Offset x="0" y="12" />
-            </Anchor>
-          </Anchors>
-        </Texture>
-        <FontString name="$parentTitle" inherits="GameFontNormal" text="SmartMail">
-          <Anchors>
-            <Anchor point="TOP" relativeTo="$parentHeader">
-              <Offset x="0" y="-14" />
-            </Anchor>
-          </Anchors>
-        </FontString>
-      </Layer>
-    </Layers>
-
     <Frames>
       <Button name="$parentCloseButton" inherits="UIPanelCloseButton">
         <Anchors>
@@ -265,6 +313,7 @@
 
     <Scripts>
       <OnLoad>
+        getglobal(this:GetName().."Title"):SetText("SmartMail")
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnMouseUp>
@@ -287,34 +336,13 @@
     </Scripts>
   </Frame>
   <!-- SmartMail Profile Editor Window -->
-  <Frame name="SmartMailProfileEditorFrame" toplevel="true" parent="UIParent" movable="true" enableMouse="true" hidden="true">
-    <Size x="300" y="360" />
+  <Frame name="SmartMailProfileEditorFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
+    <Size x="300" y="440" />
     <Anchors>
       <Anchor point="CENTER" />
     </Anchors>
-    <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-      <BackgroundInsets left="11" right="12" top="12" bottom="11" />
-      <TileSize val="32" />
-      <EdgeSize val="32" />
-    </Backdrop>
-
     <Layers>
       <Layer level="ARTWORK">
-        <Texture name="$parentHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
-          <Size x="256" y="64" />
-          <Anchors>
-            <Anchor point="TOP">
-              <Offset x="0" y="12" />
-            </Anchor>
-          </Anchors>
-        </Texture>
-        <FontString name="$parentTitle" inherits="GameFontNormal" text="Profile Editor">
-          <Anchors>
-            <Anchor point="TOP" relativeTo="$parentHeader">
-              <Offset x="0" y="-14" />
-            </Anchor>
-          </Anchors>
-        </FontString>
         <FontString name="$parentNameLabel" inherits="GameFontNormal" text="Character Name:">
           <Anchors>
             <Anchor point="TOPLEFT">
@@ -324,7 +352,6 @@
         </FontString>
       </Layer>
     </Layers>
-
     <Frames>
       <EditBox name="$parentNameEditBox" inherits="InputBoxTemplate" autoFocus="false">
         <Size x="150" y="20" />
@@ -342,7 +369,7 @@
       </EditBox>
 
       <Frame name="$parentCheckboxContainer">
-        <Size x="260" y="220" />
+        <Size x="260" y="340" />
         <Anchors>
           <Anchor point="TOPLEFT" relativeTo="$parentNameEditBox" relativePoint="BOTTOMLEFT">
             <Offset x="-5" y="-10" />
@@ -382,6 +409,7 @@
     </Frames>
     <Scripts>
       <OnLoad>
+        getglobal(this:GetName().."Title"):SetText("Profile Editor")
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
@@ -396,53 +424,13 @@
   </Frame>
 
   <!-- SmartMail Log Window -->
-  <Frame name="SmartMailLogFrame" toplevel="true" parent="UIParent" movable="true"
-    enableMouse="true" hidden="true">
+  <Frame name="SmartMailLogFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
     <Size x="400" y="300" />
     <Anchors>
       <Anchor point="CENTER" />
     </Anchors>
-    <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background"
-      edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-      <BackgroundInsets left="11" right="12" top="12" bottom="11" />
-      <TileSize val="32" />
-      <EdgeSize val="32" />
-    </Backdrop>
-
-    <Layers>
-      <Layer level="ARTWORK">
-        <Texture name="$parentHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
-          <Size x="300" y="64" />
-          <Anchors>
-            <Anchor point="TOP">[
-              <Offset x="0" y="12" />
-            </Anchor>
-          </Anchors>
-        </Texture>
-        <FontString name="$parentTitle" inherits="GameFontNormal" text="SmartMail Log Window">
-          <Anchors>
-            <Anchor point="TOP" relativeTo="$parentHeader">
-              <Offset x="0" y="-14" />
-            </Anchor>
-          </Anchors>
-        </FontString>
-      </Layer>
-    </Layers>
 
     <Frames>
-      <Button name="$parentCloseXButton" inherits="UIPanelCloseButton">
-        <Anchors>
-          <Anchor point="TOPRIGHT">
-            <Offset x="-5" y="-5" />
-          </Anchor>
-        </Anchors>
-        <Scripts>
-          <OnClick>
-            SmartMail_Debug("SmartMailLogFrameCloseXButton clicked")
-            this:GetParent():Hide()
-          </OnClick>
-        </Scripts>
-      </Button>
 
       <Frame name="$parentContentFrame">
         <Anchors>
@@ -575,6 +563,7 @@
     </Frames>
     <Scripts>
       <OnLoad>
+        getglobal(this:GetName().."Title"):SetText("SmartMail Log Window")
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
@@ -589,48 +578,36 @@
   </Frame>
 
   <!-- SmartMail Debug Window -->
-  <Frame name="SmartMailDebugFrame" toplevel="true" parent="UIParent" movable="true" enableMouse="true" hidden="true">
+  <Frame name="SmartMailDebugFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
     <Size x="450" y="350" />
     <Anchors>
       <Anchor point="BOTTOMRIGHT">
         <Offset x="-20" y="20"/>
       </Anchor>
     </Anchors>
-    <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-      <BackgroundInsets left="11" right="12" top="12" bottom="11" />
-      <TileSize val="32" />
-      <EdgeSize val="32" />
-    </Backdrop>
-    <Layers>
-      <Layer level="ARTWORK">
-        <FontString name="$parentTitle" inherits="GameFontNormal" text="SmartMail DEBUG">
-          <Anchors>
-            <Anchor point="TOP">
-              <Offset x="0" y="-14" />
-            </Anchor>
-          </Anchors>
-        </FontString>
-      </Layer>
-    </Layers>
     <Frames>
-      <Button name="$parentCloseXButton" inherits="UIPanelCloseButton">
+      <Frame name="SmartMailDebugCategoryDropDown" inherits="UIDropDownMenuTemplate">
         <Anchors>
-          <Anchor point="TOPRIGHT">
-            <Offset x="-5" y="-5" />
+          <Anchor point="TOPLEFT">
+            <Offset x="-5" y="-30" />
           </Anchor>
         </Anchors>
         <Scripts>
-          <OnClick>
-            SmartMail_Debug("SmartMailDebugFrameCloseXButton clicked")
-            this:GetParent():Hide()
-          </OnClick>
+          <OnLoad>
+            UIDropDownMenu_Initialize(this, SmartMailDebugCategoryDropDown_Initialize)
+            UIDropDownMenu_SetWidth(150, this)
+            UIDropDownMenu_SetSelectedValue(this, 1)
+            UIDropDownMenu_SetText("ALL", this)
+          </OnLoad>
+          <OnShow>
+            UIDropDownMenu_Initialize(this, SmartMailDebugCategoryDropDown_Initialize)
+          </OnShow>
         </Scripts>
-      </Button>
-
+      </Frame>
       <Frame name="$parentContentFrame">
         <Anchors>
           <Anchor point="TOPLEFT">
-            <Offset x="20" y="-40" />
+            <Offset x="20" y="-65" />
           </Anchor>
           <Anchor point="BOTTOMRIGHT">
             <Offset x="-20" y="50" />
@@ -647,7 +624,7 @@
           </OnLoad>
         </Scripts>
         <Frames>
-          <ScrollFrame name="$parentScrollFrame" inherits="UIPanelScrollFrameTemplate">
+          <ScrollFrame name="$parentScrollFrame" inherits="FauxScrollFrameTemplate">
             <Anchors>
               <Anchor point="TOPLEFT">
                 <Offset x="4" y="-4" />
@@ -656,24 +633,34 @@
                 <Offset x="-26" y="4" />
               </Anchor>
             </Anchors>
-            <ScrollChild>
-              <EditBox name="SmartMailDebugFrameText" multiLine="true" enableMouse="false" autoFocus="false">
-                <Size x="400" y="260" />
-                <Scripts>
-                  <OnLoad>
-                    this:SetFontObject("GameFontHighlightSmall")
-                  </OnLoad>
-                </Scripts>
-              </EditBox>
-            </ScrollChild>
+            <Scripts>
+              <OnVerticalScroll>
+                FauxScrollFrame_OnVerticalScroll(14, SmartMail_UpdateDebugList)
+              </OnVerticalScroll>
+            </Scripts>
           </ScrollFrame>
         </Frames>
       </Frame>
-      <Button name="$parentCopyButton" inherits="UIPanelButtonTemplate" text="Copy Text">
+      <Button name="$parentUnselectButton" inherits="UIPanelButtonTemplate" text="Unselect">
         <Size x="100" y="24" />
         <Anchors>
           <Anchor point="BOTTOMLEFT">
             <Offset x="20" y="20" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail.debugSelection = {}
+            SmartMail.lastDebugClick = nil
+            SmartMail_UpdateDebugList()
+          </OnClick>
+        </Scripts>
+      </Button>
+      <Button name="$parentCopyButton" inherits="UIPanelButtonTemplate" text="Copy Text">
+        <Size x="100" y="24" />
+        <Anchors>
+          <Anchor point="LEFT" relativeTo="$parentUnselectButton" relativePoint="RIGHT">
+            <Offset x="10" y="0" />
           </Anchor>
         </Anchors>
         <Scripts>
@@ -700,43 +687,19 @@
     </Frames>
     <Scripts>
       <OnLoad>
-        this:RegisterForDrag("LeftButton")
+        getglobal(self:GetName().."Title"):SetText("SmartMail DEBUG")
       </OnLoad>
-      <OnDragStart>
-        this:SetFrameStrata("HIGH")
-        this:StartMoving()
-      </OnDragStart>
-      <OnDragStop>
-        this:SetFrameStrata("MEDIUM")
-        this:StopMovingOrSizing()
-      </OnDragStop>
     </Scripts>
   </Frame>
 
   <!-- SmartMail Copy Popup -->
-  <Frame name="SmartMailCopyFrame" toplevel="true" parent="UIParent" movable="true" enableMouse="true" hidden="true">
+  <Frame name="SmartMailCopyFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
     <Size x="450" y="350" />
     <Anchors>
       <Anchor point="CENTER">
         <Offset x="0" y="0" />
       </Anchor>
     </Anchors>
-    <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-      <BackgroundInsets left="11" right="12" top="12" bottom="11" />
-      <TileSize val="32" />
-      <EdgeSize val="32" />
-    </Backdrop>
-    <Layers>
-      <Layer level="ARTWORK">
-        <FontString name="$parentTitle" inherits="GameFontNormal" text="Copy Debug Log">
-          <Anchors>
-            <Anchor point="TOP">
-              <Offset x="0" y="-15" />
-            </Anchor>
-          </Anchors>
-        </FontString>
-      </Layer>
-    </Layers>
     <Frames>
       <ScrollFrame name="$parentScrollFrame" inherits="UIPanelScrollFrameTemplate">
         <Size x="400" y="260" />
@@ -761,6 +724,15 @@
                 SmartMail_Debug("Escape pressed in SmartMailCopyFrameText")
                 this:ClearFocus()
               </OnEscapePressed>
+              <OnTextChanged>
+                ScrollingEdit_OnTextChanged(SmartMailCopyFrameScrollFrame)
+              </OnTextChanged>
+              <OnCursorChanged>
+                ScrollingEdit_OnCursorChanged(arg1, arg2, arg3, arg4)
+              </OnCursorChanged>
+              <OnUpdate>
+                ScrollingEdit_OnUpdate(SmartMailCopyFrameScrollFrame)
+              </OnUpdate>
             </Scripts>
           </EditBox>
         </ScrollChild>
@@ -782,64 +754,30 @@
     </Frames>
     <Scripts>
       <OnLoad>
+        getglobal(this:GetName().."Title"):SetText("Copy Debug Log")
         this:RegisterForDrag("LeftButton")
       </OnLoad>
+      <OnUpdate>
+        SmartMailCopyFrame_OnUpdate()
+      </OnUpdate>
       <OnDragStart>
-        this:SetFrameStrata("FULLSCREEN_DIALOG")
+        this:SetFrameStrata("HIGH")
         this:StartMoving()
       </OnDragStart>
       <OnDragStop>
+        this:SetFrameStrata("MEDIUM")
         this:StopMovingOrSizing()
       </OnDragStop>
     </Scripts>
   </Frame>
 
   <!-- SmartMail Options Window -->
-  <Frame name="SmartMailOptionsFrame" toplevel="true" parent="UIParent" movable="true" enableMouse="true" hidden="true">
+  <Frame name="SmartMailOptionsFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
     <Size x="250" y="200" />
     <Anchors>
       <Anchor point="CENTER" />
     </Anchors>
-    <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-      <BackgroundInsets left="11" right="12" top="12" bottom="11" />
-      <TileSize val="32" />
-      <EdgeSize val="32" />
-    </Backdrop>
-
-    <Layers>
-      <Layer level="ARTWORK">
-        <Texture name="$parentHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
-          <Size x="200" y="64" />
-          <Anchors>
-            <Anchor point="TOP">
-              <Offset x="0" y="12" />
-            </Anchor>
-          </Anchors>
-        </Texture>
-        <FontString name="$parentTitle" inherits="GameFontNormal" text="SmartMail Options">
-          <Anchors>
-            <Anchor point="TOP" relativeTo="$parentHeader">
-              <Offset x="0" y="-14" />
-            </Anchor>
-          </Anchors>
-        </FontString>
-      </Layer>
-    </Layers>
-
     <Frames>
-      <Button name="$parentCloseXButton" inherits="UIPanelCloseButton">
-        <Anchors>
-          <Anchor point="TOPRIGHT">
-            <Offset x="-5" y="-5" />
-          </Anchor>
-        </Anchors>
-        <Scripts>
-          <OnClick>
-            SmartMail_Debug("SmartMailOptionsFrameCloseXButton clicked")
-            this:GetParent():Hide()
-          </OnClick>
-        </Scripts>
-      </Button>
 
       <Button name="$parentLoadGlobalButton" inherits="UIPanelButtonTemplate" text="Load Global Profiles">
         <Size x="160" y="24" />
@@ -886,6 +824,7 @@
     </Frames>
     <Scripts>
       <OnLoad>
+        getglobal(this:GetName().."Title"):SetText("SmartMail Options")
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
@@ -900,33 +839,13 @@
   </Frame>
 
   <!-- SmartMail Confirm Window -->
-  <Frame name="SmartMailConfirmFrame" toplevel="true" parent="UIParent" movable="true" enableMouse="true" hidden="true">
+  <Frame name="SmartMailConfirmFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
     <Size x="450" y="300" />
     <Anchors>
       <Anchor point="CENTER" />
     </Anchors>
-    <Backdrop bgFile="Interface\DialogFrame\UI-DialogBox-Background" edgeFile="Interface\DialogFrame\UI-DialogBox-Border" tile="true">
-      <BackgroundInsets left="11" right="12" top="12" bottom="11" />
-      <TileSize val="32" />
-      <EdgeSize val="32" />
-    </Backdrop>
     <Layers>
       <Layer level="ARTWORK">
-        <Texture name="$parentHeader" file="Interface\DialogFrame\UI-DialogBox-Header">
-          <Size x="256" y="64" />
-          <Anchors>
-            <Anchor point="TOP">
-              <Offset x="0" y="12" />
-            </Anchor>
-          </Anchors>
-        </Texture>
-        <FontString name="$parentTitle" inherits="GameFontNormal" text="Confirm Items">
-          <Anchors>
-            <Anchor point="TOP" relativeTo="$parentHeader">
-              <Offset x="0" y="-14" />
-            </Anchor>
-          </Anchors>
-        </FontString>
         <FontString name="$parentItemNameHeader" inherits="GameFontNormalSmall" justifyH="LEFT" text="Item Name">
           <Size x="160" y="20"/>
           <Anchors>
@@ -1015,6 +934,21 @@
         </Anchors>
       </Button>
 
+      <Button name="$parentResetButton" inherits="UIPanelButtonTemplate" text="Reset">
+        <Size x="80" y="24" />
+        <Anchors>
+          <Anchor point="BOTTOM">
+            <Offset x="0" y="20" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailConfirmFrameResetButton clicked")
+            if SmartMail_ResetConfirmItems then SmartMail_ResetConfirmItems() end
+          </OnClick>
+        </Scripts>
+      </Button>
+
       <Button name="$parentCancelButton" inherits="UIPanelButtonTemplate" text="Cancel">
         <Size x="100" y="24" />
         <Anchors>
@@ -1032,6 +966,7 @@
     </Frames>
     <Scripts>
       <OnLoad>
+        getglobal(this:GetName().."Title"):SetText("Confirm Items")
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
