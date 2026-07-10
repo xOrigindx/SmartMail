@@ -806,7 +806,7 @@
     </Frames>
     <Scripts>
       <OnLoad>
-        getglobal(self:GetName().."Title"):SetText("SmartMail DEBUG")
+        getglobal(this:GetName().."Title"):SetText("SmartMail DEBUG")
       </OnLoad>
     </Scripts>
   </Frame>
@@ -1201,8 +1201,7 @@
     </Frames>
     <Scripts>
       <OnLoad>
-        getglobal(this:GetName().."Title"):SetText("SmartMail - Tutorial")
-        getglobal(this:GetName().."Body"):SetWordWrap(true)
+        getglobal(this:GetName().."Title"):SetText("SmartMail Tutorial")
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
