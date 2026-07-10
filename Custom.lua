@@ -528,7 +528,7 @@ scrollChild:SetHeight(260)
 scrollFrame:SetScrollChild(scrollChild)
 
 local moneyInput = CreateFrame("Frame", "SmartMailCustomMoneyInput", frame, "MoneyInputFrameTemplate")
-moneyInput:SetPoint("TOP", listFrame, "BOTTOM", 10, -5)
+moneyInput:SetPoint("TOP", listFrame, "BOTTOM", -35, -5)
 MoneyInputFrame_SetCopper(moneyInput, 0)
 
 local gBox = getglobal("SmartMailCustomMoneyInputGold")
@@ -539,9 +539,9 @@ local addMoneyBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 addMoneyBtn:SetWidth(40)
 addMoneyBtn:SetHeight(20)
 if cBox then
-    addMoneyBtn:SetPoint("LEFT", cBox, "RIGHT", 25, 0)
+    addMoneyBtn:SetPoint("LEFT", cBox, "RIGHT", 10, 0)
 else
-    addMoneyBtn:SetPoint("LEFT", moneyInput, "RIGHT", 25, 0)
+    addMoneyBtn:SetPoint("LEFT", moneyInput, "RIGHT", 10, 0)
 end
 addMoneyBtn:SetText("Add")
 addMoneyBtn:SetScript("OnClick", function()
@@ -552,6 +552,18 @@ addMoneyBtn:SetScript("OnClick", function()
         MoneyInputFrame_SetCopper(moneyInput, 0)
         if SmartMail_UpdateCustomCartList then SmartMail_UpdateCustomCartList() end
     end
+end)
+
+local clearMoneyBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
+clearMoneyBtn:SetWidth(45)
+clearMoneyBtn:SetHeight(20)
+clearMoneyBtn:SetPoint("LEFT", addMoneyBtn, "RIGHT", 5, 0)
+clearMoneyBtn:SetText("Clear")
+clearMoneyBtn:SetScript("OnClick", function()
+    SmartMailCustom.moneyToSend = 0
+    MoneyInputFrame_SetCopper(moneyInput, 0)
+    SmartMail_Debug("CustomSend: Cleared all money from cart.")
+    if SmartMail_UpdateCustomCartList then SmartMail_UpdateCustomCartList() end
 end)
 
 local sendBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
@@ -1029,6 +1041,7 @@ function SmartMail_UpdateCustomCartList()
             highlight:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
             highlight:SetBlendMode("ADD")
             highlight:SetAllPoints(row)
+            row:RegisterForClicks("RightButtonUp")
         end
         
         local g = math.floor(copper / 10000)
@@ -1042,9 +1055,11 @@ function SmartMail_UpdateCustomCartList()
         
         row.text:SetText("|cFFFFFF00Funds:|r " .. mStr)
         row:SetScript("OnClick", function()
-            SmartMail_Debug("CustomCart: Removed all money from cart.")
-            SmartMailCustom.moneyToSend = 0
-            if SmartMail_UpdateCustomCartList then SmartMail_UpdateCustomCartList() end
+            if arg1 == "RightButton" then
+                SmartMail_Debug("CustomCart: Removed all money from cart.")
+                SmartMailCustom.moneyToSend = 0
+                if SmartMail_UpdateCustomCartList then SmartMail_UpdateCustomCartList() end
+            end
         end)
         
         row:SetPoint("TOPLEFT", customListScrollChild, "TOPLEFT", 0, -yOffset)
@@ -1072,6 +1087,7 @@ function SmartMail_UpdateCustomCartList()
                 highlight:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
                 highlight:SetBlendMode("ADD")
                 highlight:SetAllPoints(row)
+                row:RegisterForClicks("RightButtonUp")
             end
             
             row.text:SetText(itemData.itemName .. " (x" .. itemData.amountToSend .. ")")
@@ -1089,9 +1105,11 @@ function SmartMail_UpdateCustomCartList()
                 else
                     GameTooltip:SetText(dataRef.itemName)
                 end
+                
                 GameTooltip:AddLine(" ")
-                GameTooltip:AddLine("Left-Click: Remove 1 from cart", 1, 0, 0)
-                GameTooltip:AddLine("Shift-Click: Remove specific amount", 1, 0.5, 0)
+                GameTooltip:AddLine("Right-Click: Remove 1 from cart", 1, 0, 0)
+                GameTooltip:AddLine("Ctrl+Right-Click: Remove all from cart", 1, 0, 0)
+                GameTooltip:AddLine("Shift+Right-Click: Remove specific amount", 1, 0.5, 0)
                 GameTooltip:Show()
             end)
             
@@ -1100,18 +1118,23 @@ function SmartMail_UpdateCustomCartList()
             end)
             
             row:SetScript("OnClick", function()
-                if IsShiftKeyDown() then
-                    SmartMailCustomAmountFrame.mode = "remove"
-                    if SmartMailCustomAmountTitle then SmartMailCustomAmountTitle:SetText("Remove Amount") end
-                    SmartMailCustomAmountFrame.itemData = dataRef
-                    SmartMailCustomAmountFrame:Show()
-                else
-                    dataRef.amountToSend = dataRef.amountToSend - 1
-                    if dataRef.amountToSend < 0 then dataRef.amountToSend = 0 end
-                    SmartMail_Debug("CustomCart: Left-Click removed 1 " .. dataRef.itemName .. " from cart. New amount: " .. dataRef.amountToSend)
+                if arg1 == "RightButton" then
+                    if IsControlKeyDown() then
+                        dataRef.amountToSend = 0
+                        SmartMail_Debug("CustomCart: Ctrl+Right-Click removed all " .. dataRef.itemName .. " from cart. New amount: 0")
+                    elseif IsShiftKeyDown() then
+                        SmartMailCustomAmountFrame.mode = "remove"
+                        if SmartMailCustomAmountTitle then SmartMailCustomAmountTitle:SetText("Remove Amount") end
+                        SmartMailCustomAmountFrame.itemData = dataRef
+                        SmartMailCustomAmountFrame:Show()
+                    else
+                        dataRef.amountToSend = dataRef.amountToSend - 1
+                        if dataRef.amountToSend < 0 then dataRef.amountToSend = 0 end
+                        SmartMail_Debug("CustomCart: Right-Click removed 1 " .. dataRef.itemName .. " from cart. New amount: " .. dataRef.amountToSend)
+                    end
+                    SmartMail_UpdateCustomCartList()
+                    SmartMail_UpdateCustomList()
                 end
-                SmartMail_UpdateCustomCartList()
-                SmartMail_UpdateCustomList()
             end)
             
             row:SetPoint("TOPLEFT", customListScrollChild, "TOPLEFT", 0, -yOffset)

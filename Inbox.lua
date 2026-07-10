@@ -67,7 +67,8 @@ inboxFrame:SetScript("OnUpdate", function()
     if not SmartMailInbox.isOpenAllRunning then return end
     if waitingForUpdate then
         waitTime = waitTime + arg1
-        if waitTime > 0.5 then
+        local openDelay = SmartMail.OpenDelay or 0.5
+        if waitTime > openDelay then
             waitingForUpdate = false
             SmartMailInbox:ProcessNext()
         end

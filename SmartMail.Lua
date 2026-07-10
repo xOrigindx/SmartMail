@@ -1,9 +1,15 @@
 SmartMail = {
+    -- CONFIGURABLE SETTINGS
+    debug       = true, -- Set to true to see debug messages in chat
+    
+    -- Tweak these to speed up or slow down mail processing if you encounter server lag.
+    SendDelay   = 0.15, -- Delay between sending each mail (in seconds)
+    OpenDelay   = 0.50, -- Delay between looting each mail in the inbox (in seconds)
+
     isBusy      = false,
     lookup      = {},
     db          = nil,
     log         = nil,
-    debug       = false,
 }
 local orig_errorhandler = geterrorhandler()
 seterrorhandler(function(msg)

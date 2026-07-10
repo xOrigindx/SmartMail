@@ -19,6 +19,6 @@ When you start the next session, you MUST immediately read:
 - **ARTIFACT PLANS (WORKFLOW)**: You MUST present an Artifact Plan before modifying code for a new feature or fix. The artifact must use `RequestFeedback`. Wait for the user to approve the plan. Once approved, you MUST execute the file edits automatically without asking for further permission.
 - **MODEL ROUTING**: Gemini Pro is the orchestrator. Sonnet 4.6 and Opus 4.6 are explicitly reserved for token burns on Mondays or when deep reasoning is needed (prioritizing Sonnet 4.6 for coding sweeps). On Mondays, you MUST ask the user how much Sonnet/Opus 4.6 usage they have left (since it resets on Wednesday) to ensure efficient token burning.
 - **GIT PUSH COMMANDS**: The project uses two repositories. 
-  - When the user says "push", push ONLY to the dev repo (`origin`).
-  - When the user says "push public", push ONLY to the public repo (`public`).
-  - When the user says "push push public", push to BOTH.
+  - When the user says "push", push ONLY to the dev repo (`origin`) from the `main` branch.
+  - When the user says "push public", push ONLY to the public repo (`public`). Do this by switching to the `public-release` branch, merging updates from `main`, committing, and running `git push public public-release:main`. Do NOT swap `.gitignore` files on `main`.
+  - When the user says "push push public", do BOTH.
