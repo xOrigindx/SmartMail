@@ -1,4 +1,0 @@
-
-IncognitoVanillaDB = {
-	["mainName"] = "Daidinn",
-}

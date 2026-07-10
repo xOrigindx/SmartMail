@@ -1,9 +1,0 @@
-
-BugSackDB = {
-	["profiles"] = {
-		["Default"] = {
-			["detachedTooltip"] = {
-			},
-		},
-	},
-}

@@ -1,6 +1,0 @@
-
-DruidManaLibDB = {
-	["maxMana"] = -330,
-	["mana"] = 0,
-	["lastCast"] = 0,
-}

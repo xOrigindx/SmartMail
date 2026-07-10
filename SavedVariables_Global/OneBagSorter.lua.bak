@@ -1,2 +1,0 @@
-
-OneBagSorterDB = nil

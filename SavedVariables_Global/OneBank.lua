@@ -1,2 +1,0 @@
-
-OneBankDB = nil
