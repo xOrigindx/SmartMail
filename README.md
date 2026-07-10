@@ -8,6 +8,9 @@
 > - Assigning the exact same category to multiple different profiles is currently **not supported**, but it is planned for a future update!
 > - Profiles are currently **global** (account-wide). Per-character profiles (allowing you to have different bank alts per character) are planned for a future release!
 
+> [!WARNING]
+> **Compatibility:** SmartMail features a built-in "Open All" inbox looting system. Because of this, it is **highly incompatible** with other mail management addons (like CT_MailMod, Postal, etc.). Please disable other mail addons when using SmartMail to prevent conflicts!
+
 A smart, automated mailing assistant for World of Warcraft (Vanilla 1.12.1).
 
 SmartMail takes the headache out of inventory management by automatically sorting and mailing your items to the correct characters based on customized categories. Stop dragging items manually—just configure your profiles and let SmartMail handle the rest!
@@ -19,6 +22,7 @@ SmartMail takes the headache out of inventory management by automatically sortin
 * **Mass Send ("Send All")**: Mail every matching item to *every* profile you have set up with a single click.
 * **"Send All Full" Mode**: A specialized mass-send that *only* mails complete stacks, leaving your partial stacks in your bags so you can keep farming.
 * **Custom Send**: A quick override window to manually send items to any saved character without needing a matching category.
+* **Open All Mail**: A powerful, built-in "Open All" button added directly to your inbox to automatically loot your incoming mail.
 
 ---
 
