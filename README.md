@@ -16,7 +16,9 @@ SmartMail takes the headache out of inventory management by automatically sortin
 ## How It Works (Visual Guide)
 
 **Watch SmartMail in action!**
-https://github.com/xOrigindx/SmartMail-developpement/raw/main/Images/smartmail_demo.mp4
+<video src="https://github.com/xOrigindx/SmartMail/raw/main/Images/smartmail_demo.mp4" controls="controls" style="max-width: 100%;">
+  Your browser does not support the video tag.
+</video>
 
 ### 1. Main Frame
 Open your mailbox and type `/sm` to open the SmartMail interface. This is your command center showing all your saved profiles and their assigned item categories. From here, you can trigger a massive **Send All** or **Send All Full** across every character at once.
