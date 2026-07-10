@@ -892,26 +892,17 @@
 
   <!-- SmartMail Options Window -->
   <Frame name="SmartMailOptionsFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
-    <Size x="250" y="230" />
+    <Size x="250" y="200" />
     <Anchors>
       <Anchor point="CENTER" />
     </Anchors>
     <Frames>
 
-      <Button name="$parentLoadGlobalButton" inherits="UIPanelButtonTemplate" text="Load Global Profiles">
+      <Button name="$parentDebugButton" inherits="UIPanelButtonTemplate" text="Debug Log">
         <Size x="160" y="24" />
         <Anchors>
           <Anchor point="TOP">
             <Offset x="0" y="-40" />
-          </Anchor>
-        </Anchors>
-      </Button>
-
-      <Button name="$parentDebugButton" inherits="UIPanelButtonTemplate" text="Debug Log">
-        <Size x="160" y="24" />
-        <Anchors>
-          <Anchor point="TOP" relativeTo="$parentLoadGlobalButton" relativePoint="BOTTOM">
-            <Offset x="0" y="-10" />
           </Anchor>
         </Anchors>
         <Scripts>

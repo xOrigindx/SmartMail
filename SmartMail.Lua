@@ -31,8 +31,6 @@ eventFrame:SetScript("OnEvent", function()
         if not SmartMailStressLog then SmartMailStressLog = {} end
         
         -- Backups
-        if not SmartMailDB_PerChar then SmartMailDB_PerChar = { profiles = {} } end
-        if not SmartMailDB_PerChar.profiles then SmartMailDB_PerChar.profiles = {} end
         if not SmartMailDebugLog_PerChar then SmartMailDebugLog_PerChar = {} end
         if not SmartMailDebugLog_PerChar.debugLog then SmartMailDebugLog_PerChar.debugLog = {} end
     elseif event == "MAIL_SHOW" or event == "MAIL_CLOSED" then
@@ -567,9 +565,9 @@ function SmartMail_UpdateCategoryLists()
                         
                         local catName = this.categoryName
                         local assignedTo = nil
-                        if SmartMailDB then
-                            for pName, pCats in pairs(SmartMailDB) do
-                                if type(pCats) == "table" and pName ~= SmartMail.editingProfileName and pName ~= "tutorialComplete" then
+                        if SmartMailDB and SmartMailDB.profiles then
+                            for pName, pCats in pairs(SmartMailDB.profiles) do
+                                if type(pCats) == "table" and pName ~= SmartMail.editingProfileName then
                                     if pCats[catName] then
                                         assignedTo = pName
                                         break
@@ -621,9 +619,9 @@ function SmartMail_OpenProfileEditor(characterName)
     SmartMail.editingProfileName = characterName
     SmartMailProfileEditorFrameNameEditBox:SetText(characterName or "")
     
-    if not SmartMailDB_PerChar then SmartMailDB_PerChar = { profiles = {} } end
-    if not SmartMailDB_PerChar.profiles then SmartMailDB_PerChar.profiles = {} end
-    local existingProfile = SmartMailDB_PerChar.profiles[characterName]
+    if not SmartMailDB then SmartMailDB = { profiles = {} } end
+    if not SmartMailDB.profiles then SmartMailDB.profiles = {} end
+    local existingProfile = SmartMailDB.profiles[characterName]
     
     SmartMail.editingProfileData = {}
     if existingProfile then
@@ -646,11 +644,11 @@ function SmartMail_SaveProfile()
         return
     end
     
-    if not SmartMailDB_PerChar then SmartMailDB_PerChar = { profiles = {} } end
-    if not SmartMailDB_PerChar.profiles then SmartMailDB_PerChar.profiles = {} end
+    if not SmartMailDB then SmartMailDB = { profiles = {} } end
+    if not SmartMailDB.profiles then SmartMailDB.profiles = {} end
     
     -- If profile is new, ask for verification!
-    if not SmartMailDB_PerChar.profiles[charName] then
+    if not SmartMailDB.profiles[charName] then
         StaticPopupDialogs["SMARTMAIL_VERIFY_RECIPIENT"] = {
             text = "Are you absolutely sure '" .. charName .. "' is spelled correctly?\n\nMail sent to the wrong person cannot be recovered!",
             button1 = "Yes, Save Profile",
@@ -688,15 +686,12 @@ function SmartMail_CommitSaveProfile(charName)
     if SmartMail.editingProfileName and SmartMail.editingProfileName ~= charName then
         SmartMail_Debug("Profile renamed from '" .. SmartMail.editingProfileName .. "' to '" .. charName .. "'. Deleting old profile.")
         SmartMailDB.profiles[SmartMail.editingProfileName] = nil
-        SmartMailDB_PerChar.profiles[SmartMail.editingProfileName] = nil
-        
         if SmartMail.selectedProfile == SmartMail.editingProfileName then
             SmartMail.selectedProfile = charName
         end
     end
     
     SmartMailDB.profiles[charName] = selectedCategories
-    SmartMailDB_PerChar.profiles[charName] = selectedCategories
     SmartMail.editingProfileName = nil
     
     SmartMail_Debug("Successfully saved profile '" .. charName .. "' with " .. count .. " categories checked.")
@@ -719,7 +714,7 @@ function SmartMail_DeleteProfile(charName)
         button2 = "No, Cancel",
         OnAccept = function()
             if SmartMailDB.profiles[charName] then SmartMailDB.profiles[charName] = nil end
-            if SmartMailDB_PerChar.profiles[charName] then SmartMailDB_PerChar.profiles[charName] = nil end
+            if SmartMailDB.profiles[charName] then SmartMailDB.profiles[charName] = nil end
             
             if SmartMail.selectedProfile == charName then
                 SmartMail.selectedProfile = nil
@@ -791,7 +786,7 @@ end
 
 function SmartMail_UpdateProfileList()
     SmartMail_Debug("SmartMail_UpdateProfileList called...")
-    if not SmartMailDB_PerChar or not SmartMailDB_PerChar.profiles then return end
+    if not SmartMailDB or not SmartMailDB.profiles then return end
     
     local scrollChild = SmartMailMainFrameListFrameScrollFrameScrollChild
     if not scrollChild then 
@@ -815,7 +810,7 @@ function SmartMail_UpdateProfileList()
     local yOffset = -5
     local index = 1
     
-    for charName, categories in pairs(SmartMailDB_PerChar.profiles) do
+    for charName, categories in pairs(SmartMailDB.profiles) do
         local line = scrollChild.profileLines[index]
         if not line then
             line = SmartMail_CreateListRow("SmartMailProfileRow" .. index, scrollChild, 240, 20)
@@ -914,41 +909,13 @@ end)
 
 
 
-function SmartMail_LoadGlobalProfiles()
-    SmartMail_Debug("SmartMail_LoadGlobalProfiles called...")
-    if not SmartMailDB or not SmartMailDB.profiles then
-        SmartMail_Debug("No global profiles to load.")
-        return
-    end
-    if not SmartMailDB_PerChar then SmartMailDB_PerChar = { profiles = {} } end
-    if not SmartMailDB_PerChar.profiles then SmartMailDB_PerChar.profiles = {} end
-    
-    local count = 0
-    for charName, categories in pairs(SmartMailDB.profiles) do
-        local catCopy = {}
-        for k, v in pairs(categories) do
-            catCopy[k] = v
-        end
-        SmartMailDB_PerChar.profiles[charName] = catCopy
-        count = count + 1
-    end
-    
-    SmartMail_Debug("Loaded " .. count .. " global profiles into this character.")
-    SmartMail_UpdateProfileList()
-end
-
-SmartMailOptionsFrameLoadGlobalButton:SetScript("OnClick", function()
-    SmartMail_Debug("SmartMailOptionsFrameLoadGlobalButton clicked (Lua SetScript)")
-    SmartMail_LoadGlobalProfiles()
-end)
-
 function SmartMail_ResetConfirmItems()
     SmartMail_Debug("SmartMail_ResetConfirmItems called...")
     if not SmartMail.confirmQueue then return end
     
     local charName = UIDropDownMenu_GetText(SmartMailMainFrameProfileDropdown)
-    if not charName or charName == "" or not SmartMailDB_PerChar.profiles[charName] then return end
-    local profile = SmartMailDB_PerChar.profiles[charName]
+    if not charName or charName == "" or not SmartMailDB.profiles[charName] then return end
+    local profile = SmartMailDB.profiles[charName]
     
     if profile.itemSettings then
         for _, itemData in ipairs(SmartMail.confirmQueue) do
@@ -965,17 +932,17 @@ end
 
 function SmartMail_SaveItemSetting(profileName, itemID, key, value)
     SmartMail_Debug("SmartMail_SaveItemSetting called...")
-    if not SmartMailDB_PerChar then return end
-    if not SmartMailDB_PerChar.profiles[profileName] then return end
+    if not SmartMailDB then return end
+    if not SmartMailDB.profiles[profileName] then return end
     
-    if not SmartMailDB_PerChar.profiles[profileName].itemSettings then
-        SmartMailDB_PerChar.profiles[profileName].itemSettings = {}
+    if not SmartMailDB.profiles[profileName].itemSettings then
+        SmartMailDB.profiles[profileName].itemSettings = {}
     end
-    if not SmartMailDB_PerChar.profiles[profileName].itemSettings[itemID] then
-        SmartMailDB_PerChar.profiles[profileName].itemSettings[itemID] = {}
+    if not SmartMailDB.profiles[profileName].itemSettings[itemID] then
+        SmartMailDB.profiles[profileName].itemSettings[itemID] = {}
     end
     
-    SmartMailDB_PerChar.profiles[profileName].itemSettings[itemID][key] = value
+    SmartMailDB.profiles[profileName].itemSettings[itemID][key] = value
     SmartMail_Debug("ConfirmList: Saved item setting (" .. tostring(itemID) .. ") key '" .. tostring(key) .. "' = " .. tostring(value))
 end
 
@@ -1289,8 +1256,8 @@ function SmartMail_SendAll(mode)
     SmartMail.sendAllProfilesQueue = {}
     SmartMail.sendAllStats = { expected = 0, success = 0, fail = 0 }
     
-    if SmartMailDB_PerChar and SmartMailDB_PerChar.profiles then
-        for charName, _ in pairs(SmartMailDB_PerChar.profiles) do
+    if SmartMailDB and SmartMailDB.profiles then
+        for charName, _ in pairs(SmartMailDB.profiles) do
             local flat = SmartMailQueue:GenerateDirectFlatQueue(charName, mode)
             if flat and table.getn(flat) > 0 then
                 table.insert(SmartMail.sendAllProfilesQueue, { name = charName, queue = flat })
