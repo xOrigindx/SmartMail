@@ -3,7 +3,7 @@ A smart, automated mailing assistant for World of Warcraft (Vanilla 1.12.1).
 
 SmartMail takes the headache out of inventory management by automatically sorting and mailing your items to the correct characters based on customized categories. Stop dragging items manually—just configure your profiles and let SmartMail handle the rest!
 
-## 🌟 Features
+## Features
 * **Automated Category Matching**: Map specific items (e.g., Cloth, Herbs, Ore) directly to your bank alts.
 * **Dual-Pane Profile Editor**: A clean, intuitive interface for assigning categories to specific characters.
 * **Granular Stack Controls**: Set exactly how many full stacks to send, or click the checkbox to include partial stacks.
@@ -13,9 +13,9 @@ SmartMail takes the headache out of inventory management by automatically sortin
 
 ---
 
-## 📸 How It Works (Visual Guide)
+## How It Works (Visual Guide)
 
-### 1. The Main Hub
+### 1. Main Frame
 Open your mailbox and type `/sm` to open the SmartMail interface. This is your command center showing all your saved profiles and their assigned item categories. From here, you can trigger a massive **Send All** or **Send All Full** across every character at once.
 
 ![Main Window](Images/main_window.jpg)
@@ -39,17 +39,13 @@ Just need to do a quick manual transfer? Click the **Custom** button on the main
 
 ---
 
-## ⚙️ Installation
+## Installation
 1. Download the latest release.
 2. Extract the `SmartMail` folder.
 3. Place it into your WoW AddOns directory: `World of Warcraft/Interface/AddOns/SmartMail`.
 4. Boot up the game and ensure "Load out of date AddOns" is checked.
 
-## ⌨️ Commands
+## Commands
 * `/sm` — Opens the main interface.
 * `/sm tutorial` — Replays the in-game tutorial frame.
-* `/sm debug on` — Enables verbose chat logging for troubleshooting.
-* `/sm debug off` — Disables verbose logging.
 
-## 🚀 Future Roadmap
-* **Stress 2.0**: A full stress-testing suite targeted at vMaNGOS / cMaNGOS environments for extreme high-volume barrage testing and adaptive latency tuning.
