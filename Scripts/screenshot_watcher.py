@@ -12,7 +12,7 @@ class TGAToJPGHandler(FileSystemEventHandler):
     def get_next_sequence_number(self):
         max_num = 0
         for filename in os.listdir(SCREENSHOTS_DIR):
-            match = re.match(r"img_(\d+)\.jpg", filename)
+            match = re.match(r"img-(\d+)\.jpg", filename)
             if match:
                 num = int(match.group(1))
                 if num > max_num:
@@ -26,7 +26,7 @@ class TGAToJPGHandler(FileSystemEventHandler):
             
             # Generate the new filename
             seq_num = self.get_next_sequence_number()
-            jpg_filename = f"img_{seq_num:02d}.jpg"
+            jpg_filename = f"img-{seq_num:02d}.jpg"
             jpg_path = os.path.join(SCREENSHOTS_DIR, jpg_filename)
             
             # Convert TGA to JPG
