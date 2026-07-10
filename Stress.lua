@@ -1,4 +1,23 @@
+-- ============================================================
+-- Stress.lua — DEPRECATED as of v1.0
+-- ============================================================
+-- This module is not active in the v1.0 release build.
+--
+-- TODO: Stress 2.0 — planned for a future version targeting
+-- vMaNGOS / cMaNGOS private server environments.
+--
+-- Planned Features:
+--   - High-volume barrage testing (100+ mails per session)
+--   - Automated Open All → Mass Send cycle loops
+--   - Adaptive SendDelay auto-tuning based on success rate
+--   - Per-server latency profiling
+--
+-- Current v1.0 uses a hardcoded 0.15s SendDelay which achieved
+-- a 98% success rate in testing on Microbot Vanilla.
+-- ============================================================
+
 SmartMailStress = {}
+SmartMailStress.deprecated = true  -- Stress 2.0 not yet implemented
 
 local cycleActive = false
 local autoIncrement = true

@@ -25,3 +25,4 @@ SmartMail.xml
 SmartMail.lua
 Inbox.lua
 Stress.lua
+Tutorial.lua

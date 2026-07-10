@@ -382,13 +382,29 @@ StaticPopupDialogs["SMARTMAIL_CUSTOM_ADD_RECIPIENT"] = {
             for _, r in ipairs(SmartMailDB_PerChar.customRecipients) do
                 if r == text then exists = true; break end
             end
-            if not exists then
-                table.insert(SmartMailDB_PerChar.customRecipients, text)
-            end
-            SmartMailCustom.selectedRecipient = text
-            if SmartMailValidator_Validate then SmartMailValidator_Validate(text) end
-            if SmartMail_UpdateCustomRecipientList then
-                SmartMail_UpdateCustomRecipientList()
+            
+            if exists then
+                SmartMailCustom.selectedRecipient = text
+                if SmartMail_UpdateCustomRecipientList then
+                    SmartMail_UpdateCustomRecipientList()
+                end
+            else
+                StaticPopupDialogs["SMARTMAIL_VERIFY_RECIPIENT"] = {
+                    text = "Are you absolutely sure '" .. text .. "' is spelled correctly?\n\nMail sent to the wrong person cannot be recovered!",
+                    button1 = "Yes, Add Recipient",
+                    button2 = "No, Cancel",
+                    OnAccept = function()
+                        table.insert(SmartMailDB_PerChar.customRecipients, text)
+                        SmartMailCustom.selectedRecipient = text
+                        if SmartMail_UpdateCustomRecipientList then
+                            SmartMail_UpdateCustomRecipientList()
+                        end
+                    end,
+                    timeout = 0,
+                    whileDead = 1,
+                    hideOnEscape = 1
+                }
+                StaticPopup_Show("SMARTMAIL_VERIFY_RECIPIENT")
             end
         end
     end,
@@ -407,11 +423,33 @@ StaticPopupDialogs["SMARTMAIL_CUSTOM_ADD_RECIPIENT"] = {
         if text and text ~= "" then
             if not SmartMailDB_PerChar then SmartMailDB_PerChar = {} end
             if not SmartMailDB_PerChar.customRecipients then SmartMailDB_PerChar.customRecipients = {} end
-            table.insert(SmartMailDB_PerChar.customRecipients, text)
-            SmartMailCustom.selectedRecipient = text
-            if SmartMailValidator_Validate then SmartMailValidator_Validate(text) end
-            if SmartMail_UpdateCustomRecipientList then
-                SmartMail_UpdateCustomRecipientList()
+            local exists = false
+            for _, r in ipairs(SmartMailDB_PerChar.customRecipients) do
+                if r == text then exists = true; break end
+            end
+            
+            if exists then
+                SmartMailCustom.selectedRecipient = text
+                if SmartMail_UpdateCustomRecipientList then
+                    SmartMail_UpdateCustomRecipientList()
+                end
+            else
+                StaticPopupDialogs["SMARTMAIL_VERIFY_RECIPIENT"] = {
+                    text = "Are you absolutely sure '" .. text .. "' is spelled correctly?\n\nMail sent to the wrong person cannot be recovered!",
+                    button1 = "Yes, Add Recipient",
+                    button2 = "No, Cancel",
+                    OnAccept = function()
+                        table.insert(SmartMailDB_PerChar.customRecipients, text)
+                        SmartMailCustom.selectedRecipient = text
+                        if SmartMail_UpdateCustomRecipientList then
+                            SmartMail_UpdateCustomRecipientList()
+                        end
+                    end,
+                    timeout = 0,
+                    whileDead = 1,
+                    hideOnEscape = 1
+                }
+                StaticPopup_Show("SMARTMAIL_VERIFY_RECIPIENT")
             end
         end
         this:GetParent():Hide()

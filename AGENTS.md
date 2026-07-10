@@ -24,3 +24,6 @@
 
 ## 4. CODING STANDARDS
 - **Debugging**: Always include `SmartMail_Debug()` statements for all new logic, UI interactions, and state changes to ensure we can clearly see what's happening. You tend to miss this, so strictly enforce it!
+
+## 5. GLOBAL PROTOCOLS
+- **Model Routing**: Gemini Pro is the orchestrator. Sonnet 4.6 and Opus 4.6 are explicitly reserved for token burns on Mondays or when deep reasoning is needed (prioritizing Sonnet 4.6 for coding sweeps). On Mondays, you MUST ask the user how much Sonnet/Opus 4.6 usage they have left (since it resets on Wednesday) to ensure efficient token burning.

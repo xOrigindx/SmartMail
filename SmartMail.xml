@@ -68,14 +68,26 @@
             </Anchor>
           </Anchors>
         </FontString>
+        <FontString name="$parentCategoryText" inherits="GameFontHighlightSmall" justifyH="RIGHT">
+          <Anchors>
+            <Anchor point="RIGHT">
+              <Offset x="-5" y="0"/>
+            </Anchor>
+          </Anchors>
+        </FontString>
+        <Texture name="$parentHorizontalDivider">
+          <Size x="240" y="1" />
+          <Anchors>
+            <Anchor point="BOTTOMLEFT">
+              <Offset x="0" y="0"/>
+            </Anchor>
+          </Anchors>
+          <Color r="1.0" g="1.0" b="0.0" a="0.3"/>
+        </Texture>
       </Layer>
     </Layers>
     <HighlightTexture file="Interface\QuestFrame\UI-QuestTitleHighlight" alphaMode="ADD"/>
-    <Scripts>
-      <OnLoad>
-        self:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-      </OnLoad>
-    </Scripts>
+
   </Button>
   <Button name="SmartMailToggleButton" parent="MailFrame" inherits="UIPanelButtonTemplate"
     text="SmartMail">
@@ -337,7 +349,7 @@
   </Frame>
   <!-- SmartMail Profile Editor Window -->
   <Frame name="SmartMailProfileEditorFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
-    <Size x="300" y="440" />
+    <Size x="510" y="440" />
     <Anchors>
       <Anchor point="CENTER" />
     </Anchors>
@@ -368,13 +380,118 @@
         </Scripts>
       </EditBox>
 
-      <Frame name="$parentCheckboxContainer">
-        <Size x="260" y="340" />
+      <!-- Available Categories -->
+      <Frame name="$parentAvailableLabelFrame">
+        <Size x="220" y="20"/>
         <Anchors>
           <Anchor point="TOPLEFT" relativeTo="$parentNameEditBox" relativePoint="BOTTOMLEFT">
-            <Offset x="-5" y="-10" />
+            <Offset x="-5" y="-5" />
           </Anchor>
         </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentText" inherits="GameFontHighlightSmall" text="Available Categories" justifyH="CENTER">
+              <Anchors>
+                <Anchor point="CENTER"/>
+              </Anchors>
+              <Color r="1" g="1" b="0" />
+            </FontString>
+          </Layer>
+        </Layers>
+      </Frame>
+
+      <Frame name="$parentAvailableListFrame" enableMouse="true">
+        <Size x="220" y="280" />
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="$parentAvailableLabelFrame" relativePoint="BOTTOMLEFT">
+            <Offset x="0" y="-5" />
+          </Anchor>
+        </Anchors>
+        <Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background"
+          edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+          <BackgroundInsets left="4" right="4" top="4" bottom="4" />
+          <TileSize val="16" />
+          <EdgeSize val="16" />
+        </Backdrop>
+        <Scripts>
+          <OnLoad>
+            this:SetBackdropColor(0, 0, 0, 1)
+          </OnLoad>
+        </Scripts>
+        <Frames>
+          <ScrollFrame name="$parentScrollFrame" inherits="UIPanelScrollFrameTemplate">
+            <Anchors>
+              <Anchor point="TOPLEFT">
+                <Offset x="4" y="-4" />
+              </Anchor>
+              <Anchor point="BOTTOMRIGHT">
+                <Offset x="-26" y="4" />
+              </Anchor>
+            </Anchors>
+            <ScrollChild>
+              <Frame name="$parentScrollChild">
+                <Size x="190" y="300" />
+              </Frame>
+            </ScrollChild>
+          </ScrollFrame>
+        </Frames>
+      </Frame>
+
+      <!-- Active Categories -->
+      <Frame name="$parentActiveLabelFrame">
+        <Size x="220" y="20"/>
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="$parentAvailableLabelFrame" relativePoint="TOPRIGHT">
+            <Offset x="10" y="0" />
+          </Anchor>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentText" inherits="GameFontHighlightSmall" text="Active Categories" justifyH="CENTER">
+              <Anchors>
+                <Anchor point="CENTER"/>
+              </Anchors>
+              <Color r="1" g="1" b="0" />
+            </FontString>
+          </Layer>
+        </Layers>
+      </Frame>
+
+      <Frame name="$parentActiveListFrame" enableMouse="true">
+        <Size x="220" y="280" />
+        <Anchors>
+          <Anchor point="TOPLEFT" relativeTo="$parentActiveLabelFrame" relativePoint="BOTTOMLEFT">
+            <Offset x="0" y="-5" />
+          </Anchor>
+        </Anchors>
+        <Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background"
+          edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
+          <BackgroundInsets left="4" right="4" top="4" bottom="4" />
+          <TileSize val="16" />
+          <EdgeSize val="16" />
+        </Backdrop>
+        <Scripts>
+          <OnLoad>
+            this:SetBackdropColor(0, 0, 0, 1)
+          </OnLoad>
+        </Scripts>
+        <Frames>
+          <ScrollFrame name="$parentScrollFrame" inherits="UIPanelScrollFrameTemplate">
+            <Anchors>
+              <Anchor point="TOPLEFT">
+                <Offset x="4" y="-4" />
+              </Anchor>
+              <Anchor point="BOTTOMRIGHT">
+                <Offset x="-26" y="4" />
+              </Anchor>
+            </Anchors>
+            <ScrollChild>
+              <Frame name="$parentScrollChild">
+                <Size x="190" y="300" />
+              </Frame>
+            </ScrollChild>
+          </ScrollFrame>
+        </Frames>
       </Frame>
 
       <Button name="$parentCancelButton" inherits="UIPanelButtonTemplate" text="Cancel">
@@ -773,7 +890,7 @@
 
   <!-- SmartMail Options Window -->
   <Frame name="SmartMailOptionsFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
-    <Size x="250" y="200" />
+    <Size x="250" y="230" />
     <Anchors>
       <Anchor point="CENTER" />
     </Anchors>
@@ -807,6 +924,21 @@
         </Scripts>
       </Button>
 
+      <Button name="$parentTutorialButton" inherits="UIPanelButtonTemplate" text="Tutorial">
+        <Size x="160" y="24" />
+        <Anchors>
+          <Anchor point="TOP" relativeTo="$parentDebugButton" relativePoint="BOTTOM">
+            <Offset x="0" y="-10" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailOptionsFrameTutorialButton clicked")
+            SmartMail_ShowTutorial()
+          </OnClick>
+        </Scripts>
+      </Button>
+
       <Button name="$parentCloseButton" inherits="UIPanelButtonTemplate" text="Close">
         <Size x="80" y="24" />
         <Anchors>
@@ -827,6 +959,13 @@
         getglobal(this:GetName().."Title"):SetText("SmartMail Options")
         this:RegisterForDrag("LeftButton")
       </OnLoad>
+      <OnShow>
+        if SmartMail and SmartMail.debug then
+          SmartMailOptionsFrameDebugButton:Show()
+        else
+          SmartMailOptionsFrameDebugButton:Hide()
+        end
+      </OnShow>
       <OnDragStart>
         this:SetFrameStrata("HIGH")
         this:StartMoving()
@@ -967,6 +1106,101 @@
     <Scripts>
       <OnLoad>
         getglobal(this:GetName().."Title"):SetText("Confirm Items")
+        this:RegisterForDrag("LeftButton")
+      </OnLoad>
+      <OnDragStart>
+        this:SetFrameStrata("HIGH")
+        this:StartMoving()
+      </OnDragStart>
+      <OnDragStop>
+        this:SetFrameStrata("MEDIUM")
+        this:StopMovingOrSizing()
+      </OnDragStop>
+    </Scripts>
+  </Frame>
+
+  <!-- Tutorial Frame -->
+  <Frame name="SmartMailTutorialFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
+    <Size x="420" y="280" />
+    <Anchors>
+      <Anchor point="CENTER" />
+    </Anchors>
+    <Layers>
+      <Layer level="ARTWORK">
+        <FontString name="$parentPageTitle" inherits="GameFontNormalLarge" justifyH="CENTER">
+          <Anchors>
+            <Anchor point="TOP">
+              <Offset x="0" y="-44" />
+            </Anchor>
+          </Anchors>
+          <Size x="380" y="20" />
+        </FontString>
+        <FontString name="$parentBody" inherits="GameFontHighlight" justifyH="LEFT" justifyV="TOP">
+          <Anchors>
+            <Anchor point="TOPLEFT">
+              <Offset x="20" y="-74" />
+            </Anchor>
+          </Anchors>
+          <Size x="380" y="150" />
+        </FontString>
+        <FontString name="$parentPageIndicator" inherits="GameFontNormalSmall" justifyH="CENTER">
+          <Anchors>
+            <Anchor point="BOTTOM">
+              <Offset x="0" y="48" />
+            </Anchor>
+          </Anchors>
+          <Size x="160" y="16" />
+        </FontString>
+      </Layer>
+    </Layers>
+    <Frames>
+      <Button name="$parentSkipButton" inherits="UIPanelButtonTemplate" text="Skip">
+        <Size x="60" y="22" />
+        <Anchors>
+          <Anchor point="BOTTOMLEFT">
+            <Offset x="16" y="16" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailTutorialFrame SkipButton clicked")
+            SmartMail_FinishTutorial()
+          </OnClick>
+        </Scripts>
+      </Button>
+      <Button name="$parentBackButton" inherits="UIPanelButtonTemplate" text="&lt;- Back">
+        <Size x="70" y="22" />
+        <Anchors>
+          <Anchor point="BOTTOMRIGHT">
+            <Offset x="-86" y="16" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailTutorialFrame BackButton clicked")
+            SmartMail_TutorialPrev()
+          </OnClick>
+        </Scripts>
+      </Button>
+      <Button name="$parentNextButton" inherits="UIPanelButtonTemplate" text="Next ->">
+        <Size x="70" y="22" />
+        <Anchors>
+          <Anchor point="BOTTOMRIGHT">
+            <Offset x="-14" y="16" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailTutorialFrame NextButton clicked")
+            SmartMail_TutorialNext()
+          </OnClick>
+        </Scripts>
+      </Button>
+    </Frames>
+    <Scripts>
+      <OnLoad>
+        getglobal(this:GetName().."Title"):SetText("SmartMail - Tutorial")
+        getglobal(this:GetName().."Body"):SetWordWrap(true)
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>

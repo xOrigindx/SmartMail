@@ -3,7 +3,7 @@ SmartMail = {
     lookup      = {},
     db          = nil,
     log         = nil,
-    debug       = true,
+    debug       = false,
 }
 local orig_errorhandler = geterrorhandler()
 seterrorhandler(function(msg)
@@ -27,6 +27,8 @@ eventFrame:SetScript("OnEvent", function()
         if not SmartMailDB.profiles then SmartMailDB.profiles = {} end
         if not SmartMailDebugLog then SmartMailDebugLog = {} end
         if not SmartMailDebugLog.debugLog then SmartMailDebugLog.debugLog = {} end
+        if not SmartMailMailLog then SmartMailMailLog = {} end
+        if not SmartMailStressLog then SmartMailStressLog = {} end
         
         -- Backups
         if not SmartMailDB_PerChar then SmartMailDB_PerChar = { profiles = {} } end
@@ -36,6 +38,12 @@ eventFrame:SetScript("OnEvent", function()
     elseif event == "MAIL_SHOW" or event == "MAIL_CLOSED" then
         if event == "MAIL_SHOW" then
             if SmartMailMainFrame then SmartMailMainFrame:Show() end
+            -- First-run tutorial
+            if not SmartMailDB.tutorialComplete then
+                if SmartMail_ShowTutorial then
+                    SmartMail_ShowTutorial()
+                end
+            end
         end
         if SmartMail_UpdateActionButtons then SmartMail_UpdateActionButtons() end
         if event == "MAIL_CLOSED" and SmartMailMainFrame and SmartMailMainFrame:IsVisible() then
@@ -49,6 +57,8 @@ function SmartMail_CreateListRow(name, parent, width, height)
     
     if width then row:SetWidth(width) end
     if height then row:SetHeight(height) end
+    
+    row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
     
     row.text = getglobal(name .. "Text")
     row.selection = getglobal(name .. "Selection")
@@ -64,59 +74,68 @@ function SmartMail_CreateListRow(name, parent, width, height)
     return row
 end
 
+
 function SmartMail_Debug(msg, category)
-    if SmartMail.debug then
-        local msgStr = tostring(msg)
-        if not category then
-            local lowerMsg = string.lower(msgStr)
-            if string.find(lowerMsg, "soulbound") then
-                category = "Soulbound"
-            elseif string.find(lowerMsg, "sendall") or string.find(lowerMsg, "send all") or string.find(lowerMsg, "confirm") or string.find(lowerMsg, "custom") or string.find(lowerMsg, "engine:") or string.find(lowerMsg, "smartmailengine") or string.find(lowerMsg, "mail_") or string.find(lowerMsg, "starting send") or string.find(lowerMsg, "routing") then
-                category = "Send"
-            elseif string.find(lowerMsg, "scan") or string.find(lowerMsg, "bridge:") or string.find(lowerMsg, "queue") or string.find(lowerMsg, "getpt") then
-                category = "ScanInventory"
-            elseif string.find(lowerMsg, "inbox") or string.find(lowerMsg, "openall") or string.find(lowerMsg, "open all") then
-                category = "OpenAll"
-            else
-                category = "General"
-            end
-        end
+    local isError = (category == "Error")
 
-        local formattedMsg = "|cff00ffff[SmartMail]|r " .. msgStr
-        DEFAULT_CHAT_FRAME:AddMessage(formattedMsg)
-        
-        local ms = string.format(".%03d", math.mod(GetTime() * 1000, 1000))
-        local timeStr = date("[%H:%M:%S") .. ms .. "] "
-        local logMsg = timeStr .. msgStr
-        
-        if SmartMail and SmartMail.isStressTest then
-            if not SmartMailStressLog then SmartMailStressLog = {} end
-            local charName = UnitName("player") or "Unknown"
-            table.insert(SmartMailStressLog, timeStr .. "[" .. charName .. "] [" .. category .. "] " .. msgStr)
+    -- When debug is off, only pass through explicit errors
+    if not SmartMail.debug and not isError then return end
+
+    local msgStr = tostring(msg)
+    if not category then
+        local lowerMsg = string.lower(msgStr)
+        if string.find(lowerMsg, "soulbound") then
+            category = "Soulbound"
+        elseif string.find(lowerMsg, "sendall") or string.find(lowerMsg, "send all") or string.find(lowerMsg, "confirm") or string.find(lowerMsg, "custom") or string.find(lowerMsg, "engine:") or string.find(lowerMsg, "smartmailengine") or string.find(lowerMsg, "mail_") or string.find(lowerMsg, "starting send") or string.find(lowerMsg, "routing") then
+            category = "Send"
+        elseif string.find(lowerMsg, "scan") or string.find(lowerMsg, "bridge:") or string.find(lowerMsg, "queue") or string.find(lowerMsg, "getpt") then
+            category = "ScanInventory"
+        elseif string.find(lowerMsg, "inbox") or string.find(lowerMsg, "openall") or string.find(lowerMsg, "open all") then
+            category = "OpenAll"
         else
-            -- Backup & Categories
-            if not SmartMailDebugLog_PerChar then SmartMailDebugLog_PerChar = {} end
-            if not SmartMailDebugLog_PerChar.debugLog then SmartMailDebugLog_PerChar.debugLog = {} end
-            table.insert(SmartMailDebugLog_PerChar.debugLog, 1, "["..category.."] " .. logMsg)
-            
-            if not SmartMailDebugLog_PerChar[category] then SmartMailDebugLog_PerChar[category] = {} end
-            table.insert(SmartMailDebugLog_PerChar[category], 1, logMsg)
+            category = "General"
         end
-        
-        -- Trim logs to prevent massive file sizes (max 5000)
-        if table.getn(SmartMailDebugLog_PerChar.debugLog) > 5000 then
-            table.remove(SmartMailDebugLog_PerChar.debugLog)
-        end
+    end
 
-        if table.getn(SmartMailDebugLog_PerChar[category]) > 1000 then
-            table.remove(SmartMailDebugLog_PerChar[category])
-        end
-        
-        -- Update UI Debug Window
-        if SmartMailDebugFrame and SmartMailDebugFrame:IsVisible() then
-            if SmartMail_UpdateDebugList then
-                SmartMail_UpdateDebugList()
-            end
+    -- Errors print in red, normal debug in cyan
+    local formattedMsg
+    if isError then
+        formattedMsg = "|cffff0000[SmartMail]|r " .. msgStr
+    else
+        formattedMsg = "|cff00ffff[SmartMail]|r " .. msgStr
+    end
+    DEFAULT_CHAT_FRAME:AddMessage(formattedMsg)
+
+    local ms = string.format(".%03d", math.mod(GetTime() * 1000, 1000))
+    local timeStr = date("[%H:%M:%S") .. ms .. "] "
+    local logMsg = timeStr .. msgStr
+
+    if SmartMail.isStressTest then
+        if not SmartMailStressLog then SmartMailStressLog = {} end
+        local charName = UnitName("player") or "Unknown"
+        table.insert(SmartMailStressLog, timeStr .. "[" .. charName .. "] [" .. category .. "] " .. msgStr)
+    else
+        -- Backup & Categories
+        if not SmartMailDebugLog_PerChar then SmartMailDebugLog_PerChar = {} end
+        if not SmartMailDebugLog_PerChar.debugLog then SmartMailDebugLog_PerChar.debugLog = {} end
+        table.insert(SmartMailDebugLog_PerChar.debugLog, 1, "["..category.."] " .. logMsg)
+
+        if not SmartMailDebugLog_PerChar[category] then SmartMailDebugLog_PerChar[category] = {} end
+        table.insert(SmartMailDebugLog_PerChar[category], 1, logMsg)
+    end
+
+    -- Trim logs to prevent massive file sizes (max 5000)
+    if table.getn(SmartMailDebugLog_PerChar.debugLog) > 5000 then
+        table.remove(SmartMailDebugLog_PerChar.debugLog)
+    end
+    if table.getn(SmartMailDebugLog_PerChar[category]) > 1000 then
+        table.remove(SmartMailDebugLog_PerChar[category])
+    end
+
+    -- Update UI Debug Window
+    if SmartMailDebugFrame and SmartMailDebugFrame:IsVisible() then
+        if SmartMail_UpdateDebugList then
+            SmartMail_UpdateDebugList()
         end
     end
 end
@@ -322,12 +341,20 @@ SlashCmdList["SMARTMAIL"] = function(msg)
             DEFAULT_CHAT_FRAME:AddMessage("  GetSetTable: " .. type(PeriodicTable.GetSetTable))
             DEFAULT_CHAT_FRAME:AddMessage("  IterateSet: " .. type(PeriodicTable.IterateSet))
         end
+    elseif msg == "tutorial" then
+        SmartMail_Debug("Slash: /sm tutorial triggered")
+        if SmartMailDB then SmartMailDB.tutorialComplete = nil end
+        if SmartMail_ShowTutorial then
+            SmartMail_ShowTutorial()
+        end
     elseif msg == "debug on" then
         SmartMail.debug = true
         DEFAULT_CHAT_FRAME:AddMessage("SmartMail Debug: ON")
+        if SmartMail_UpdateActionButtons then SmartMail_UpdateActionButtons() end
     elseif msg == "debug off" then
         SmartMail.debug = false
         DEFAULT_CHAT_FRAME:AddMessage("SmartMail Debug: OFF")
+        if SmartMail_UpdateActionButtons then SmartMail_UpdateActionButtons() end
     elseif msg == "debug" then
         if SmartMailDebugFrame:IsVisible() then
             SmartMailDebugFrame:Hide()
@@ -456,137 +483,105 @@ SmartMailLogFrame:SetScript("OnShow", function()
 end)
 
 -- Profile Editor Logic
-local createdCheckboxes = false
 function SmartMail_InitializeProfileCheckboxes()
-    SmartMail_Debug("SmartMail_InitializeProfileCheckboxes called...")
-    if createdCheckboxes then return end
-    SmartMail_Debug("Initializing Category Checkboxes...")
-    
-    local parent = SmartMailProfileEditorFrameCheckboxContainer
-    local categories = Bridge:GetCategoryNames()
-    SmartMail.categoryButtons = {}
-    
-    -- Create Active Frame Backdrop
-    local activeBG = CreateFrame("Frame", nil, parent)
-    activeBG:SetBackdrop({
-        bgFile = "Interface\Tooltips\UI-Tooltip-Background",
-        edgeFile = "Interface\Tooltips\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
-    })
-    activeBG:SetBackdropColor(0, 0, 0, 0.6)
-    activeBG:SetBackdropBorderColor(0, 1, 0, 0.8)
-    SmartMail.activeBG = activeBG
-    
-    local activeHeader = activeBG:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    activeHeader:SetText("Active Categories (Click to Remove)")
-    activeHeader:SetTextColor(0, 1, 0)
-    activeHeader:SetPoint("TOPLEFT", activeBG, "TOPLEFT", 10, -10)
-    SmartMail.activeHeader = activeHeader
-    
-    -- Create Available Frame Backdrop
-    local availableBG = CreateFrame("Frame", nil, parent)
-    availableBG:SetBackdrop({
-        bgFile = "Interface\Tooltips\UI-Tooltip-Background",
-        edgeFile = "Interface\Tooltips\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
-    })
-    availableBG:SetBackdropColor(0, 0, 0, 0.6)
-    availableBG:SetBackdropBorderColor(1, 1, 0, 0.8)
-    SmartMail.availableBG = availableBG
-    
-    local availableHeader = availableBG:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    availableHeader:SetText("Available Categories (Click to Add)")
-    availableHeader:SetTextColor(1, 1, 0)
-    availableHeader:SetPoint("TOPLEFT", availableBG, "TOPLEFT", 10, -10)
-    SmartMail.availableHeader = availableHeader
-    
-    for i, catName in ipairs(categories) do
-        local btn = CreateFrame("Button", "SmartMailCategoryBtn" .. i, parent)
-        btn:SetWidth(115)
-        btn:SetHeight(16)
-        
-        local highlight = btn:CreateTexture(nil, "HIGHLIGHT")
-        highlight:SetAllPoints(btn)
-        highlight:SetTexture("Interface\QuestFrame\UI-QuestTitleHighlight")
-        highlight:SetBlendMode("ADD")
-        
-        local text = btn:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-        text:SetPoint("LEFT", btn, "LEFT", 10, 0)
-        text:SetText(catName)
-        
-        btn.categoryName = catName
-        btn:SetScript("OnClick", function()
-            local profileData = SmartMail.editingProfileData
-            if not profileData then return end
-            if profileData[this.categoryName] then
-                profileData[this.categoryName] = nil
-            else
-                profileData[this.categoryName] = true
-            end
-            SmartMail_UpdateCategoryLists()
-        end)
-        
-        table.insert(SmartMail.categoryButtons, btn)
-    end
-    
-    createdCheckboxes = true
+    -- Compatibility stub: Initialization now happens dynamically in Update
 end
 
 function SmartMail_UpdateCategoryLists()
+    local availableChild = SmartMailProfileEditorFrameAvailableListFrameScrollFrameScrollChild
+    local activeChild = SmartMailProfileEditorFrameActiveListFrameScrollFrameScrollChild
+    if not availableChild or not activeChild then return end
+    
+    if not availableChild.categoryLines then availableChild.categoryLines = {} end
+    if not activeChild.categoryLines then activeChild.categoryLines = {} end
+    
+    -- Hide existing
+    for _, line in ipairs(availableChild.categoryLines) do line:Hide() end
+    for _, line in ipairs(activeChild.categoryLines) do line:Hide() end
+    
+    local bridgeCategories = Bridge:GetCategoryNames()
+    local categories = {}
+    for _, cat in ipairs(bridgeCategories) do table.insert(categories, cat) end
+    table.sort(categories)
+    
     local profileData = SmartMail.editingProfileData or {}
-    local activeList = {}
-    local availableList = {}
+    local availY = -5
+    local activeY = -5
+    local availIndex = 1
+    local activeIndex = 1
     
-    for _, btn in ipairs(SmartMail.categoryButtons) do
-        if profileData[btn.categoryName] then
-            table.insert(activeList, btn)
+    for _, catName in ipairs(categories) do
+        if profileData[catName] then
+            -- Active
+            local line = activeChild.categoryLines[activeIndex]
+            if not line then
+                line = SmartMail_CreateListRow("SmartMailActiveCategoryRow" .. activeIndex, activeChild, 190, 20)
+                line.text:SetFontObject("GameFontNormal")
+                line.text:SetPoint("LEFT", line, "LEFT", 10, 0)
+                
+                line:SetScript("OnClick", function()
+                    if arg1 == "RightButton" then
+                        local pData = SmartMail.editingProfileData
+                        if not pData then return end
+                        pData[this.categoryName] = nil
+                        SmartMail_UpdateCategoryLists()
+                    end
+                end)
+                line:SetScript("OnEnter", function()
+                    GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
+                    GameTooltip:SetText("Right-Click to Remove")
+                    GameTooltip:Show()
+                end)
+                line:SetScript("OnLeave", function()
+                    GameTooltip:Hide()
+                end)
+                table.insert(activeChild.categoryLines, line)
+            end
+            line.categoryName = catName
+            line.text:SetText(catName)
+            line.text:SetTextColor(0, 1, 0) -- Green
+            line:SetPoint("TOPLEFT", activeChild, "TOPLEFT", 10, activeY)
+            line:Show()
+            activeY = activeY - 20
+            activeIndex = activeIndex + 1
         else
-            table.insert(availableList, btn)
+            -- Available
+            local line = availableChild.categoryLines[availIndex]
+            if not line then
+                line = SmartMail_CreateListRow("SmartMailAvailableCategoryRow" .. availIndex, availableChild, 190, 20)
+                line.text:SetFontObject("GameFontNormal")
+                line.text:SetPoint("LEFT", line, "LEFT", 10, 0)
+                
+                line:SetScript("OnClick", function()
+                    if arg1 == "LeftButton" then
+                        local pData = SmartMail.editingProfileData
+                        if not pData then return end
+                        pData[this.categoryName] = true
+                        SmartMail_UpdateCategoryLists()
+                    end
+                end)
+                line:SetScript("OnEnter", function()
+                    GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
+                    GameTooltip:SetText("Left-Click to Add")
+                    GameTooltip:Show()
+                end)
+                line:SetScript("OnLeave", function()
+                    GameTooltip:Hide()
+                end)
+                table.insert(availableChild.categoryLines, line)
+            end
+            line.categoryName = catName
+            line.text:SetText(catName)
+            line.text:SetTextColor(0.8, 0.8, 0.8) -- Light Gray
+            line:SetPoint("TOPLEFT", availableChild, "TOPLEFT", 10, availY)
+            line:Show()
+            availY = availY - 20
+            availIndex = availIndex + 1
         end
-        btn:Hide()
-        btn:SetParent(SmartMailProfileEditorFrameCheckboxContainer) -- default
     end
     
-    table.sort(activeList, function(a, b) return a.categoryName < b.categoryName end)
-    table.sort(availableList, function(a, b) return a.categoryName < b.categoryName end)
-    
-    local activeRows = math.ceil(table.getn(activeList) / 2)
-    if activeRows == 0 then activeRows = 1 end
-    local activeHeight = 30 + (activeRows * 16) + 10
-    
-    SmartMail.activeBG:ClearAllPoints()
-    SmartMail.activeBG:SetPoint("TOPLEFT", SmartMailProfileEditorFrameCheckboxContainer, "TOPLEFT", 0, 0)
-    SmartMail.activeBG:SetWidth(260)
-    SmartMail.activeBG:SetHeight(activeHeight)
-    
-    for i, btn in ipairs(activeList) do
-        local col = math.mod(i - 1, 2)
-        local row = math.floor((i - 1) / 2)
-        btn:SetParent(SmartMail.activeBG)
-        btn:ClearAllPoints()
-        btn:SetPoint("TOPLEFT", SmartMail.activeBG, "TOPLEFT", 10 + (col * 125), -30 - (row * 16))
-        btn:Show()
-    end
-    
-    local availableRows = math.ceil(table.getn(availableList) / 2)
-    if availableRows == 0 then availableRows = 1 end
-    local availableHeight = 30 + (availableRows * 16) + 10
-    
-    SmartMail.availableBG:ClearAllPoints()
-    SmartMail.availableBG:SetPoint("TOPLEFT", SmartMail.activeBG, "BOTTOMLEFT", 0, -10)
-    SmartMail.availableBG:SetWidth(260)
-    SmartMail.availableBG:SetHeight(availableHeight)
-    
-    for i, btn in ipairs(availableList) do
-        local col = math.mod(i - 1, 2)
-        local row = math.floor((i - 1) / 2)
-        btn:SetParent(SmartMail.availableBG)
-        btn:ClearAllPoints()
-        btn:SetPoint("TOPLEFT", SmartMail.availableBG, "TOPLEFT", 10 + (col * 125), -30 - (row * 16))
-        btn:Show()
-    end
+    availableChild:SetHeight(math.abs(availY))
+    activeChild:SetHeight(math.abs(activeY))
 end
 
 function SmartMail_OpenProfileEditor(characterName)
@@ -756,6 +751,15 @@ function SmartMail_UpdateActionButtons()
             SmartMailConfirmFrameSendButton:Disable()
         end
     end
+
+    -- Show/hide the Debug Log button in Options based on debug state
+    if SmartMailOptionsFrameDebugButton then
+        if SmartMail.debug then
+            SmartMailOptionsFrameDebugButton:Show()
+        else
+            SmartMailOptionsFrameDebugButton:Hide()
+        end
+    end
 end
 
 function SmartMail_UpdateProfileList()
@@ -787,7 +791,7 @@ function SmartMail_UpdateProfileList()
     for charName, categories in pairs(SmartMailDB_PerChar.profiles) do
         local line = scrollChild.profileLines[index]
         if not line then
-            line = SmartMail_CreateListRow("SmartMailProfileRow" .. index, scrollChild, 270, 20)
+            line = SmartMail_CreateListRow("SmartMailProfileRow" .. index, scrollChild, 240, 20)
             line.text:SetFontObject("GameFontNormal")
             line.text:SetPoint("LEFT", line, "LEFT", 10, 0)
             
@@ -829,26 +833,40 @@ function SmartMail_UpdateProfileList()
             end 
         end
         
+        line.text:SetText(charName)
+        
+        if not line.categoryText then
+            line.categoryText = getglobal(line:GetName() .. "CategoryText")
+            line.categoryText:SetWidth(155)
+            line.categoryText:SetJustifyH("RIGHT")
+        end
+        
         local numCats = table.getn(activeCats)
         if numCats > 0 then
-            local catWord = numCats == 1 and "category" or "categories"
-            line.text:SetText(charName .. " (" .. numCats .. " " .. catWord .. ": " .. table.concat(activeCats, ", ") .. ")")
+            table.sort(activeCats)
+            line.categoryText:SetText(table.concat(activeCats, " |cFF00FF00|||r "))
         else
-            line.text:SetText(charName)
+            line.categoryText:SetText("")
         end
         
         if SmartMail.selectedProfile == charName then
             line.text:SetTextColor(1, 1, 1) -- White (Selected)
+            line.categoryText:SetTextColor(1, 1, 1)
             line:SetSelected(true)
         else
             line.text:SetTextColor(1, 0.82, 0) -- Gold (Normal)
+            line.categoryText:SetTextColor(0.8, 0.8, 0.8) -- Gray
             line:SetSelected(false)
         end
+        
+        local textHeight = line.categoryText:GetHeight() or 12
+        local rowHeight = math.max(20, textHeight + 6)
+        line:SetHeight(rowHeight)
         
         line:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 0, yOffset)
         line:Show()
         
-        yOffset = yOffset - 20
+        yOffset = yOffset - rowHeight
         index = index + 1
     end
     
