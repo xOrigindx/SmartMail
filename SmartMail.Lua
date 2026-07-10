@@ -366,13 +366,16 @@ SlashCmdList["SMARTMAIL"] = function(msg)
         else
             SmartMailDebugFrame:Show()
         end
-    else
-        if SmartMailMainFrame:IsVisible() then
-            SmartMailMainFrame:Hide()
         else
-            SmartMailMainFrame:Show()
+            if SmartMailMainFrame:IsVisible() then
+                SmartMailMainFrame:Hide()
+            else
+                SmartMailMainFrame:Show()
+                if SmartMailDB and not SmartMailDB.tutorialComplete then
+                    if SmartMail_ShowTutorial then SmartMail_ShowTutorial() end
+                end
+            end
         end
-    end
 end
 
 function SmartMail_ScanInventory()
