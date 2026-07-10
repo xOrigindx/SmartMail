@@ -3,20 +3,10 @@ Bridge = {}
 -- Dynamically fetch PeriodicTable to avoid stale references if another addon upgrades the lib during load
 local function GetPT()
     SmartMail_Debug("GetPT called...")
-    local pt
-    if AceLibrary and AceLibrary:HasInstance("PeriodicTable-3.1") then
-        pt = AceLibrary("PeriodicTable-3.1")
-    elseif PeriodicTableEmbed and type(PeriodicTableEmbed.GetInstance) == "function" then
-        pt = PeriodicTableEmbed:GetInstance("1") or PeriodicTableEmbed:GetInstance()
+    if PeriodicTableEmbed and type(PeriodicTableEmbed.GetInstance) == "function" then
+        return PeriodicTableEmbed:GetInstance("1") or PeriodicTableEmbed:GetInstance()
     end
-    if not pt and LibStub then
-        local success, inst = pcall(function() return LibStub("LibPeriodicTable-3.1", true) end)
-        if success and inst then pt = inst end
-    end
-    if not pt and PeriodicTable then
-        pt = PeriodicTable
-    end
-    return pt
+    return nil
 end
 
 local CATEGORY_MAP = {

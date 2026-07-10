@@ -4,8 +4,8 @@ function SmartMailQueue:BuildQueueForProfile(charName)
     SmartMail_Debug("SmartMailQueue:BuildQueueForProfile called...")
     SmartMail_Debug("SmartMailQueue: Building queue for profile '" .. tostring(charName) .. "'")
     local profile = nil
-    if SmartMailDB_PerChar and SmartMailDB_PerChar.profiles then
-        profile = SmartMailDB_PerChar.profiles[charName]
+    if SmartMailDB and SmartMailDB.profiles then
+        profile = SmartMailDB.profiles[charName]
     end
     if not profile then 
         SmartMail_Debug("SmartMailQueue: Profile not found. Aborting.")

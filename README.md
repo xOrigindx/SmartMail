@@ -1,4 +1,4 @@
-# SmartMail (v1.0)
+# SmartMail (v1.0.1)
 
 > [!NOTE]
 > **🎉 FIRST PUBLIC RELEASE! 🎉**
@@ -14,6 +14,17 @@
 A smart, automated mailing assistant for World of Warcraft (Vanilla 1.12.1).
 
 SmartMail takes the headache out of inventory management by automatically sorting and mailing your items to the correct characters based on customized categories. Stop dragging items manually—just configure your profiles and let SmartMail handle the rest!
+
+---
+
+## Changelog
+
+### v1.0.1
+**Hotfixes:**
+* **Inventory Data Retrieval:** Fixed a critical bug where the main frame categories appeared empty.
+
+**Additions & Changes:**
+* **Custom Send Frame UX:** Removed the popup dialog when assigning item amounts. You can now simply use `Ctrl+Left-Click` to add the maximum available amount of an item (ALL), and `Ctrl+Right-Click` to instantly remove it from the send queue.
 
 ## Features
 * **Automated Category Matching**: Map specific items (e.g., Cloth, Herbs, Ore) directly to your bank alts.

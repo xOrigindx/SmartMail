@@ -1,7 +1,7 @@
 ## Interface: 11200
 ## Title: SmartMail
 ## Notes: Automated mail routing system.
-## Version: Alpha 0.1
+## Version: 1.0.1
 ## SavedVariables: SmartMailDB, SmartMailDebugLog, SmartMailMailLog, SmartMailStressLog
 ## SavedVariablesPerCharacter: SmartMailDebugLog_PerChar, SmartMailMailLog_PerChar
 

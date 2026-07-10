@@ -303,8 +303,10 @@ function SmartMail_UpdateCustomList()
                     GameTooltip:AddLine(" ")
                     GameTooltip:AddLine("Left-Click: Add 1", 0, 1, 0)
                     GameTooltip:AddLine("Shift+Left-Click: Add max stack", 0, 1, 0)
+                    GameTooltip:AddLine("Ctrl+Left-Click: Add all", 0, 1, 0)
                     GameTooltip:AddLine("Right-Click: Remove 1", 1, 0, 0)
                     GameTooltip:AddLine("Shift+Right-Click: Remove max stack", 1, 0, 0)
+                    GameTooltip:AddLine("Ctrl+Right-Click: Remove all", 1, 0, 0)
                     GameTooltip:Show()
                 end
             end)
@@ -318,7 +320,10 @@ function SmartMail_UpdateCustomList()
                 if not itemData.amountToSend then itemData.amountToSend = 0 end
                 
                 if arg1 == "RightButton" then
-                    if IsShiftKeyDown() then
+                    if IsControlKeyDown() then
+                        itemData.amountToSend = 0
+                        SmartMail_Debug("CustomList: Ctrl+Right-Click removed all " .. itemData.itemName .. ". New amount: 0")
+                    elseif IsShiftKeyDown() then
                         local _, _, _, _, _, _, maxStack = GetItemInfo(itemData.itemID)
                         maxStack = tonumber(maxStack) or 20
                         if maxStack < 1 then maxStack = 20 end
@@ -330,22 +335,22 @@ function SmartMail_UpdateCustomList()
                         if itemData.amountToSend < 0 then itemData.amountToSend = 0 end
                         SmartMail_Debug("CustomList: Right-Click removed 1 " .. itemData.itemName .. ". New amount: " .. itemData.amountToSend)
                     end
-                elseif IsControlKeyDown() then
-                    SmartMailCustomAmountFrame.mode = "add"
-                    if SmartMailCustomAmountTitle then SmartMailCustomAmountTitle:SetText("Enter Amount") end
-                    SmartMailCustomAmountFrame.itemData = itemData
-                    SmartMailCustomAmountFrame:Show()
-                elseif IsShiftKeyDown() then
-                    local _, _, _, _, _, _, maxStack = GetItemInfo(itemData.itemID)
-                    maxStack = tonumber(maxStack) or 20
-                    if maxStack < 1 then maxStack = 20 end
-                    itemData.amountToSend = itemData.amountToSend + maxStack
-                    if itemData.amountToSend > itemData.totalCount then itemData.amountToSend = itemData.totalCount end
-                    SmartMail_Debug("CustomList: Shift+Left-Click added max stack of " .. itemData.itemName .. ". New amount: " .. itemData.amountToSend)
                 else
-                    itemData.amountToSend = itemData.amountToSend + 1
-                    if itemData.amountToSend > itemData.totalCount then itemData.amountToSend = itemData.totalCount end
-                    SmartMail_Debug("CustomList: Left-Click added 1 " .. itemData.itemName .. ". New amount: " .. itemData.amountToSend)
+                    if IsControlKeyDown() then
+                        itemData.amountToSend = itemData.totalCount
+                        SmartMail_Debug("CustomList: Ctrl+Left-Click added all " .. itemData.itemName .. ". New amount: " .. itemData.amountToSend)
+                    elseif IsShiftKeyDown() then
+                        local _, _, _, _, _, _, maxStack = GetItemInfo(itemData.itemID)
+                        maxStack = tonumber(maxStack) or 20
+                        if maxStack < 1 then maxStack = 20 end
+                        itemData.amountToSend = itemData.amountToSend + maxStack
+                        if itemData.amountToSend > itemData.totalCount then itemData.amountToSend = itemData.totalCount end
+                        SmartMail_Debug("CustomList: Shift+Left-Click added max stack of " .. itemData.itemName .. ". New amount: " .. itemData.amountToSend)
+                    else
+                        itemData.amountToSend = itemData.amountToSend + 1
+                        if itemData.amountToSend > itemData.totalCount then itemData.amountToSend = itemData.totalCount end
+                        SmartMail_Debug("CustomList: Left-Click added 1 " .. itemData.itemName .. ". New amount: " .. itemData.amountToSend)
+                    end
                 end
                 
                 if SmartMail_UpdateCustomCartList then SmartMail_UpdateCustomCartList() end
