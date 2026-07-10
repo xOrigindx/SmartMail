@@ -1,0 +1,6 @@
+/Docs/References_Images
+/Screenshots
+/.venv
+__pycache__/
+*.pyc
+

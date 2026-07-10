@@ -1,0 +1,28 @@
+# Ignore all markdown files (like AGENTS.md, development notes)
+*.md
+
+# EXCEPT the README, we need that for the public!
+!README.md
+
+# Ignore Development & Testing Scripts
+TODO_STRESS.lua
+Scripts/
+.agents/
+Docs/
+.venv/
+requirements.txt
+*.py
+
+# Ignore Git Configs
+.gitignore
+public_repo.gitignore
+
+# Ignore IDE / OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Ignore SavedVariables (just in case they somehow get copied over)
+SavedVariables_Global/
+SavedVariables_Ewwor/
