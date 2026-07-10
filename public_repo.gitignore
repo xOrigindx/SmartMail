@@ -8,6 +8,7 @@
 TODO_STRESS.lua
 Scripts/
 .agents/
+Docs/
 .venv/
 requirements.txt
 *.py
