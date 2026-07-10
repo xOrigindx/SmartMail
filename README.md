@@ -22,6 +22,7 @@ Open your mailbox and type `/sm` to open the SmartMail interface. This is your c
 
 ### 2. Create a Profile
 Click **Add** to create a new profile. In the **Profile Editor**, you'll see a dual-pane layout. Left-click a category on the left to assign it to that character, and right-click on the right to remove it.
+> **Note:** SmartMail currently does not support assigning the *same* category to multiple different profiles. If a category is already assigned to one character, the addon will block you from adding it to another to prevent mail conflicts.
 
 ![Profile Editor](Images/profile_editor.jpg)
 

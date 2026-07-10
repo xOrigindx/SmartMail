@@ -561,7 +561,26 @@ function SmartMail_UpdateCategoryLists()
                     if arg1 == "LeftButton" then
                         local pData = SmartMail.editingProfileData
                         if not pData then return end
-                        pData[this.categoryName] = true
+                        
+                        local catName = this.categoryName
+                        local assignedTo = nil
+                        if SmartMailDB then
+                            for pName, pCats in pairs(SmartMailDB) do
+                                if type(pCats) == "table" and pName ~= SmartMail.editingProfileName and pName ~= "tutorialComplete" then
+                                    if pCats[catName] then
+                                        assignedTo = pName
+                                        break
+                                    end
+                                end
+                            end
+                        end
+                        
+                        if assignedTo then
+                            DEFAULT_CHAT_FRAME:AddMessage("|cffff0000[SmartMail]|r Cannot assign category '|cffffffff"..catName.."|r'. It is already assigned to '|cff00ffff"..assignedTo.."|r'.")
+                            return
+                        end
+
+                        pData[catName] = true
                         SmartMail_UpdateCategoryLists()
                     end
                 end)
