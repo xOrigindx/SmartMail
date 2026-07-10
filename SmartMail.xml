@@ -313,9 +313,11 @@
         <Scripts>
           <OnClick>
             SmartMail_Debug("SmartMailMainFrameLogButton clicked")
-            if SmartMailLogFrame:IsVisible() then
+            if SmartMailLogFrame:IsVisible() and SmartMailLogMode ~= "DEBUG" then
               SmartMailLogFrame:Hide()
             else
+              SmartMailLogMode = "ALL"
+              if SmartMailLogFrameTitle then SmartMailLogFrameTitle:SetText("SmartMail Log Window") end
               SmartMailLogFrame:Show()
             end
           </OnClick>

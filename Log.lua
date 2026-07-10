@@ -19,6 +19,29 @@ end
 
 function SmartMail_UpdateLogFrame()
     SmartMail_Debug("SmartMail_UpdateLogFrame called...")
+
+    if SmartMailLogMode == "DEBUG" then
+        if SmartMailDebugLog_PerChar and SmartMailDebugLog_PerChar.debugLog then
+            local lines = {}
+            for _, entry in ipairs(SmartMailDebugLog_PerChar.debugLog) do
+                table.insert(lines, tostring(entry))
+            end
+            local fullText = table.concat(lines, "\n")
+            if SmartMailLogFrameText then
+                SmartMailLogFrameText:SetText(fullText)
+                local scrollFrame = SmartMailLogFrameContentFrameScrollFrame
+                if scrollFrame then
+                    local textHeight = SmartMailLogFrameText:GetHeight()
+                    if textHeight < 150 then textHeight = 150 end
+                    SmartMailLogFrameContentFrameScrollFrameScrollChild:SetHeight(textHeight)
+                    scrollFrame:UpdateScrollChildRect()
+                    scrollFrame:SetVerticalScroll(0)
+                end
+            end
+        end
+        return
+    end
+
     if SmartMailMailLog_PerChar and SmartMailMailLog_PerChar.history then
         local lines = {}
         for _, entry in ipairs(SmartMailMailLog_PerChar.history) do
@@ -81,7 +104,11 @@ StaticPopupDialogs["SMARTMAIL_CLEAR_LOG"] = {
 
 function SmartMail_ClearLog()
     SmartMail_Debug("SmartMail_ClearLog called...")
-    if SmartMailMailLog_PerChar then SmartMailMailLog_PerChar.history = {} end
+    if SmartMailLogMode == "DEBUG" then
+        if SmartMailDebugLog_PerChar then SmartMailDebugLog_PerChar.debugLog = {} end
+    else
+        if SmartMailMailLog_PerChar then SmartMailMailLog_PerChar.history = {} end
+    end
     if SmartMailLogFrame and SmartMailLogFrame:IsVisible() then
         SmartMail_UpdateLogFrame()
     end

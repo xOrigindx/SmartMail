@@ -355,6 +355,11 @@ SlashCmdList["SMARTMAIL"] = function(msg)
         SmartMail.debug = false
         DEFAULT_CHAT_FRAME:AddMessage("SmartMail Debug: OFF")
         if SmartMail_UpdateActionButtons then SmartMail_UpdateActionButtons() end
+    elseif msg == "debug log" then
+        SmartMailLogMode = "DEBUG"
+        if SmartMailLogFrameTitle then SmartMailLogFrameTitle:SetText("SmartMail Debug Log") end
+        if SmartMailLogFrame then SmartMailLogFrame:Show() end
+        if SmartMail_UpdateLogFrame then SmartMail_UpdateLogFrame() end
     elseif msg == "debug" then
         if SmartMailDebugFrame:IsVisible() then
             SmartMailDebugFrame:Hide()
