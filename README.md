@@ -4,7 +4,9 @@
 > **🎉 FIRST PUBLIC RELEASE! 🎉**
 > This is the very first public release of SmartMail! Bug reports, feature proposals, and general feedback are highly encouraged. Please feel free to open an issue or start a discussion on the GitHub repository to help shape the future of the addon!
 >
-> **⚠️ Current Limitation:** Assigning the exact same category to multiple different profiles is currently **not supported** in this version, but it is planned for a future update!
+> **⚠️ Current Limitations:** 
+> - Assigning the exact same category to multiple different profiles is currently **not supported**, but it is planned for a future update!
+> - Profiles are currently **global** (account-wide). Per-character profiles (allowing you to have different bank alts per character) are planned for a future release!
 
 A smart, automated mailing assistant for World of Warcraft (Vanilla 1.12.1).
 
