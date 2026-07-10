@@ -424,7 +424,13 @@ end
 
 -- Register frames to be closed with the ESC key
 tinsert(UISpecialFrames, "SmartMailMainFrame")
-
+tinsert(UISpecialFrames, "SmartMailProfileEditorFrame")
+tinsert(UISpecialFrames, "SmartMailLogFrame")
+tinsert(UISpecialFrames, "SmartMailConfirmFrame")
+tinsert(UISpecialFrames, "SmartMailTutorialFrame")
+tinsert(UISpecialFrames, "SmartMailDebugFrame")
+tinsert(UISpecialFrames, "SmartMailCustomSendFrame")
+tinsert(UISpecialFrames, "SmartMailOptionsFrame")
 -- MainFrame ESC interceptor setup
 SmartMail.openChildFrames = {}
 

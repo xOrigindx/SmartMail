@@ -15,6 +15,9 @@ SmartMail takes the headache out of inventory management by automatically sortin
 
 ## How It Works (Visual Guide)
 
+**Watch SmartMail in action!**
+https://github.com/xOrigindx/SmartMail-developpement/raw/main/Images/smartmail_demo.mp4
+
 ### 1. Main Frame
 Open your mailbox and type `/sm` to open the SmartMail interface. This is your command center showing all your saved profiles and their assigned item categories. From here, you can trigger a massive **Send All** or **Send All Full** across every character at once.
 
@@ -22,8 +25,7 @@ Open your mailbox and type `/sm` to open the SmartMail interface. This is your c
 
 ### 2. Create a Profile
 Click **Add** to create a new profile. In the **Profile Editor**, you'll see a dual-pane layout. Left-click a category on the left to assign it to that character, and right-click on the right to remove it.
-> **Note:** SmartMail currently does not support assigning the *same* category to multiple different profiles. If a category is already assigned to one character, the addon will block you from adding it to another to prevent mail conflicts.
-
+> **Note:** Categories are currently exclusive. If `Bank1` is set to receive "Herbs", you cannot also assign "Herbs" to `Bank2`. The addon will block duplicate category assignments to prevent mail conflicts.
 ![Profile Editor](Images/profile_editor.jpg)
 
 ### 3. Per-Category Sending & Stack Controls
@@ -54,3 +56,11 @@ Just need to do a quick manual transfer? Click the **Custom** button on the main
 If you encounter an error or bug while using SmartMail, the addon automatically logs the error in the background. 
 
 To help me fix the issue faster, simply type **`/sm debug log`** in-game. This will open a window containing the error log. You can highlight the text, press `CTRL+C` to copy it, and paste it into your bug report!
+
+## Future Plans / Roadmap
+We are actively working on expanding SmartMail's capabilities! Here is what is planned for future updates:
+* **Multiple Category Assignment**: Assigning the exact same category to multiple different profiles.
+* **Custom Categories**: A tool to create entirely custom categories with your own hand-picked item lists.
+
+## Feedback & Ideas
+Your feedback shapes the future of SmartMail! If you have ideas, proposals for new features, or just want to share how you use the addon, please feel free to open an issue or discussion on the GitHub repository. All suggestions are welcome!
