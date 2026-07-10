@@ -67,7 +67,7 @@ inboxFrame:SetScript("OnUpdate", function()
     if not SmartMailInbox.isOpenAllRunning then return end
     if waitingForUpdate then
         waitTime = waitTime + arg1
-        if waitTime > 0.2 then
+        if waitTime > 0.5 then
             waitingForUpdate = false
             SmartMailInbox:ProcessNext()
         end
@@ -94,6 +94,10 @@ inboxFrame:SetScript("OnEvent", function()
                 SmartMailInbox.currentIndex = SmartMailInbox.currentIndex - 1
                 waitingForUpdate = true
                 waitTime = 0
+            elseif arg1 == ERR_MAIL_DATABASE_ERROR or (arg1 and string.find(arg1, "Database Error")) then
+                SmartMail_Debug("Inbox: Internal Mail Database Error! Rate limit hit, retrying in 1s...")
+                waitingForUpdate = true
+                waitTime = -0.5
             end
         end
     end
