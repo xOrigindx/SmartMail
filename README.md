@@ -49,3 +49,10 @@ Just need to do a quick manual transfer? Click the **Custom** button on the main
 * `/sm` — Opens the main interface.
 * `/sm tutorial` — Replays the in-game tutorial frame.
 
+## Bug Reporting
+If you encounter an error or bug while using SmartMail, the addon automatically logs the error code to your character's SavedVariables file in the background (even if debug mode is off). 
+
+To help me fix the issue faster, please include your debug log when reporting an issue! You can find it here:
+`World of Warcraft/WTF/Account/<YourAccountName>/<ServerName>/<CharacterName>/SavedVariables/SmartMail.lua`
+
+Just open that file in Notepad, copy the contents of `SmartMailDebugLog_PerChar`, and paste it into your bug report.
