@@ -3,6 +3,8 @@
 > [!NOTE]
 > **🎉 FIRST PUBLIC RELEASE! 🎉**
 > This is the very first public release of SmartMail! Bug reports, feature proposals, and general feedback are highly encouraged. Please feel free to open an issue or start a discussion on the GitHub repository to help shape the future of the addon!
+>
+> **⚠️ Current Limitation:** Assigning the exact same category to multiple different profiles is currently **not supported** in this version, but it is planned for a future update!
 
 A smart, automated mailing assistant for World of Warcraft (Vanilla 1.12.1).
 
@@ -19,9 +21,6 @@ SmartMail takes the headache out of inventory management by automatically sortin
 ---
 
 ## How It Works (Visual Guide)
-
-**Watch SmartMail in action!**
-[![Watch SmartMail in Action](https://img.youtube.com/vi/YOUR_VIDEO_ID/0.jpg)](https://www.youtube.com/watch?v=YOUR_VIDEO_ID)
 
 ### 1. Main Frame
 Open your mailbox and type `/sm` to open the SmartMail interface. This is your command center showing all your saved profiles and their assigned item categories. From here, you can trigger a massive **Send All** or **Send All Full** across every character at once.
