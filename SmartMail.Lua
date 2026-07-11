@@ -1,6 +1,6 @@
 SmartMail = {
     -- CONFIGURABLE SETTINGS
-    debug       = true, -- Set to true to see debug messages in chat
+    debug       = false, -- Set to true to see debug messages in chat
     
     -- Tweak these to speed up or slow down mail processing if you encounter server lag.
     SendDelay   = 0.00, -- Delay between sending each mail (in seconds)
