@@ -1,10 +1,10 @@
 SmartMail = {
     -- CONFIGURABLE SETTINGS
-    debug       = false, -- Set to true to see debug messages in chat
+    debug       = true, -- Set to true to see debug messages in chat
     
     -- Tweak these to speed up or slow down mail processing if you encounter server lag.
-    SendDelay   = 0.15, -- Delay between sending each mail (in seconds)
-    OpenDelay   = 0.50, -- Delay between looting each mail in the inbox (in seconds)
+    SendDelay   = 0.00, -- Delay between sending each mail (in seconds)
+    OpenDelay   = 0.00, -- Delay between looting each mail in the inbox (in seconds)
 
     isBusy      = false,
     lookup      = {},
@@ -23,6 +23,16 @@ seterrorhandler(function(msg)
     end
 end)
 
+-- Suppress "Internal mail database error" from showing up in the middle of the screen
+local orig_UIErrorsFrame_AddMessage = UIErrorsFrame.AddMessage
+UIErrorsFrame.AddMessage = function(frame, text, red, green, blue, alpha, holdTime)
+    if text and (text == ERR_MAIL_DATABASE_ERROR or string.find(string.lower(text), "database error")) then
+        return -- Drop the message quietly
+    end
+    if orig_UIErrorsFrame_AddMessage then
+        orig_UIErrorsFrame_AddMessage(frame, text, red, green, blue, alpha, holdTime)
+    end
+end
 local eventFrame = CreateFrame("Frame")
 eventFrame:RegisterEvent("ADDON_LOADED")
 eventFrame:RegisterEvent("MAIL_SHOW")
@@ -447,12 +457,12 @@ SmartMailMainFrame.Hide = function(self)
     if SmartMail.forceCloseAll then
         SmartMail.forceCloseAll = false
         SmartMail_Debug("Force closing all child frames...")
-        for i = 1, table.getn(SmartMail.openChildFrames) do
-            local child = SmartMail.openChildFrames[i]
+        while table.getn(SmartMail.openChildFrames) > 0 do
+            local child = SmartMail.openChildFrames[1]
             if child and child:IsVisible() then
-                -- Unhook briefly or just call hide, since hide might pop from stack, we iterate carefully or clear stack
-                -- Actually the OnHide of children will pop them, but let's just clear it.
                 child:Hide()
+            else
+                tremove(SmartMail.openChildFrames, 1)
             end
         end
         SmartMail.openChildFrames = {}
@@ -910,6 +920,11 @@ end
 SmartMailMainFrame:SetScript("OnShow", function()
     SmartMail_Debug("SmartMailMainFrame shown (Lua SetScript)")
     SmartMail_UpdateProfileList()
+    if SmartMailCustomSendFrame then 
+        SmartMailCustomSendFrame:ClearAllPoints()
+        SmartMailCustomSendFrame:SetPoint("TOPLEFT", SmartMailMainFrame, "TOPRIGHT", -5, 0)
+        SmartMailCustomSendFrame:Show() 
+    end
 end)
 
 -- Wire up Add Button on Main UI
@@ -918,6 +933,15 @@ SmartMailMainFrameAddButton:SetScript("OnClick", function()
     SmartMail_Debug("Add Button clicked")
     SmartMail_OpenProfileEditor(nil)
 end)
+
+-- Wire up X button on Main UI
+if SmartMailMainFrameCloseXButton then
+    SmartMailMainFrameCloseXButton:SetScript("OnClick", function()
+        SmartMail_Debug("SmartMailMainFrameCloseXButton clicked (Lua SetScript)")
+        SmartMail.forceCloseAll = true
+        SmartMailMainFrame:Hide()
+    end)
+end
 
 
 
@@ -1196,6 +1220,10 @@ SmartMailConfirmFrameSendButton:SetScript("OnClick", function()
     
     SmartMail_Debug("Starting Send process with " .. totalItems .. " items for " .. tostring(SmartMail.selectedProfile))
     SmartMailConfirmFrame:Hide()
+    if SmartMailMainFrame then
+        SmartMail.forceCloseAll = true
+        SmartMailMainFrame:Hide()
+    end
     
     if SmartMailEngine and SmartMailEngine.Start then
         SmartMailEngine:Start(SmartMail.selectedProfile, flatQueue)

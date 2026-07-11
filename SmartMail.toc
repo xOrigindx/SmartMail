@@ -1,9 +1,9 @@
 ## Interface: 11200
 ## Title: SmartMail
 ## Notes: Automated mail routing system.
-## Version: 1.0.1
+## Version: 1.0.2
 ## SavedVariables: SmartMailDB, SmartMailDebugLog, SmartMailMailLog, SmartMailStressLog
-## SavedVariablesPerCharacter: SmartMailDebugLog_PerChar, SmartMailMailLog_PerChar
+## SavedVariablesPerCharacter: SmartMailDebugLog_PerChar, SmartMailMailLog_PerChar, SmartMailDB_PerChar
 
 Libs\Core\PTEmbed.lua
 Libs\Elements\AQ\PTEmbedElemAhnQiraj.lua

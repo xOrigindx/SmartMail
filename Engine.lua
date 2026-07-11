@@ -28,7 +28,7 @@ engineFrame:SetScript("OnEvent", function()
         end
         SmartMailEngine.currentItem = nil
         
-        local delay = SmartMail.SendDelay or 0.15
+        local delay = SmartMail.SendDelay
         if delay > 0 then
             waitTime = 0
             SmartMailEngine.state = 4
@@ -67,9 +67,9 @@ engineFrame:SetScript("OnUpdate", function()
     if not SmartMailEngine.isSending then return end
     
     if SmartMailEngine.state == 1 then
-        -- Wait for Tab Switch to register and UI to clear (0.15s)
+        -- Wait for Tab Switch to register and UI to clear
         waitTime = waitTime + arg1
-        if waitTime > 0.15 then
+        if waitTime > SmartMail.SendDelay then
             if GetSendMailItem() then
                 ClickSendMailItemButton()
                 ClearCursor()
@@ -186,7 +186,7 @@ engineFrame:SetScript("OnUpdate", function()
         end
     elseif SmartMailEngine.state == 4 then
         waitTime = waitTime + arg1
-        local delay = SmartMail.SendDelay or 0.15
+        local delay = SmartMail.SendDelay
         if waitTime > delay then
             SmartMailEngine.state = 0
             waitTime = 0
@@ -293,19 +293,9 @@ end
 function SmartMailEngine:FailCurrent()
     SmartMail_Debug("SmartMailEngine:FailCurrent called...")
     if self.currentItem then
-        self.currentItem.retries = (self.currentItem.retries or 0)
-        local maxRetries = 3
-        if SmartMail and SmartMail.infiniteRetries then maxRetries = 999999 end
-        if self.currentItem.retries < maxRetries then
-            self.currentItem.retries = self.currentItem.retries + 1
-            SmartMail_Debug("Engine: Failed to send item (Attempt " .. self.currentItem.retries .. "), adding to retry queue.")
-            table.insert(self.retryQueue, self.currentItem)
-        else
-            SmartMail_Debug("Engine: Max retries exceeded for item, dropping.")
-            self.failCount = (self.failCount or 0) + 1
-            if not self.failedItems then self.failedItems = {} end
-            table.insert(self.failedItems, { item = self.currentItem, reason = "Max Retries Reached" })
-        end
+        self.currentItem.retries = (self.currentItem.retries or 0) + 1
+        SmartMail_Debug("Engine: Failed to send item (Attempt " .. self.currentItem.retries .. "), adding to retry queue.")
+        table.insert(self.retryQueue, self.currentItem)
         self.currentItem = nil
     end
     self:Next()

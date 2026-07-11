@@ -111,30 +111,14 @@
 
   <!-- SmartMail Main Window -->
   <Frame name="SmartMailMainFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
-    <Size x="320" y="420" />
+    <Size x="384" y="512" />
     <Anchors>
       <Anchor point="TOPLEFT" relativeTo="MailFrame" relativePoint="TOPRIGHT">
         <Offset x="10" y="0" />
       </Anchor>
     </Anchors>
     <Frames>
-      <Button name="$parentCloseButton" inherits="UIPanelCloseButton">
-        <Anchors>
-          <Anchor point="TOPRIGHT">
-            <Offset x="-5" y="-5" />
-          </Anchor>
-        </Anchors>
-        <Scripts>
-          <OnClick>
-            SmartMail_Debug("SmartMailMainFrameCloseButton clicked")
-            SmartMail.forceCloseAll = true
-            this:GetParent():Hide()
-            if SmartMailLogFrame then SmartMailLogFrame:Hide() end
-            if SmartMailCustomSendFrame then SmartMailCustomSendFrame:Hide() end
-            if SmartMailCustomConfirmFrame then SmartMailCustomConfirmFrame:Hide() end
-          </OnClick>
-        </Scripts>
-      </Button>
+
 
       <!-- Top Row -->
       <Button name="$parentAddButton" inherits="UIPanelButtonTemplate" text="Add">
@@ -155,8 +139,8 @@
       <Button name="$parentDeleteButton" inherits="UIPanelButtonTemplate" text="Delete">
         <Size x="80" y="24" />
         <Anchors>
-          <Anchor point="TOP">
-            <Offset x="0" y="-40" />
+          <Anchor point="TOPLEFT">
+            <Offset x="152" y="-40" />
           </Anchor>
         </Anchors>
         <Scripts>
@@ -172,8 +156,8 @@
       <Button name="$parentEditButton" inherits="UIPanelButtonTemplate" text="Edit">
         <Size x="80" y="24" />
         <Anchors>
-          <Anchor point="TOPRIGHT">
-            <Offset x="-20" y="-40" />
+          <Anchor point="TOPLEFT">
+            <Offset x="284" y="-40" />
           </Anchor>
         </Anchors>
         <Scripts>
@@ -249,6 +233,25 @@
         </Scripts>
       </Button>
 
+      <Button name="$parentOpenAllButton" inherits="UIPanelButtonTemplate" text="Open All">
+        <Size x="90" y="24" />
+        <Anchors>
+          <Anchor point="TOP" relativeTo="$parentListFrame" relativePoint="BOTTOM">
+            <Offset x="0" y="-10" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailMainFrameOpenAllButton clicked")
+            if SmartMailInbox.isOpenAllRunning then
+              SmartMailInbox:Abort()
+            else
+              SmartMailInbox:Start()
+            end
+          </OnClick>
+        </Scripts>
+      </Button>
+
       <Button name="$parentSendAllFullButton" inherits="UIPanelButtonTemplate" text="Send All Full">
         <Size x="90" y="24" />
         <Anchors>
@@ -283,6 +286,7 @@
           </OnClick>
         </Scripts>
       </Button>
+
 
       <Button name="$parentOptionsButton" inherits="UIPanelButtonTemplate" text="Options">
         <Size x="90" y="24" />
@@ -351,6 +355,7 @@
   </Frame>
   <!-- SmartMail Profile Editor Window -->
   <Frame name="SmartMailProfileEditorFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
+    <FrameStrata>DIALOG</FrameStrata>
     <Size x="510" y="440" />
     <Anchors>
       <Anchor point="CENTER" />
@@ -532,11 +537,11 @@
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
-        this:SetFrameStrata("HIGH")
+        this:SetFrameStrata("FULLSCREEN_DIALOG")
         this:StartMoving()
       </OnDragStart>
       <OnDragStop>
-        this:SetFrameStrata("MEDIUM")
+        this:SetFrameStrata("DIALOG")
         this:StopMovingOrSizing()
       </OnDragStop>
     </Scripts>
@@ -972,6 +977,7 @@
 
   <!-- SmartMail Confirm Window -->
   <Frame name="SmartMailConfirmFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
+    <FrameStrata>DIALOG</FrameStrata>
     <Size x="450" y="300" />
     <Anchors>
       <Anchor point="CENTER" />
@@ -1102,11 +1108,11 @@
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnDragStart>
-        this:SetFrameStrata("HIGH")
+        this:SetFrameStrata("FULLSCREEN_DIALOG")
         this:StartMoving()
       </OnDragStart>
       <OnDragStop>
-        this:SetFrameStrata("MEDIUM")
+        this:SetFrameStrata("DIALOG")
         this:StopMovingOrSizing()
       </OnDragStop>
     </Scripts>

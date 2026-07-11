@@ -1,87 +1,92 @@
-# SmartMail (v1.0.1)
+# SmartMail (v1.0.2)
 
 > [!NOTE]
-> **🎉 FIRST PUBLIC RELEASE! 🎉**
-> This is the very first public release of SmartMail! Bug reports, feature proposals, and general feedback are highly encouraged. Please feel free to open an issue or start a discussion on the GitHub repository to help shape the future of the addon!
+> **FIRST PUBLIC RELEASE**
+> This is the initial public release of SmartMail. Bug reports and feature proposals are encouraged via the GitHub repository.
 >
 > **⚠️ Current Limitations:** 
-> - Assigning the exact same category to multiple different profiles is currently **not supported**, but it is planned for a future update!
-> - Profiles are currently **global** (account-wide). Per-character profiles (allowing you to have different bank alts per character) are planned for a future release!
+> - Assigning identical categories to multiple profiles is currently **not supported**, but is planned for a future update.
+> - Profiles are currently **global** (account-wide). Per-character profile configuration is planned for a future release.
 
-> [!WARNING]
-> **Compatibility:** SmartMail features a built-in "Open All" inbox looting system. Because of this, it is **highly incompatible** with other mail management addons (like CT_MailMod, Postal, etc.). Please disable other mail addons when using SmartMail to prevent conflicts!
 
 A smart, automated mailing assistant for World of Warcraft (Vanilla 1.12.1).
 
-SmartMail takes the headache out of inventory management by automatically sorting and mailing your items to the correct characters based on customized categories. Stop dragging items manually—just configure your profiles and let SmartMail handle the rest!
+SmartMail is an inventory management tool that automatically sorts and mails items to designated characters based on user-defined categories. Configure profiles to automate the mailing process.
 
 ---
 
 ## Changelog
 
-### v1.0.1
-**Hotfixes:**
-* **Inventory Data Retrieval:** Fixed a critical bug where the main frame categories appeared empty.
+### v1.0.2
+**UI Enhancements:**
+* **Custom Send Frame Integration**: The Custom Send window is no longer a separate popup. It is now seamlessly anchored to the right side of the main SmartMail interface.
+* **Minimizable Tab**: The Custom Send window can be minimized into a vertical side tab.
+* **Layout Rebalance**: Cleaned up visual alignments, specifically regarding the custom money input area and title margins.
 
-**Additions & Changes:**
-* **Custom Send Frame UX:** Removed the popup dialog when assigning item amounts. You can now simply use `Ctrl+Left-Click` to add the maximum available amount of an item (ALL), and `Ctrl+Right-Click` to instantly remove it from the send queue.
+
 
 ## Features
-* **Automated Category Matching**: Map specific items (e.g., Cloth, Herbs, Ore) directly to your bank alts.
-* **Dual-Pane Profile Editor**: A clean, intuitive interface for assigning categories to specific characters.
-* **Granular Stack Controls**: Set exactly how many full stacks to send, or click the checkbox to include partial stacks.
-* **Mass Send ("Send All")**: Mail every matching item to *every* profile you have set up with a single click.
-* **"Send All Full" Mode**: A specialized mass-send that *only* mails complete stacks, leaving your partial stacks in your bags so you can keep farming.
-* **Custom Send**: A quick override window to manually send items to any saved character without needing a matching category.
-* **Open All Mail**: A powerful, built-in "Open All" button added directly to your inbox to automatically loot your incoming mail.
+* **Automated Category Matching**: Map specific items (e.g., Cloth, Herbs, Ore) directly to bank characters.
+* **Dual-Pane Profile Editor**: An interface for assigning categories to specific characters.
+* **Granular Stack Controls**: Set the exact number of full stacks to send, or toggle the inclusion of partial stacks.
+* **Mass Send ("Send All")**: Mail all matching items to all configured profiles simultaneously.
+* **"Send All Full" Mode**: A specialized mass-send function that exclusively mails complete stacks.
+* **Custom Send**: A manual override window to send items to any saved character bypassing category rules.
+* **Open All Mail**: A built-in "Open All" function integrated into the inbox to automatically loot incoming mail.
 
 ---
 
 ## How It Works (Visual Guide)
 
 ### 1. Main Frame
-Open your mailbox and type `/sm` to open the SmartMail interface. This is your command center showing all your saved profiles and their assigned item categories. From here, you can trigger a massive **Send All** or **Send All Full** across every character at once.
+The SmartMail interface automatically launches upon opening the mailbox. This interface displays all saved profiles and their assigned item categories. Mass send operations (**Send All** or **Send All Full**) can be triggered from this window.
 
-![Main Window](Images/main_window.jpg)
+*(Note: The UI can also be opened manually from any location via the `/sm` command).*
+
+
 
 ### 2. Create a Profile
-Click **Add** to create a new profile. In the **Profile Editor**, you'll see a dual-pane layout. Left-click a category on the left to assign it to that character, and right-click on the right to remove it.
-> **Note:** Categories are currently exclusive. If `Bank1` is set to receive "Herbs", you cannot also assign "Herbs" to `Bank2`. The addon will block duplicate category assignments to prevent mail conflicts.
-![Profile Editor](Images/profile_editor.jpg)
+Click **Add** to create a new profile. In the **Profile Editor**, left-click a category on the left pane to assign it to the selected character, and right-click on the right pane to remove it.
+> **Note:** Categories are currently exclusive. If `Bank1` is assigned "Herbs", "Herbs" cannot also be assigned to `Bank2`. The addon restricts duplicate category assignments to prevent routing conflicts.
+
 
 ### 3. Per-Category Sending & Stack Controls
-Click on any profile in your main list to open the **Confirm Window**. Here you can see exactly what is about to be mailed to that specific character. 
-* Use the **+/-** buttons or type a number to specify how many **Full Stacks** to send (or set it to `MAX`).
-* Check the box on the far right to include any **Partial Stacks**. 
+Click on any profile in the main list to open the **Confirm Window**, displaying items queued for that specific character. 
+* Use the **+/-** buttons or input a number to specify the quantity of **Full Stacks** to send (or select `MAX`).
+* Check the box on the far right to include **Partial Stacks**. 
 
-![Confirm Window](Images/confirm_window.jpg)
+
 
 ### 4. Custom Sends
-Just need to do a quick manual transfer? Click the **Custom** button on the main window. You can pick any of your saved recipients and mail items directly without worrying about category rules.
-
-![Custom Send](Images/custom_send.jpg)
+The Custom Send frame is anchored to the right side of the Main Frame. It facilitates manual item transfers to profiles without relying on category rules. The frame can be minimized via the minus button.
 
 ---
 
 ## Installation
 1. Download the latest release.
 2. Extract the `SmartMail` folder.
-3. Place it into your WoW AddOns directory: `World of Warcraft/Interface/AddOns/SmartMail`.
-4. Boot up the game and ensure "Load out of date AddOns" is checked.
+3. Move the folder to the WoW AddOns directory: `World of Warcraft/Interface/AddOns/SmartMail`.
+4. Launch the client and ensure "Load out of date AddOns" is enabled.
 
 ## Commands
 * `/sm` — Opens the main interface.
-* `/sm tutorial` — Replays the in-game tutorial frame.
+* `/sm tutorial` — Replays the in-game tutorial sequence.
 
-## Bug Reporting
-If you encounter an error or bug while using SmartMail, the addon automatically logs the error in the background. 
 
-To help me fix the issue faster, simply type **`/sm debug log`** in-game. This will open a window containing the error log. You can highlight the text, press `CTRL+C` to copy it, and paste it into your bug report!
 
 ## Future Plans / Roadmap
-We are actively working on expanding SmartMail's capabilities! Here is what is planned for future updates:
-* **Multiple Category Assignment**: Assigning the exact same category to multiple different profiles.
-* **Custom Categories**: A tool to create entirely custom categories with your own hand-picked item lists.
+The following features are planned for future releases:
+* **Multiple Category Assignment**: Assigning identical categories to multiple profiles.
+* **Custom Categories**: A tool to create custom categories with user-defined item arrays.
 
 ## Feedback & Ideas
-Your feedback shapes the future of SmartMail! If you have ideas, proposals for new features, or just want to share how you use the addon, please feel free to open an issue or discussion on the GitHub repository. All suggestions are welcome!
+Feedback and feature proposals can be submitted by opening an issue or discussion on the GitHub repository.
+
+## History / Previous Versions
+
+### v1.0.1
+**Hotfixes:**
+* **Inventory Data Retrieval:** Fixed a critical bug where the main frame categories failed to populate.
+
+**Additions & Changes:**
+* **Custom Send Frame UX:** Removed the popup dialog for assigning item amounts. Use `Ctrl+Left-Click` to queue the maximum available amount of an item (ALL), and `Ctrl+Right-Click` to instantly remove it from the send queue.

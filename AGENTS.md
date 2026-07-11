@@ -2,9 +2,9 @@
 
 ## 1. CRITICAL BOUNDARIES (NEVER DO THESE - NO FAILURE ALLOWED)
 - **The `/rl` Ban**: **STRICTLY ENFORCED**. Do NOT tell the user to type `/rl`, `/reload`, "refresh", or "test it". Do not tell the user to test your changes. They are developing the AddOn with you and will automatically test, reload, or restart as needed. Never mention it.
-- **Image Check Protocol (`chk-img-xx`)**: **STRICTLY ENFORCED**. When the user types the exact command `chk-img-xx` (e.g., `chk-img-01`):
+- **Image Check Protocol (`chkxx`)**: **STRICTLY ENFORCED**. When the user types the exact command `chkxx` (e.g., `chk-01`):
   1. YOU MUST NOT run any Python conversion scripts.
-  2. YOU MUST ONLY use `view_file` to open `C:\World of Warcraft - 1.12.1 - Microbot\Screenshots\img_xx.jpg`.
+  2. YOU MUST ONLY use `view_file` to open `C:\World of Warcraft - 1.12.1 - Microbot\Screenshots\img-xx.jpg`.
   3. NEVER attempt to convert images yourself. NEVER look in `.tempmediaStorage` or wait for artifacts. NO FAILURE ALLOWED.
 - **Tool & Script Discipline**: You MAY propose Python scripts if you believe they are the most efficient way to solve a problem. However, you MUST ask the user for approval via a simple YES or NO question before executing it.
 - **Permission Loops**: If a terminal command or script fails due to permissions, STOP immediately. Ask the user.

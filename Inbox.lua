@@ -7,29 +7,6 @@ local inboxFrame = CreateFrame("Frame")
 inboxFrame:RegisterEvent("MAIL_INBOX_UPDATE")
 inboxFrame:RegisterEvent("UI_ERROR_MESSAGE")
 
-local openAllButton = nil
-
-local function CreateOpenAllButton()
-    SmartMail_Debug("CreateOpenAllButton called...")
-    if openAllButton then return end
-    if not InboxFrame then return end
-    
-    openAllButton = CreateFrame("Button", "SmartMailOpenAllButton", InboxFrame, "UIPanelButtonTemplate")
-    openAllButton:SetPoint("BOTTOM", InboxFrame, "BOTTOM", -10, 90)
-    openAllButton:SetWidth(120)
-    openAllButton:SetHeight(25)
-    openAllButton:SetText("Open All")
-    
-    openAllButton:SetScript("OnClick", function()
-        SmartMail_Debug("SmartMailOpenAllButton clicked (Lua SetScript)")
-        if SmartMailInbox.isOpenAllRunning then
-            SmartMailInbox:Abort()
-        else
-            SmartMailInbox:Start()
-        end
-    end)
-end
-
 function SmartMailInbox:Start()
     SmartMail_Debug("SmartMailInbox:Start called...")
     if not InboxFrame or not InboxFrame:IsVisible() then return end
@@ -43,8 +20,8 @@ function SmartMailInbox:Start()
     self.isOpenAllRunning = true
     self.currentIndex = GetInboxNumItems()
     
-    if openAllButton then
-        openAllButton:SetText("Stop")
+    if SmartMailMainFrameOpenAllButton then
+        SmartMailMainFrameOpenAllButton:SetText("Stop")
     end
     
     self:ProcessNext()
@@ -54,8 +31,8 @@ function SmartMailInbox:Abort()
     SmartMail_Debug("SmartMailInbox:Abort called...")
     SmartMail_Debug("Inbox: Open All stopped.")
     self.isOpenAllRunning = false
-    if openAllButton then
-        openAllButton:SetText("Open All")
+    if SmartMailMainFrameOpenAllButton then
+        SmartMailMainFrameOpenAllButton:SetText("Open All")
     end
 end
 
@@ -67,8 +44,7 @@ inboxFrame:SetScript("OnUpdate", function()
     if not SmartMailInbox.isOpenAllRunning then return end
     if waitingForUpdate then
         waitTime = waitTime + arg1
-        local openDelay = SmartMail.OpenDelay or 0.5
-        if waitTime > openDelay then
+        if waitTime > SmartMail.OpenDelay then
             waitingForUpdate = false
             SmartMailInbox:ProcessNext()
         end
@@ -182,15 +158,11 @@ function SmartMailInbox:ProcessNext()
     end
 end
 
--- Hook into MAIL_SHOW to create the button
-local originalMailShow = inboxFrame:GetScript("OnEvent")
+-- Hook into MAIL_CLOSED to abort running operations
 local hookFrame = CreateFrame("Frame")
-hookFrame:RegisterEvent("MAIL_SHOW")
 hookFrame:RegisterEvent("MAIL_CLOSED")
 hookFrame:SetScript("OnEvent", function()
-    if event == "MAIL_SHOW" then
-        CreateOpenAllButton()
-    elseif event == "MAIL_CLOSED" then
+    if event == "MAIL_CLOSED" then
         if SmartMailInbox.isOpenAllRunning then
             SmartMailInbox:Abort()
         end

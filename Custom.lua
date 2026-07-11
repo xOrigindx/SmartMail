@@ -213,6 +213,10 @@ function SmartMailCustom:Send()
     SmartMail_Debug("CustomSend: " .. expectedMsg)
     
     if SmartMailCustomSendFrame then SmartMailCustomSendFrame:Hide() end
+    if SmartMailMainFrame then
+        SmartMail.forceCloseAll = true
+        SmartMailMainFrame:Hide()
+    end
     SmartMailEngine:Start(self.selectedRecipient, queue, function(successCount, failCount, abortReason, failedItems)
         local msg = "SmartMail: Custom Send Complete! Expected: " .. expectedCount .. ". Sent: " .. (successCount or 0) .. ". Failed: " .. (failCount or 0) .. "."
         if failCount and failCount > 0 then 
@@ -373,7 +377,7 @@ function SmartMail_UpdateCustomList()
 end
 
 StaticPopupDialogs["SMARTMAIL_CUSTOM_ADD_RECIPIENT"] = {
-    text = "Enter Recipient Name:",
+    text = "Enter Recipient Name:\n\nWARNING: Mail sent to the wrong person cannot be recovered! Double-check your spelling.",
     button1 = "Accept",
     button2 = "Cancel",
     hasEditBox = 1,
@@ -388,28 +392,12 @@ StaticPopupDialogs["SMARTMAIL_CUSTOM_ADD_RECIPIENT"] = {
                 if r == text then exists = true; break end
             end
             
-            if exists then
-                SmartMailCustom.selectedRecipient = text
-                if SmartMail_UpdateCustomRecipientList then
-                    SmartMail_UpdateCustomRecipientList()
-                end
-            else
-                StaticPopupDialogs["SMARTMAIL_VERIFY_RECIPIENT"] = {
-                    text = "Are you absolutely sure '" .. text .. "' is spelled correctly?\n\nMail sent to the wrong person cannot be recovered!",
-                    button1 = "Yes, Add Recipient",
-                    button2 = "No, Cancel",
-                    OnAccept = function()
-                        table.insert(SmartMailDB_PerChar.customRecipients, text)
-                        SmartMailCustom.selectedRecipient = text
-                        if SmartMail_UpdateCustomRecipientList then
-                            SmartMail_UpdateCustomRecipientList()
-                        end
-                    end,
-                    timeout = 0,
-                    whileDead = 1,
-                    hideOnEscape = 1
-                }
-                StaticPopup_Show("SMARTMAIL_VERIFY_RECIPIENT")
+            if not exists then
+                table.insert(SmartMailDB_PerChar.customRecipients, text)
+            end
+            SmartMailCustom.selectedRecipient = text
+            if SmartMail_UpdateCustomRecipientList then
+                SmartMail_UpdateCustomRecipientList()
             end
         end
     end,
@@ -433,28 +421,12 @@ StaticPopupDialogs["SMARTMAIL_CUSTOM_ADD_RECIPIENT"] = {
                 if r == text then exists = true; break end
             end
             
-            if exists then
-                SmartMailCustom.selectedRecipient = text
-                if SmartMail_UpdateCustomRecipientList then
-                    SmartMail_UpdateCustomRecipientList()
-                end
-            else
-                StaticPopupDialogs["SMARTMAIL_VERIFY_RECIPIENT"] = {
-                    text = "Are you absolutely sure '" .. text .. "' is spelled correctly?\n\nMail sent to the wrong person cannot be recovered!",
-                    button1 = "Yes, Add Recipient",
-                    button2 = "No, Cancel",
-                    OnAccept = function()
-                        table.insert(SmartMailDB_PerChar.customRecipients, text)
-                        SmartMailCustom.selectedRecipient = text
-                        if SmartMail_UpdateCustomRecipientList then
-                            SmartMail_UpdateCustomRecipientList()
-                        end
-                    end,
-                    timeout = 0,
-                    whileDead = 1,
-                    hideOnEscape = 1
-                }
-                StaticPopup_Show("SMARTMAIL_VERIFY_RECIPIENT")
+            if not exists then
+                table.insert(SmartMailDB_PerChar.customRecipients, text)
+            end
+            SmartMailCustom.selectedRecipient = text
+            if SmartMail_UpdateCustomRecipientList then
+                SmartMail_UpdateCustomRecipientList()
             end
         end
         this:GetParent():Hide()
@@ -470,9 +442,9 @@ StaticPopupDialogs["SMARTMAIL_CUSTOM_ADD_RECIPIENT"] = {
 
 -- Create the Custom Send Frame programmatically
 local frame = CreateFrame("Frame", "SmartMailCustomSendFrame", UIParent)
-frame:SetWidth(320)
-frame:SetHeight(420)
-frame:SetPoint("CENTER", UIParent, "CENTER")
+frame:SetWidth(664)
+frame:SetHeight(512)
+frame:SetPoint("TOPLEFT", SmartMailMainFrame, "TOPRIGHT", -5, 0)
 frame:SetToplevel(true)
 frame:SetBackdrop({
     bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
@@ -480,16 +452,30 @@ frame:SetBackdrop({
     tile = true, tileSize = 32, edgeSize = 32,
     insets = { left = 11, right = 12, top = 12, bottom = 11 }
 })
-frame:SetMovable(true)
 frame:EnableMouse(true)
-frame:RegisterForDrag("LeftButton")
-frame:SetScript("OnDragStart", function() 
-    this:SetFrameStrata("FULLSCREEN_DIALOG")
-    this:StartMoving() 
+frame:SetScript("OnMouseDown", function() 
+    if arg1 == "LeftButton" and SmartMailMainFrame then
+        SmartMailMainFrame:StartMoving()
+    end
 end)
-frame:SetScript("OnDragStop", function() 
-    this:SetFrameStrata("DIALOG")
-    this:StopMovingOrSizing() 
+frame:SetScript("OnMouseUp", function() 
+    if arg1 == "LeftButton" and SmartMailMainFrame then
+        SmartMailMainFrame:StopMovingOrSizing()
+    end
+end)
+
+frame:SetScript("OnShow", function()
+    if SmartMailCustomTab then SmartMailCustomTab:Hide() end
+end)
+frame:SetScript("OnHide", function()
+    if SmartMailMainFrame and SmartMailMainFrame:IsVisible() then
+        if SmartMailCustomTab then 
+            SmartMailCustomTab:SetParent(SmartMailMainFrame)
+            SmartMailCustomTab:ClearAllPoints()
+            SmartMailCustomTab:SetPoint("TOPLEFT", SmartMailMainFrame, "TOPRIGHT", -5, -20)
+            SmartMailCustomTab:Show() 
+        end
+    end
 end)
 frame:Hide()
 
@@ -503,13 +489,54 @@ local title = frame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 title:SetPoint("TOP", header, "TOP", 0, -14)
 title:SetText("SmartMail Custom Send")
 
-local closeBtn = CreateFrame("Button", nil, frame, "UIPanelCloseButton")
-closeBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -5, -5)
+local minBtn = CreateFrame("Button", nil, frame)
+minBtn:SetWidth(16)
+minBtn:SetHeight(16)
+minBtn:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -12, -12)
+minBtn:SetNormalTexture("Interface\\Buttons\\UI-MinusButton-Up")
+minBtn:SetPushedTexture("Interface\\Buttons\\UI-MinusButton-Down")
+minBtn:SetHighlightTexture("Interface\\Buttons\\UI-PlusButton-Hilight")
+minBtn:SetScript("OnClick", function()
+    SmartMail_Debug("SmartMailCustomSendFrame minBtn clicked")
+    frame:Hide()
+end)
+
+local minTab = CreateFrame("Button", "SmartMailCustomTab", UIParent)
+minTab:SetWidth(32)
+minTab:SetHeight(120)
+minTab:SetPoint("TOPLEFT", SmartMailMainFrame, "TOPRIGHT", -5, -20)
+minTab:SetBackdrop({
+    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
+    edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
+    tile = true, tileSize = 32, edgeSize = 16,
+    insets = { left = 5, right = 5, top = 5, bottom = 5 }
+})
+
+local hl = minTab:CreateTexture(nil, "HIGHLIGHT")
+hl:SetTexture("Interface\\QuestFrame\\UI-QuestTitleHighlight")
+hl:SetBlendMode("ADD")
+hl:SetAllPoints(minTab)
+
+local minTabText = minTab:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+local fontFile, _, flags = minTabText:GetFont()
+minTabText:SetFont(fontFile, 14, flags)
+minTabText:SetPoint("CENTER", minTab, "CENTER", 1, 0)
+minTabText:SetText("C\nu\ns\nt\no\nm")
+
+minTab:Hide()
+minTab:SetScript("OnClick", function()
+    minTab:Hide()
+    if SmartMailCustomSendFrame then SmartMailCustomSendFrame:Show() end
+end)
+
+local leftListTitle = frame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+leftListTitle:SetText("Custom List")
 
 local listFrame = CreateFrame("Frame", "SmartMailCustomSendFrameListFrame", frame)
-listFrame:SetWidth(280)
-listFrame:SetHeight(280)
-listFrame:SetPoint("TOP", frame, "TOP", 0, -40)
+listFrame:SetWidth(344)
+listFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, -89)
+listFrame:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 20, 50)
+leftListTitle:SetPoint("BOTTOMRIGHT", listFrame, "TOPRIGHT", -20, 5)
 listFrame:SetBackdrop({
     bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
     edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -528,7 +555,7 @@ scrollChild:SetHeight(260)
 scrollFrame:SetScrollChild(scrollChild)
 
 local moneyInput = CreateFrame("Frame", "SmartMailCustomMoneyInput", frame, "MoneyInputFrameTemplate")
-moneyInput:SetPoint("TOP", listFrame, "BOTTOM", -35, -5)
+moneyInput:SetPoint("BOTTOM", frame, "BOTTOM", 0, 22)
 MoneyInputFrame_SetCopper(moneyInput, 0)
 
 local gBox = getglobal("SmartMailCustomMoneyInputGold")
@@ -557,7 +584,11 @@ end)
 local clearMoneyBtn = CreateFrame("Button", nil, frame, "UIPanelButtonTemplate")
 clearMoneyBtn:SetWidth(45)
 clearMoneyBtn:SetHeight(20)
-clearMoneyBtn:SetPoint("LEFT", addMoneyBtn, "RIGHT", 5, 0)
+if gBox then
+    clearMoneyBtn:SetPoint("RIGHT", gBox, "LEFT", -15, 0)
+else
+    clearMoneyBtn:SetPoint("RIGHT", moneyInput, "LEFT", -15, 0)
+end
 clearMoneyBtn:SetText("Clear")
 clearMoneyBtn:SetScript("OnClick", function()
     SmartMailCustom.moneyToSend = 0
@@ -713,18 +744,12 @@ end)
 
 tinsert(UISpecialFrames, "SmartMailCustomAmountFrame")
 
--- Create the Side Panel for Recipients
+-- Create the Side Panel for Recipients (now a transparent container inside the expanded main frame)
 local sidePanel = CreateFrame("Frame", "SmartMailCustomSidePanel", frame)
-sidePanel:SetWidth(240)
-sidePanel:SetHeight(420)
-sidePanel:SetPoint("TOPLEFT", frame, "TOPRIGHT", -5, 0)
-sidePanel:SetBackdrop({
-    bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background",
-    edgeFile = "Interface\\DialogFrame\\UI-DialogBox-Border",
-    tile = true, tileSize = 32, edgeSize = 32,
-    insets = { left = 11, right = 12, top = 12, bottom = 11 }
-})
-sidePanel:SetBackdropColor(0, 0, 0, 1)
+sidePanel:SetWidth(280)
+sidePanel:SetHeight(512)
+sidePanel:SetPoint("TOPRIGHT", frame, "TOPRIGHT", -20, 0)
+
 
 if not SmartMailDB_PerChar then SmartMailDB_PerChar = {} end
 if not SmartMailDB_PerChar.validatedRecipients then SmartMailDB_PerChar.validatedRecipients = {} end
@@ -782,30 +807,23 @@ function SmartMailValidator_Validate(name)
     SmartMail_UpdateCustomRecipientList()
 end
 sidePanel:EnableMouse(true)
-sidePanel:RegisterForDrag("LeftButton")
-sidePanel:SetScript("OnDragStart", function() 
-    frame:SetFrameStrata("FULLSCREEN_DIALOG")
-    frame:StartMoving() 
+sidePanel:SetScript("OnMouseDown", function() 
+    if arg1 == "LeftButton" and SmartMailMainFrame then
+        SmartMailMainFrame:StartMoving()
+    end
 end)
-sidePanel:SetScript("OnDragStop", function() 
-    frame:SetFrameStrata("DIALOG")
-    frame:StopMovingOrSizing() 
+sidePanel:SetScript("OnMouseUp", function() 
+    if arg1 == "LeftButton" and SmartMailMainFrame then
+        SmartMailMainFrame:StopMovingOrSizing()
+    end
 end)
 
-local sideHeader = sidePanel:CreateTexture(nil, "ARTWORK")
-sideHeader:SetTexture("Interface\\DialogFrame\\UI-DialogBox-Header")
-sideHeader:SetWidth(240)
-sideHeader:SetHeight(64)
-sideHeader:SetPoint("TOP", sidePanel, "TOP", 0, 12)
 
-local sideTitle = sidePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-sideTitle:SetPoint("TOP", sideHeader, "TOP", 0, -14)
-sideTitle:SetText("Recipient List")
 
 local sideAddBtn = CreateFrame("Button", nil, sidePanel, "UIPanelButtonTemplate")
 sideAddBtn:SetWidth(56)
 sideAddBtn:SetHeight(24)
-sideAddBtn:SetPoint("TOPLEFT", sidePanel, "TOPLEFT", 34, -40)
+sideAddBtn:SetPoint("TOPLEFT", sidePanel, "TOPLEFT", 54, -40)
 sideAddBtn:SetText("Add")
 sideAddBtn:SetScript("OnClick", function()
     StaticPopup_Show("SMARTMAIL_CUSTOM_ADD_RECIPIENT")
@@ -884,9 +902,13 @@ sideDelBtn:SetScript("OnClick", function()
 end)
 
 local sideListFrame = CreateFrame("Frame", "SmartMailCustomRecipientListFrame", sidePanel)
-sideListFrame:SetWidth(200)
-sideListFrame:SetHeight(80)
-sideListFrame:SetPoint("TOP", sidePanel, "TOP", 0, -70)
+sideListFrame:SetWidth(260)
+sideListFrame:SetHeight(120)
+sideListFrame:SetPoint("TOP", sidePanel, "TOP", 0, -89)
+
+local sideListTitle = sidePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+sideListTitle:SetPoint("BOTTOMRIGHT", sideListFrame, "TOPRIGHT", -20, 5)
+sideListTitle:SetText("Saved Recipients List")
 sideListFrame:SetBackdrop({
     bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
     edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -900,18 +922,18 @@ sideScrollFrame:SetPoint("TOPLEFT", sideListFrame, "TOPLEFT", 8, -8)
 sideScrollFrame:SetPoint("BOTTOMRIGHT", sideListFrame, "BOTTOMRIGHT", -28, 8)
 
 local sideScrollChild = CreateFrame("Frame", "SmartMailCustomRecipientScrollChild", sideScrollFrame)
-sideScrollChild:SetWidth(170)
-sideScrollChild:SetHeight(80)
+sideScrollChild:SetWidth(230)
+sideScrollChild:SetHeight(120)
 sideScrollFrame:SetScrollChild(sideScrollChild)
 
-local customListTitle = sidePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-customListTitle:SetPoint("TOP", sideListFrame, "BOTTOM", 0, -10)
-customListTitle:SetText("Custom List")
-
 local customListFrame = CreateFrame("Frame", "SmartMailCustomListSideFrame", sidePanel)
-customListFrame:SetWidth(200)
-customListFrame:SetHeight(220)
-customListFrame:SetPoint("TOP", customListTitle, "BOTTOM", 0, -5)
+customListFrame:SetWidth(260)
+customListFrame:SetPoint("TOP", sideListFrame, "BOTTOM", 0, -29)
+customListFrame:SetPoint("BOTTOM", sidePanel, "BOTTOM", 0, 50)
+
+local customListTitle = sidePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+customListTitle:SetPoint("BOTTOMRIGHT", customListFrame, "TOPRIGHT", -20, 5)
+customListTitle:SetText("Cart")
 customListFrame:SetBackdrop({
     bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
     edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
@@ -925,8 +947,8 @@ customListScrollFrame:SetPoint("TOPLEFT", customListFrame, "TOPLEFT", 8, -8)
 customListScrollFrame:SetPoint("BOTTOMRIGHT", customListFrame, "BOTTOMRIGHT", -28, 8)
 
 local customListScrollChild = CreateFrame("Frame", "SmartMailCustomListSideScrollChild", customListScrollFrame)
-customListScrollChild:SetWidth(170)
-customListScrollChild:SetHeight(220)
+customListScrollChild:SetWidth(230)
+customListScrollChild:SetHeight(272)
 customListScrollFrame:SetScrollChild(customListScrollChild)
 
 function SmartMail_UpdateCustomRecipientList()
@@ -941,6 +963,7 @@ function SmartMail_UpdateCustomRecipientList()
             table.insert(cleaned, recip)
         end
     end
+    table.sort(cleaned)
     SmartMailDB_PerChar.customRecipients = cleaned
     
     local children = {sideScrollChild:GetChildren()}
