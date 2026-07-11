@@ -1,6 +1,6 @@
 SmartMail = {
     -- CONFIGURABLE SETTINGS
-    debug       = true, -- Set to true to see debug messages in chat
+    debug       = false, -- Set to true to see debug messages in chat
     
     -- Tweak these to speed up or slow down mail processing if you encounter server lag.
     SendDelay   = 0.15, -- Delay between sending each mail (in seconds)
@@ -84,7 +84,7 @@ function SmartMail_Debug(msg, category)
 
     -- When debug is off, only pass through explicit errors
     if not SmartMail.debug and not isError then return end
-
+    
     local msgStr = tostring(msg)
     if not category then
         local lowerMsg = string.lower(msgStr)
