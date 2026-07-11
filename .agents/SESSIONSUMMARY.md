@@ -12,8 +12,10 @@
 - **Terminology Sync**: Swapped Cart and Custom List terminology in `MEMORY.md` to match the new UI layout.
 
 ## Next Session Checklist
-- [ ] Review any final polish needed for the unified Custom Frame & Tab system.
-- [ ] Overhaul and redesign the `SmartMailProfileEditorFrame`.
+- [ ] **Agent Rules Overhaul**: Re-evaluate agent communication and establish stricter permission protocols to stop unauthorized actions (Major Agents Update).
+- [ ] **README Workflow**: Establish a better process for updating the README (this should be the very first task).
+- [ ] **In-Game Tutorial**: Update the in-game tutorial to reflect all the new UI changes.
+- [ ] **SmartMailProfileEditorFrame**: Overhaul and redesign the Profile Editor frame.
 
 ## Next Session Instructions
 When starting the next session, read ONLY:

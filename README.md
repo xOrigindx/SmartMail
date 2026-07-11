@@ -22,6 +22,7 @@ SmartMail is an inventory management tool that automatically sorts and mails ite
 * **Custom Send Frame Integration**: The Custom Send window is no longer a separate popup. It is now seamlessly anchored to the right side of the main SmartMail interface.
 * **Minimizable Tab**: The Custom Send window can be minimized into a vertical side tab.
 * **Layout Rebalance**: Cleaned up visual alignments, specifically regarding the custom money input area and title margins.
+* **Addon Compatibility**: The "Open All" function operates entirely within the standalone SmartMail interface, ensuring full compatibility with other mail addons (e.g., CT_MailMod, Postal, TurtleMail).
 
 
 
@@ -32,7 +33,7 @@ SmartMail is an inventory management tool that automatically sorts and mails ite
 * **Mass Send ("Send All")**: Mail all matching items to all configured profiles simultaneously.
 * **"Send All Full" Mode**: A specialized mass-send function that exclusively mails complete stacks.
 * **Custom Send**: A manual override window to send items to any saved character bypassing category rules.
-* **Open All Mail**: A built-in "Open All" function integrated into the inbox to automatically loot incoming mail.
+* **Open All Mail**: A built-in "Open All" function integrated into the SmartMail interface to automatically loot incoming mail. Because it does not modify the default mailbox UI, it is fully compatible with other mail addons such as CT_MailMod, Postal, and TurtleMail.
 
 ---
 
