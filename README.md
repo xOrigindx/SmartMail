@@ -1,4 +1,4 @@
-# SmartMail (v1.0.2)
+# SmartMail (v1.0.3)
 
 > [!NOTE]
 > **FIRST PUBLIC RELEASE**
@@ -15,14 +15,22 @@ SmartMail is an inventory management tool that automatically sorts and mails ite
 
 ---
 
-## Changelog
+## COMING NEXT (v1.1.0)
+* **Search Bar**: A unified search interface to quickly find and filter categories/items.
+* **Custom Categories**: A dedicated tool to create fully custom categories with user-defined item arrays.
 
-### v1.0.2
-**UI Enhancements:**
-* **Custom Send Frame Integration**: The Custom Send window is no longer a separate popup. It is now seamlessly anchored to the right side of the main SmartMail interface.
-* **Minimizable Tab**: The Custom Send window can be minimized into a vertical side tab.
-* **Layout Rebalance**: Cleaned up visual alignments, specifically regarding the custom money input area and title margins.
-* **Addon Compatibility**: The "Open All" function operates entirely within the standalone SmartMail interface, ensuring full compatibility with other mail addons (e.g., CT_MailMod, Postal, TurtleMail).
+---
+
+## Changelog
+### v1.0.3
+**Bug Fixes & Improvements:**
+* Resolved a critical addon conflict. SmartMail is now fully compatible with and immune to hooks from other mail addons (e.g., Postal, Mail, TurtleMail).
+* Redesigned the UI expansion layout for a cleaner and more stable interface.
+* Migrated the Custom Send feature to a dedicated vertical Side Tab, optimizing space in the bottom row.
+* Fixed a visual layering bug that caused the Custom Send frame to render behind the main window during dragging.
+* The Custom Send feature can now be completely disabled via the Options menu.
+
+
 
 
 
@@ -76,14 +84,20 @@ The Custom Send frame is anchored to the right side of the Main Frame. It facili
 
 
 ## Future Plans / Roadmap
-The following features are planned for future releases:
+
 * **Multiple Category Assignment**: Assigning identical categories to multiple profiles.
-* **Custom Categories**: A tool to create custom categories with user-defined item arrays.
 
 ## Feedback & Ideas
 Feedback and feature proposals can be submitted by opening an issue or discussion on the GitHub repository.
 
 ## History / Previous Versions
+
+### v1.0.2
+**UI Enhancements:**
+* **Custom Send Frame Integration**: The Custom Send window is no longer a separate popup. It is now seamlessly anchored to the right side of the main SmartMail interface.
+* **Minimizable Tab**: The Custom Send window can be minimized into a vertical side tab.
+* **Layout Rebalance**: Cleaned up visual alignments, specifically regarding the custom money input area and title margins.
+* **Addon Compatibility**: The "Open All" function operates entirely within the standalone SmartMail interface, ensuring full compatibility with other mail addons (e.g., CT_MailMod, Postal, TurtleMail).
 
 ### v1.0.1
 **Hotfixes:**

@@ -226,34 +226,12 @@ function SmartMailUI_CreateCustomSendFrame()
     title:SetPoint("TOP", header, "TOP", 0, -14)
     title:SetText("SmartMail Custom Send")
 
-    -- "Custom List" label
-    local leftListTitle = frame:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    leftListTitle:SetText("Custom List")
-
     -- Left list frame (item list with backdrop)
-    local listFrame = CreateFrame("Frame", "SmartMailCustomSendFrameListFrame", frame)
-    listFrame:SetWidth(344)
+    local listFrame, scrollFrame, scrollChild = SmartMailUI_CreateScrollList("SmartMailCustomSendFrameListFrame", frame, 344, nil, "Custom List", true, 0.6)
     listFrame:SetPoint("TOPLEFT", frame, "TOPLEFT", 20, -89)
     listFrame:SetPoint("BOTTOMLEFT", frame, "BOTTOMLEFT", 20, 50)
-    leftListTitle:SetPoint("BOTTOMRIGHT", listFrame, "TOPRIGHT", -20, 5)
-    listFrame:SetBackdrop({
-        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
-    })
-    listFrame:SetBackdropColor(0, 0, 0, 0.6)
-
-    -- Scroll frame for item list
-    local scrollFrame = CreateFrame("ScrollFrame", "SmartMailCustomSendFrameListFrameScrollFrame", listFrame, "UIPanelScrollFrameTemplate")
-    scrollFrame:SetPoint("TOPLEFT", listFrame, "TOPLEFT", 8, -8)
-    scrollFrame:SetPoint("BOTTOMRIGHT", listFrame, "BOTTOMRIGHT", -28, 8)
-
-    -- Scroll child for item list
-    local scrollChild = CreateFrame("Frame", "SmartMailCustomSendFrameListFrameScrollFrameScrollChild", scrollFrame)
     scrollChild:SetWidth(250)
     scrollChild:SetHeight(260)
-    scrollFrame:SetScrollChild(scrollChild)
 
     -- Money input
     local moneyInput = CreateFrame("Frame", "SmartMailCustomMoneyInput", frame, "MoneyInputFrameTemplate")
@@ -413,64 +391,17 @@ function SmartMailUI_CreateSidePanel()
     sideDelBtn:SetText("Delete")
 
     -- Recipient list frame
-    local sideListFrame = CreateFrame("Frame", "SmartMailCustomRecipientListFrame", sidePanel)
-    sideListFrame:SetWidth(260)
-    sideListFrame:SetHeight(120)
+    local sideListFrame, sideScrollFrame, sideScrollChild = SmartMailUI_CreateScrollList("SmartMailCustomRecipientListFrame", sidePanel, 260, 120, "Saved Recipients List", true, 1)
     sideListFrame:SetPoint("TOP", sidePanel, "TOP", 0, -89)
-
-    -- "Saved Recipients List" label
-    local sideListTitle = sidePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    sideListTitle:SetPoint("BOTTOMRIGHT", sideListFrame, "TOPRIGHT", -20, 5)
-    sideListTitle:SetText("Saved Recipients List")
-
-    sideListFrame:SetBackdrop({
-        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
-    })
-    sideListFrame:SetBackdropColor(0, 0, 0, 1)
-
-    -- Recipient scroll frame
-    local sideScrollFrame = CreateFrame("ScrollFrame", "SmartMailCustomRecipientScrollFrame", sideListFrame, "UIPanelScrollFrameTemplate")
-    sideScrollFrame:SetPoint("TOPLEFT", sideListFrame, "TOPLEFT", 8, -8)
-    sideScrollFrame:SetPoint("BOTTOMRIGHT", sideListFrame, "BOTTOMRIGHT", -28, 8)
-
-    -- Recipient scroll child
-    local sideScrollChild = CreateFrame("Frame", "SmartMailCustomRecipientScrollChild", sideScrollFrame)
     sideScrollChild:SetWidth(230)
     sideScrollChild:SetHeight(120)
-    sideScrollFrame:SetScrollChild(sideScrollChild)
 
     -- Cart list frame
-    local customListFrame = CreateFrame("Frame", "SmartMailCustomListSideFrame", sidePanel)
-    customListFrame:SetWidth(260)
+    local customListFrame, customListScrollFrame, customListScrollChild = SmartMailUI_CreateScrollList("SmartMailCustomListSideFrame", sidePanel, 260, nil, "Cart", true, 1)
     customListFrame:SetPoint("TOP", sideListFrame, "BOTTOM", 0, -29)
     customListFrame:SetPoint("BOTTOM", sidePanel, "BOTTOM", 0, 50)
-
-    -- "Cart" label
-    local customListTitle = sidePanel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-    customListTitle:SetPoint("BOTTOMRIGHT", customListFrame, "TOPRIGHT", -20, 5)
-    customListTitle:SetText("Cart")
-
-    customListFrame:SetBackdrop({
-        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
-        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-        tile = true, tileSize = 16, edgeSize = 16,
-        insets = { left = 4, right = 4, top = 4, bottom = 4 }
-    })
-    customListFrame:SetBackdropColor(0, 0, 0, 1)
-
-    -- Cart scroll frame
-    local customListScrollFrame = CreateFrame("ScrollFrame", "SmartMailCustomListSideScrollFrame", customListFrame, "UIPanelScrollFrameTemplate")
-    customListScrollFrame:SetPoint("TOPLEFT", customListFrame, "TOPLEFT", 8, -8)
-    customListScrollFrame:SetPoint("BOTTOMRIGHT", customListFrame, "BOTTOMRIGHT", -28, 8)
-
-    -- Cart scroll child
-    local customListScrollChild = CreateFrame("Frame", "SmartMailCustomListSideScrollChild", customListScrollFrame)
     customListScrollChild:SetWidth(230)
     customListScrollChild:SetHeight(272)
-    customListScrollFrame:SetScrollChild(customListScrollChild)
 
     UI_Debug("UI: SmartMailCustomSidePanel layout complete.")
 end
