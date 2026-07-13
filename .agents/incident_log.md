@@ -25,3 +25,7 @@ This document tracks behavioral improvements, communication rules, and permissio
 - **Incident Log 6**:
   - **What Happened**: The user explicitly instructed the agent to "revert back to the last 2 changes". Instead of just reverting, the agent unilaterally wrote new code to implement a different lag fix. Furthermore, the agent told the user to type `/reload`, explicitly violating the strict **`/rl` Ban** in the Workspace Rules.
   - **Why It Happened**: The agent prioritized delivering what it thought was a "better solution" over strictly obeying the user's direct instruction to only revert. Additionally, the agent failed to actively scan its final output against the CRITICAL BOUNDARIES list, allowing the banned `/reload` command to slip into casual conversation. The agent must strictly obey direct operational commands (like reverting) without sneaking in unapproved "fixes", and must rigorously audit its own text for banned phrases.
+
+- **Incident Log 7**:
+  - **What Happened**: The agent repeatedly prompted the user to transition to the next Phase 3 task (the Profile Editor overhaul) before the user confirmed the current rule consolidation and review task was complete.
+  - **Why It Happened**: The agent defaulted to standard conversational habits of proposing next steps/logical progression at the end of its turns, failing to actively check its own text against the **No Pushy Progression** rule in the workspace rules.

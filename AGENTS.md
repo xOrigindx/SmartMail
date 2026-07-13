@@ -1,4 +1,4 @@
-# Workspace Rules
+# Workspace & Agent Rules
 
 ## 1. CRITICAL BOUNDARIES (NEVER DO THESE - NO FAILURE ALLOWED)
 - **The `/rl` Ban**: **STRICTLY ENFORCED**. Do NOT tell the user to type `/rl`, `/reload`, "refresh", or "test it". Do not tell the user to test your changes. They are developing the AddOn with you and will automatically test, reload, or restart as needed. Never mention it.
@@ -6,22 +6,44 @@
   1. YOU MUST NOT run any Python conversion scripts.
   2. YOU MUST ONLY use `view_file` to open `C:\World of Warcraft - 1.12.1 - Microbot\Screenshots\img-xx.jpg`.
   3. NEVER attempt to convert images yourself. NEVER look in `.tempmediaStorage` or wait for artifacts. NO FAILURE ALLOWED.
-- **Tool & Script Discipline**: You MAY propose Python scripts if you believe they are the most efficient way to solve a problem. However, you MUST ask the user for approval via a simple YES or NO question before executing it.
-- **Permission Loops**: If a terminal command or script fails due to permissions, STOP immediately. Ask the user.
-- **GitHub Restraint (NO AUTO-PUSHING)**: **STRICTLY ENFORCED. NO EXCEPTIONS.** You are NEVER allowed to run `git push` unless the user explicitly asks you to "push" in their *current* message. Permission to push from a previous message expires immediately. YOU DO NOT HAVE CONTROL OVER PUSHING. Commits are fine, pushing is forbidden unless commanded.
+- **Tool, Terminal, & Script Discipline**: You are NEVER allowed to run arbitrary commands, PowerShell scripts, or Python scripts on the user's terminal unless they explicitly tell you to run them in their current message. You may propose scripts only if they are the most efficient way to solve a problem, but you MUST ask for permission via a simple YES or NO question first. The only Python script you run is at the start of a session: you activate the `.venv` and launch the screenshot watcher (`Scripts/screenshot_watcher.py`) after obtaining explicit user approval.
+- **Git Command Restraint**: **STRICTLY ENFORCED. NO EXCEPTIONS.** You are NEVER allowed to run ANY Git command (including `git add`, `git commit`, `git checkout`, `git reset`, `git push`, etc.) unless the user explicitly commands you to run it in their *current* message. Permission from previous messages expires immediately.
+  - **Git Interaction Rule:** NEVER ask the user about git commits or git pushes. Assume no git interaction is needed unless the user explicitly uses the exact words "commit" or "push" in their request.
+  - **Protocol Exemption:** The specific Git commands detailed in the Section 2 Push Protocols (such as `git push` and `git checkout -- .gitignore`) are exempt from this restraint only when executing a commanded push.
 - **TRUST THE PROCESS (STEP-BY-STEP METHOD)**: **STRICTLY ENFORCED**. Never question the user's step-by-step method. Do exactly what is requested for the current step, nothing more and nothing less. Do NOT attempt to anticipate the end goal, clean up surrounding code unprompted, or guess future steps. The user's workflow is the proven method.
 
-## 2. WORKFLOW TRIGGERS
-- **Start Session**: When the user says "Start Session", you must ONLY read the `.agents/MEMORY.md` file and any other necessary `.md` files (as directed by the memory or session summary). Do NOT write any code or make modifications to the codebase. Simply summarize what you read and wait for the user to give you your first task.
-- **End Session**: When the user says "End Session", you must create or update `.agents/SESSIONSUMMARY.md` with a summary of major changes and functions created, along with a checklist for the next session. Then add a directive instructing the agent on the next start to check only the specific `.md` files in `.agents/` that are necessary for that session. Finally, delete any `.tga, .jpg` files in the `Screenshots/` directory to clean up.
+## 2. GIT PUSH COMMANDS
+The project uses two repositories:
+- **Private Development Repo (`developpement`)**: `https://github.com/xOrigindx/SmartMail-developpement.git`
+- **Public Repo (`public`)**: `https://github.com/xOrigindx/SmartMail.git`
 
-## 3. WORKSPACE DIRECTIVES
-- **Do Not Modify the Libs Folder**: The `Libs/` directory contains external libraries. Do not edit, delete, or create files inside `Libs/` under any circumstances.
-- **Load Agent Directives**: Always check the `.agents/MEMORY.md` file first upon loading. If there is no specific directive in it, check all `.md` files in the `.agents/` folder.
-- **Memory Tracking**: You must update `.agents/MEMORY.md` ONLY for behavior-focused memory (e.g., user preferences).
+**Push Protocols:**
+- When the user says "push", push ONLY to the dev repo (`developpement`) from the `main` branch: `git push developpement main`.
+- When the user says "push public", push ONLY to the public repo (`public`). Do this by:
+  1. Swapping `.gitignore` with `public_repo.gitignore` (overwriting `.gitignore` with the contents of `public_repo.gitignore` - this temporary swap is exempt from the Artifact Plan rule).
+  2. Pushing the `main` branch to the public repo: `git push public main`.
+  3. Restoring `.gitignore` back to the development version (e.g., via `git checkout -- .gitignore`).
+- When the user says "push push public", do BOTH.
 
-## 4. CODING STANDARDS
-- **Debugging**: Always include `SmartMail_Debug()` statements for all new logic, UI interactions, and state changes to ensure we can clearly see what's happening. You tend to miss this, so strictly enforce it!
+## 3. WORKFLOW TRIGGERS
+- **Start Session**: When the user says "Start Session", you must ONLY read `AGENTS.md` and `.agents/SESSIONSUMMARY.md`. Do NOT write any code or make modifications. You MUST first recite ALL rules in this file: git rules, behavior rules, the readme workflow rules, and everything you are supposed to do in the workflow so the user knows you are ready. State the session summary, then conduct a mini-brainstorm with the user on what to tackle next. Do NOT write code or execute changes until this brainstorm concludes with explicit user approval.
+- **End Session**: When the user says "End Session", you must create or update `.agents/SESSIONSUMMARY.md` with a summary of major changes and functions created, along with a checklist for the next session. Finally, delete any `.tga, .jpg` files in the `Screenshots/` directory to clean up.
+- **Session Files Rule**: Agents must always create/use `workflow_update.md` and `todo_behavior.md` inside the `.agents/` directory to track changes, rules, and behavior-todo notes during a session.
 
-## 5. GLOBAL PROTOCOLS
+## 4. BEHAVIOR & DESIGN RULES
+- **NO SUMMARY ADMIN POWER**: A session summary does NOT give you admin power or decision-making power. It is merely a historical reference. Never use it as an excuse to make autonomous changes without the user's explicit approval.
+- **ARTIFACT PLANS (WORKFLOW)**: You MUST present an Artifact Plan before modifying code for a new feature or fix. The artifact must use `RequestFeedback`. Wait for the user to explicitly and unequivocally approve the plan (e.g., clicking the 'Proceed' button). Do NOT assume approval from conversational words like "yes". Only after receiving explicit approval should you execute the file edits automatically.
+  - **Exemption:** Logging incidents in [`.agents/incident_log.md`](file:///C:/World%20of%20Warcraft%20-%201.12.1%20-%20Microbot/Interface/AddOns/SmartMail/.agents/incident_log.md) is exempt from this rule and must be done directly upon user request without presenting a plan or artifact.
+- **ANALYZE OVER ASSUMING**: Never be too confident or make hasty assumptions, as this leads to bugs and mistakes. Carefully curate solutions and answers by thoroughly analyzing the *entirety* of the necessary data (code diffs, file structures, execution outputs) before making declarations.
+- **No Pushy Progression**: DO NOT suggest, ask about, or move on to the next task or checklist item until the user explicitly confirms that the current task's code has been tested and verified to work.
+- **Strict Obedience to Direct Commands**: When the user commands a specific action (e.g., reverting code, stopping commands), execute only that command. Do not propose unprompted alternative fixes or workarounds.
+- **USER COMMUNICATION**: The user uses CAPITAL letters to indicate IMPORTANT information. When reading user requests, treat any fully capitalized words as critical priority details that dictate exact behavior. Never assume ignorance on the part of the user and maintain a professional, peer-to-peer programming dynamic.
 - **Model Routing**: Gemini Pro is the orchestrator. Sonnet 4.6 and Opus 4.6 are explicitly reserved for token burns on Mondays or when deep reasoning is needed (prioritizing Sonnet 4.6 for coding sweeps). On Mondays, you MUST ask the user how much Sonnet/Opus 4.6 usage they have left (since it resets on Wednesday) to ensure efficient token burning.
+
+## 5. CODING & UI STANDARDS
+- **Debugging**: Always include `SmartMail_Debug()` statements for all new logic, UI interactions, and state changes to ensure we can clearly see what's happening.
+- **Do Not Modify the Libs Folder**: The `Libs/` directory contains external libraries. Do not edit, delete, or create files inside `Libs/` under any circumstances.
+- **UI Naming Convention**: `SmartMailMainFrame` = Main Frame, `SmartMailConfirmFrame` = Profile Frame, `SmartMailCustomSendFrame` = Custom Frame, `SmartMailProfileEditorFrame` = Profile Editor Frame. Inside the Custom Frame, the large left list is the **Custom List**, and the bottom right list is the **Cart**.
+- **UI Style**: Symmetrical buttons, main frame close via `ESC`, child frames LIFO close, unselect profile on background click.
+- **UI Tabs Interaction**: All tabs on the side of the main frame must trigger `SmartMail_ToggleMainFrameWidth(expand)` when clicked to properly expand or collapse the main frame.
+- **Memory Persistence**: Ensure `MAX` text values vs numeric values are distinctly respected across sessions.
