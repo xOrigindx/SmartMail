@@ -1,3 +1,4 @@
+-- v1.0.1: hotfixes and custom frame UX update
 Bridge = {}
 
 -- Dynamically fetch PeriodicTable to avoid stale references if another addon upgrades the lib during load
