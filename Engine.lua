@@ -1,3 +1,4 @@
+-- v1.0.0: Engine baseline
 SmartMailEngine = {
     flatQueue = {},
     retryQueue = {},
