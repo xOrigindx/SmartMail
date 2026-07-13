@@ -35,7 +35,7 @@ The project uses two repositories:
      - **Group 5 (v1.0.3 Release Config):** Stamp `SmartMail.toc`, `README.md`, and `.gitignore` with version comments.
        Commit: `git add SmartMail.toc README.md .gitignore; git commit -m "v1.0.3: public release configuration and version bump"`
   5. Pushing the temporary branch to the public main: `git push public temp-public-release:main --force`.
-  6. Returning to the main branch and deleting the temporary branch: `git checkout main; git branch -D temp-public-release`.
+  6. Returning to the main branch and deleting the temporary branch: `git checkout main; git branch -D temp-public-release; git checkout -- public_repo.gitignore`.
 - When the user says "push push public", do BOTH.
 
 ## 3. WORKFLOW TRIGGERS

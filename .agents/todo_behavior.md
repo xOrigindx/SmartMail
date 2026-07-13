@@ -18,3 +18,4 @@ This document tracks behavioral changes, rule additions, and adjustments made du
 13. **Cleaned Gitignore and Push Rules:** Removed references to `Mail/` from `public_repo.gitignore` and the `AGENTS.md` public release rules after the local folder was deleted.
 14. **Simplified Public Push (Rename Workflow):** Removed the development `.gitignore` file and updated the public push rules to rename `public_repo.gitignore` to `.gitignore` on the temporary branch, eliminating the need to restore `.gitignore` when switching branches.
 15. **Granular Public Push commits:** Updated the public release workflow to commit stamped files in historical version groups, ensuring GitHub displays correct version and description commit messages for each file.
+16. **Staging public_repo.gitignore checkout:** Added a restoration step for `public_repo.gitignore` to the public push rules to ensure it is checked out from `main` after branch switching.
