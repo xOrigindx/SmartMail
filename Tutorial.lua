@@ -1,3 +1,4 @@
+-- v1.0.0: Tutorial system, debug=false, Stress deprecated
 -- ============================================================
 -- Tutorial.lua
 -- First-run tutorial for SmartMail v1.0
