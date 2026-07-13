@@ -51,6 +51,51 @@ function SmartMail_CreateListRow(name, parent, width, height)
 end
 
 -- ============================================================
+-- Generic Scrolling List Creator
+-- Creates a UI list frame with a title, backdrop, and scrolling child.
+-- ============================================================
+function SmartMailUI_CreateScrollList(name, parent, width, height, titleText, titleAnchorIsBottomRight, alpha)
+    -- Main list frame
+    local listFrame = CreateFrame("Frame", name, parent)
+    if width then listFrame:SetWidth(width) end
+    if height then listFrame:SetHeight(height) end
+
+    -- Title label
+    local title = nil
+    if titleText then
+        title = parent:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+        if titleAnchorIsBottomRight then
+            title:SetPoint("BOTTOMRIGHT", listFrame, "TOPRIGHT", -20, 5)
+        else
+            title:SetPoint("BOTTOMLEFT", listFrame, "TOPLEFT", 0, 5)
+        end
+        title:SetText(titleText)
+    end
+
+    -- Backdrop
+    listFrame:SetBackdrop({
+        bgFile = "Interface\\Tooltips\\UI-Tooltip-Background",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        tile = true, tileSize = 16, edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    })
+    listFrame:SetBackdropColor(0, 0, 0, alpha or 1)
+
+    -- Scroll frame
+    local scrollFrame = CreateFrame("ScrollFrame", name .. "ScrollFrame", listFrame, "UIPanelScrollFrameTemplate")
+    scrollFrame:SetPoint("TOPLEFT", listFrame, "TOPLEFT", 8, -8)
+    scrollFrame:SetPoint("BOTTOMRIGHT", listFrame, "BOTTOMRIGHT", -28, 8)
+
+    -- Scroll child
+    local scrollChild = CreateFrame("Frame", name .. "ScrollChild", scrollFrame)
+    if width then scrollChild:SetWidth(width - 30) end
+    scrollChild:SetHeight(150) -- Default height, can be overwritten later
+    scrollFrame:SetScrollChild(scrollChild)
+
+    return listFrame, scrollFrame, scrollChild, title
+end
+
+-- ============================================================
 -- Main Frame Width Toggle
 -- ============================================================
 SmartMailUI_SideTabs = {}
