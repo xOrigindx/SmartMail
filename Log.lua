@@ -1,3 +1,4 @@
+-- v1.0.2: UI Unification and Custom Frame Overhaul
 SmartMailLogMode = "ALL"
 
 function SmartMail_Log(msg, category)
