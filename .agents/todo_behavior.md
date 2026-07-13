@@ -10,3 +10,6 @@ This document tracks behavioral changes, rule additions, and adjustments made du
 5. **Git Remote Names:** Renamed the private development remote from `origin` to `developpement` to eliminate naming mismatches.
 6. **Git Protocol Exemption:** Added a protocol exemption clarifying that the Git commands needed for the commanded Git push protocol (Section 2) are permitted when executing a commanded push.
 7. **Incident Log Exemption:** Added an exemption clarifying that logging incidents in `incident_log.md` does not require presenting an Artifact Plan or obtaining approval.
+8. **Temporary Branch Public Push:** Adopted a temporary branch workflow (`temp-public-release`) for public pushes to completely eliminate merge conflicts and keep private development files off the public repository.
+9. **Refined Public Push Parameters:** Updated the public push rules to include `Scripts/` and `TODO_STRESS.lua` in the file strip list, and mandated generic version-based release commits (e.g. "Release v[Version]").
+10. **GitHub Version Stamping:** Mandated appending version comments to all release files on the temporary release branch before pushing, ensuring that every file displays the release version and description as its latest commit on GitHub.
