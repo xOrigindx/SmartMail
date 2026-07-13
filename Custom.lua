@@ -1,3 +1,4 @@
+-- v1.0.3: fix UI layering and anchors for expanded layout
 local SMARTMAIL_DISABLE_CUSTOM = false
 
 if SMARTMAIL_DISABLE_CUSTOM then
