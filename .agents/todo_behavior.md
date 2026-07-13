@@ -13,3 +13,7 @@ This document tracks behavioral changes, rule additions, and adjustments made du
 8. **Temporary Branch Public Push:** Adopted a temporary branch workflow (`temp-public-release`) for public pushes to completely eliminate merge conflicts and keep private development files off the public repository.
 9. **Refined Public Push Parameters:** Updated the public push rules to include `Scripts/` and `TODO_STRESS.lua` in the file strip list, and mandated generic version-based release commits (e.g. "Release v[Version]").
 10. **GitHub Version Stamping:** Mandated appending version comments to all release files on the temporary release branch before pushing, ensuring that every file displays the release version and description as its latest commit on GitHub.
+11. **Excluding Mail Folder:** Added the `Mail/` folder to `public_repo.gitignore` and to the public push untracking list in `AGENTS.md` to ensure it is kept locally but never pushed to the public repository.
+12. **Deleted Local Mail Folder:** The user deleted the redundant `Mail/` folder from the workspace root, as it is already backed up in `Docs/Mail/`.
+13. **Cleaned Gitignore and Push Rules:** Removed references to `Mail/` from `public_repo.gitignore` and the `AGENTS.md` public release rules after the local folder was deleted.
+14. **Simplified Public Push (Rename Workflow):** Removed the development `.gitignore` file and updated the public push rules to rename `public_repo.gitignore` to `.gitignore` on the temporary branch, eliminating the need to restore `.gitignore` when switching branches.

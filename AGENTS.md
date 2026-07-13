@@ -21,7 +21,7 @@ The project uses two repositories:
 - When the user says "push", push ONLY to the dev repo (`developpement`) from the `main` branch: `git push developpement main`.
 - When the user says "push public", push ONLY to the public repo (`public`). Do this by:
   1. Creating a temporary branch from `main`: `git checkout -b temp-public-release`.
-  2. Overwriting `.gitignore` with the contents of `public_repo.gitignore` (This temporary swap is exempt from the Artifact Plan rule).
+  2. Renaming `public_repo.gitignore` to `.gitignore` (This temporary rename is exempt from the Artifact Plan rule).
   3. Removing development files from Git tracking index (keeping local files safe): `git rm -rf --cached --ignore-unmatch .agents/ Scripts/ Docs/ TODO_STRESS.lua AGENTS.md public_repo.gitignore`.
   4. Stamping all release files on the temporary branch with a version comment so GitHub updates their last commit message:
      - For `.lua` files: `Add-Content -Path <file> -Value "`n-- v[Version]"`
@@ -30,7 +30,7 @@ The project uses two repositories:
      - For `.md` & `.gitignore` files: `Add-Content -Path <file> -Value "`n<!-- v[Version] -->"`
   5. Committing all stamped files with the version and release description: `git commit -a -m "v[Version]: [Description]"`.
   6. Pushing the temporary branch to the public main: `git push public temp-public-release:main --force`.
-  7. Returning to the main branch and deleting the temporary branch: `git checkout main; git branch -D temp-public-release; git checkout -- .gitignore`.
+  7. Returning to the main branch and deleting the temporary branch: `git checkout main; git branch -D temp-public-release`.
 - When the user says "push push public", do BOTH.
 
 ## 3. WORKFLOW TRIGGERS
