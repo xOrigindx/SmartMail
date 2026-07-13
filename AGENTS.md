@@ -15,9 +15,6 @@
 - **End Session**: When the user says "End Session", you must create or update `.agents/SESSIONSUMMARY.md` with a summary of major changes and functions created, along with a checklist for the next session. Then add a directive instructing the agent on the next start to check only the specific `.md` files in `.agents/` that are necessary for that session. Finally, delete any `.tga, .jpg` files in the `Screenshots/` directory to clean up.
 
 ## 3. WORKSPACE DIRECTIVES
-- **SavedVariables Read-Only Access**: You are NEVER authorized to write to or modify `SavedVariables`. You may only READ the following files:
-  - *Global*: `C:\World of Warcraft - 1.12.1 - Microbot\WTF\Account\ORIGIND\SavedVariables\SmartMail.lua`
-  - *Per-Character*: `C:\World of Warcraft - 1.12.1 - Microbot\WTF\Account\ORIGIND\Microbot Vanilla\<CharacterName>\SavedVariables\SmartMail.lua`
 - **Do Not Modify the Libs Folder**: The `Libs/` directory contains external libraries. Do not edit, delete, or create files inside `Libs/` under any circumstances.
 - **Load Agent Directives**: Always check the `.agents/MEMORY.md` file first upon loading. If there is no specific directive in it, check all `.md` files in the `.agents/` folder.
 - **Memory Tracking**: You must update `.agents/MEMORY.md` ONLY for behavior-focused memory (e.g., user preferences).

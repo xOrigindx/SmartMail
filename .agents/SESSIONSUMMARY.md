@@ -2,20 +2,21 @@
 
 ## Major Changes
 
-### 1. UI Unification and Custom Frame Overhaul
-- **Fused Frames**: Completely removed independent dragging of `SmartMailCustomSendFrame`. It is now permanently anchored and fused to the right side of `SmartMailMainFrame`.
-- **Global Dragging**: Updated drag handlers on the Custom frame so that dragging it moves the entire unified Main Frame.
-- **Side Tab Minimization**: Replaced the 'X' button with a proper `UI-MinusButton-Up`. When clicked, it minimizes the Custom Frame into a vertical, website-style tab (`SmartMailCustomTab`) protruding from the side of the Main Frame.
-- **Tab Layout & Styling**: The side tab uses native dialog box textures, sits perfectly at `-20` offset from the top corner, and uses vertically scaled text (`C u s t o m`).
-- **Cart & Money UI Rebalance**: Centered the Money Input box at the bottom of the Custom Frame, cleanly flanking it with the "Clear" button on the left and the "Add" button on the right.
-- **Title Margins**: Un-centered the list titles, aligning them `TOPRIGHT` with a neat 20-pixel right padding.
-- **Terminology Sync**: Swapped Cart and Custom List terminology in `MEMORY.md` to match the new UI layout.
+### 1. Engine & Addon Conflict Resolution
+- **Universal Hook Bypass**: Modified `Engine.lua` to capture pure C-functions (`PickupContainerItem`, `ClickSendMailItemButton`) instantly at load time. This completely bypasses interfering hooks from other mail addons (Postal, Mail, TurtleMail) that were breaking the "Send by Category" feature.
+- **Tab Switching Removed**: Removed the forced `MailFrameTab_OnClick(2)` logic, ensuring SmartMail no longer intrudes on the default WoW mail frame when executing its engine queue.
+
+### 2. Workflow & Agent Rules Updates
+- Created `workflow_update.md` to track README changes over the session.
+- Created `incident_log.md` to track agent behavior mistakes and rules.
+- **Start Session Workflow**: Updated `MEMORY.md` to require the agent to recite all rules at the beginning of every session before conducting the summary.
+- **Artifact Execution Rule**: Documented an incident where code was executed without explicit approval based on a bad assumption.
 
 ## Next Session Checklist
-- [ ] **Agent Rules Overhaul**: Re-evaluate agent communication and establish stricter permission protocols to stop unauthorized actions (Major Agents Update).
-- [ ] **README Workflow**: Establish a better process for updating the README (this should be the very first task).
-- [ ] **In-Game Tutorial**: Update the in-game tutorial to reflect all the new UI changes.
-- [ ] **SmartMailProfileEditorFrame**: Overhaul and redesign the Profile Editor frame.
+- [ ] **README Update**: Update the main README.md using the items logged in `workflow_update.md`.
+- [ ] **SmartMailProfileEditorFrame**: Overhaul and redesign the Profile Editor frame (Phase 3 focus).
+- [ ] **Agent Rules Overhaul**: Re-evaluate agent communication and establish stricter permission protocols to stop unauthorized actions based on the `incident_log.md`.
+- [ ] **In-Game Tutorial**: Update the in-game tutorial to reflect the recent UI and Engine changes.
 
 ## Next Session Instructions
 When starting the next session, read ONLY:

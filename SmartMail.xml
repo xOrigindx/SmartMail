@@ -937,6 +937,46 @@
         </Scripts>
       </Button>
 
+      <CheckButton name="$parentDisableCustomCheckButton" inherits="UICheckButtonTemplate">
+        <Size x="24" y="24" />
+        <Anchors>
+          <Anchor point="TOP" relativeTo="$parentTutorialButton" relativePoint="BOTTOM">
+            <Offset x="-60" y="-10" />
+          </Anchor>
+        </Anchors>
+        <Layers>
+          <Layer level="ARTWORK">
+            <FontString name="$parentText" inherits="GameFontNormal" text="Disable Custom Send">
+              <Anchors>
+                <Anchor point="LEFT" relativePoint="RIGHT">
+                  <Offset x="5" y="1" />
+                </Anchor>
+              </Anchors>
+            </FontString>
+          </Layer>
+        </Layers>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailOptionsFrameDisableCustomCheckButton clicked")
+            if this:GetChecked() then
+              SmartMailDB.disableCustom = true
+              SmartMailMainFrameCustomSendButton:Hide()
+              if SmartMailCustomSendFrame and SmartMailCustomSendFrame:IsVisible() then
+                SmartMailCustomSendFrame:Hide()
+              end
+              if SmartMailCustomTab then SmartMailCustomTab:Hide() end
+            else
+              SmartMailDB.disableCustom = false
+              SmartMailMainFrameCustomSendButton:Show()
+              if SmartMailCustomSendFrame then
+                SmartMailCustomSendFrame:Show()
+                if SmartMailCustomTab then SmartMailCustomTab:Hide() end
+              end
+            end
+          </OnClick>
+        </Scripts>
+      </CheckButton>
+
       <Button name="$parentCloseButton" inherits="UIPanelButtonTemplate" text="Close">
         <Size x="80" y="24" />
         <Anchors>
@@ -956,8 +996,14 @@
       <OnLoad>
         getglobal(this:GetName().."Title"):SetText("SmartMail Options")
         this:RegisterForDrag("LeftButton")
+        this:SetFrameStrata("FULLSCREEN_DIALOG")
       </OnLoad>
       <OnShow>
+        if SmartMailDB and SmartMailDB.disableCustom then
+          SmartMailOptionsFrameDisableCustomCheckButton:SetChecked(true)
+        else
+          SmartMailOptionsFrameDisableCustomCheckButton:SetChecked(false)
+        end
         if SmartMail and SmartMail.debug then
           SmartMailOptionsFrameDebugButton:Show()
         else
@@ -965,11 +1011,9 @@
         end
       </OnShow>
       <OnDragStart>
-        this:SetFrameStrata("HIGH")
         this:StartMoving()
       </OnDragStart>
       <OnDragStop>
-        this:SetFrameStrata("MEDIUM")
         this:StopMovingOrSizing()
       </OnDragStop>
     </Scripts>

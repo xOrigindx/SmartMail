@@ -4,7 +4,7 @@ When you start the next session, you MUST immediately read:
 2. `.agents/SESSIONSUMMARY.md` (to get up to speed on the current state)
 
 **START SESSION WORKFLOW (STRICTLY ENFORCED)**: 
-When the user says "Start Session", you must clearly state the session summary. Then, you MUST conduct a mini-brainstorm with the user on what to tackle next, based on the summary and the project's logical progression. Do NOT write code or execute changes until this brainstorm concludes with explicit user approval.
+When the user says "Start Session", you MUST first recite ALL rules: git rules, behavior rules, the readme workflow rules, and everything you are supposed to do in the workflow so the user knows you are ready. After reciting the rules, you must clearly state the session summary. Then, you MUST conduct a mini-brainstorm with the user on what to tackle next, based on the summary and the project's logical progression. Do NOT write code or execute changes until this brainstorm concludes with explicit user approval.
 
 *Note: Do NOT read `API_MANUAL.md` locally anymore. It is now handled globally via Antigravity Skills.*
 
@@ -20,7 +20,7 @@ When the user says "Start Session", you must clearly state the session summary. 
 - **Memory Persistence**: Ensure `MAX` text values vs numeric values are distinctly respected across sessions.
 - **SCREENSHOTS (CRITICAL)**: When the user types `chkxx` (e.g., `chk01`), you MUST ONLY use `view_file` to open `C:\World of Warcraft - 1.12.1 - Microbot\Screenshots\img-xx.jpg`. NEVER attempt to run python scripts to convert images. NEVER look in `.tempmediaStorage` or wait for artifacts unless explicitly instructed.
 - **USER COMMUNICATION**: The user uses CAPITAL letters to indicate IMPORTANT information. When reading user requests, treat any fully capitalized words as critical priority details that dictate exact behavior.
-- **ARTIFACT PLANS (WORKFLOW)**: You MUST present an Artifact Plan before modifying code for a new feature or fix. The artifact must use `RequestFeedback`. Wait for the user to approve the plan. Once approved, you MUST execute the file edits automatically without asking for further permission.
+- **ARTIFACT PLANS (WORKFLOW)**: You MUST present an Artifact Plan before modifying code for a new feature or fix. The artifact must use `RequestFeedback`. Wait for the user to explicitly and unequivocally approve the plan (e.g., clicking the 'Proceed' button). Do NOT assume approval from conversational words like "yes". Only after receiving explicit approval should you execute the file edits automatically.
 - **MODEL ROUTING**: Gemini Pro is the orchestrator. Sonnet 4.6 and Opus 4.6 are explicitly reserved for token burns on Mondays or when deep reasoning is needed (prioritizing Sonnet 4.6 for coding sweeps). On Mondays, you MUST ask the user how much Sonnet/Opus 4.6 usage they have left (since it resets on Wednesday) to ensure efficient token burning.
 - **GIT PUSH COMMANDS**: The project uses two repositories. 
   - When the user says "push", push ONLY to the dev repo (`origin`) from the `main` branch.

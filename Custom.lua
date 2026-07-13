@@ -1,3 +1,18 @@
+local SMARTMAIL_DISABLE_CUSTOM = false
+
+if SMARTMAIL_DISABLE_CUSTOM then
+    local f = CreateFrame("Frame")
+    f:RegisterEvent("ADDON_LOADED")
+    f:SetScript("OnEvent", function()
+        if event == "ADDON_LOADED" and arg1 == "SmartMail" then
+            if SmartMailMainFrameCustomSendButton then
+                SmartMailMainFrameCustomSendButton:Hide()
+            end
+        end
+    end)
+    return -- Stops the rest of Custom.lua from ever loading
+end
+
 SmartMailCustom = {
     items = {},
     recipient = ""
@@ -469,6 +484,7 @@ frame:SetScript("OnShow", function()
 end)
 frame:SetScript("OnHide", function()
     if SmartMailMainFrame and SmartMailMainFrame:IsVisible() then
+        if SmartMailDB and SmartMailDB.disableCustom then return end
         if SmartMailCustomTab then 
             SmartMailCustomTab:SetParent(SmartMailMainFrame)
             SmartMailCustomTab:ClearAllPoints()
@@ -477,6 +493,7 @@ frame:SetScript("OnHide", function()
         end
     end
 end)
+
 frame:Hide()
 
 local header = frame:CreateTexture(nil, "ARTWORK")

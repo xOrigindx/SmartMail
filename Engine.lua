@@ -7,6 +7,10 @@ SmartMailEngine = {
     state = 0
 }
 
+-- Save pure native C-functions before any addon hooks them at PLAYER_LOGIN
+local OrigPickupContainerItem = PickupContainerItem
+local OrigClickSendMailItemButton = ClickSendMailItemButton
+
 local engineFrame = CreateFrame("Frame")
 engineFrame:RegisterEvent("MAIL_SEND_SUCCESS")
 engineFrame:RegisterEvent("MAIL_FAILED")
@@ -46,7 +50,7 @@ engineFrame:SetScript("OnEvent", function()
         end
         
         if GetSendMailItem() then
-            ClickSendMailItemButton()
+            OrigClickSendMailItemButton()
             ClearCursor()
         end
         SmartMailEngine:FailCurrent()
@@ -71,7 +75,7 @@ engineFrame:SetScript("OnUpdate", function()
         waitTime = waitTime + arg1
         if waitTime > SmartMail.SendDelay then
             if GetSendMailItem() then
-                ClickSendMailItemButton()
+                OrigClickSendMailItemButton()
                 ClearCursor()
             end
             
@@ -107,7 +111,7 @@ engineFrame:SetScript("OnUpdate", function()
                 SmartMailEngine.state = 1.1
                 waitTime = 0
             else
-                PickupContainerItem(item.bag, item.slot)
+                OrigPickupContainerItem(item.bag, item.slot)
                 SmartMailEngine.state = 1.5
                 waitTime = 0
             end
@@ -115,7 +119,7 @@ engineFrame:SetScript("OnUpdate", function()
     elseif SmartMailEngine.state == 1.1 then
         waitTime = waitTime + arg1
         if CursorHasItem() then
-            PickupContainerItem(SmartMailEngine.splitBag, SmartMailEngine.splitSlot)
+            OrigPickupContainerItem(SmartMailEngine.splitBag, SmartMailEngine.splitSlot)
             SmartMailEngine.state = 1.2
             waitTime = 0
         elseif waitTime > 2.0 then
@@ -144,7 +148,7 @@ engineFrame:SetScript("OnUpdate", function()
     elseif SmartMailEngine.state == 1.5 then
         waitTime = waitTime + arg1
         if CursorHasItem() then
-            ClickSendMailItemButton()
+            OrigClickSendMailItemButton()
             SmartMailEngine.state = 2
             waitTime = 0
         elseif waitTime > 2.0 then
@@ -166,7 +170,7 @@ engineFrame:SetScript("OnUpdate", function()
             SmartMail_Debug("Engine: Timeout waiting for attachment.")
             waitTime = 0
             if GetSendMailItem() then
-                ClickSendMailItemButton()
+                OrigClickSendMailItemButton()
             end
             ClearCursor()
             SmartMailEngine.state = 0
@@ -177,7 +181,7 @@ engineFrame:SetScript("OnUpdate", function()
         if waitTime > 4.0 then
             SmartMail_Debug("Engine: Timeout waiting for MAIL_SEND_SUCCESS.")
             if GetSendMailItem() then
-                ClickSendMailItemButton()
+                OrigClickSendMailItemButton()
                 ClearCursor()
             end
             SmartMailEngine.state = 0
@@ -251,17 +255,7 @@ function SmartMailEngine:Next()
     
     if item.isMoney then
         SmartMail_Debug("Engine: Sending Money (" .. tostring(item.amount) .. "c)")
-        if not SendMailFrame or not SendMailFrame:IsVisible() then
-            if MailFrameTab2 and MailFrameTab2:GetScript("OnClick") then
-                local onClick = MailFrameTab2:GetScript("OnClick")
-                local oldThis = this
-                this = MailFrameTab2
-                onClick()
-                this = oldThis
-            else
-                MailFrameTab_OnClick(2)
-            end
-        end
+
         SetSendMailMoney(item.amount)
         SmartMailEngine.lastSendTime = GetTime()
         SendMail(self.target, "SmartMail: Funds", "")
@@ -272,19 +266,7 @@ function SmartMailEngine:Next()
     
     SmartMail_Debug("Engine: Sending item ID " .. tostring(item.itemID) .. " from bag " .. tostring(item.bag) .. " slot " .. tostring(item.slot))
     
-    -- Switch Tab
-    if not SendMailFrame or not SendMailFrame:IsVisible() then
-        if MailFrameTab2 and MailFrameTab2:GetScript("OnClick") then
-            local onClick = MailFrameTab2:GetScript("OnClick")
-            local oldThis = this
-            this = MailFrameTab2
-            onClick()
-            this = oldThis
-        else
-            MailFrameTab_OnClick(2)
-        end
-    end
-    
+
     -- Start State Machine
     waitTime = 0
     self.state = 1

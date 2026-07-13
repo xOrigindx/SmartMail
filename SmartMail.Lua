@@ -49,6 +49,11 @@ eventFrame:SetScript("OnEvent", function()
         -- Backups
         if not SmartMailDebugLog_PerChar then SmartMailDebugLog_PerChar = {} end
         if not SmartMailDebugLog_PerChar.debugLog then SmartMailDebugLog_PerChar.debugLog = {} end
+
+        -- Apply UI Settings
+        if SmartMailDB.disableCustom and SmartMailMainFrameCustomSendButton then
+            SmartMailMainFrameCustomSendButton:Hide()
+        end
     elseif event == "MAIL_SHOW" or event == "MAIL_CLOSED" then
         if event == "MAIL_SHOW" then
             if SmartMailMainFrame then SmartMailMainFrame:Show() end
@@ -921,9 +926,11 @@ SmartMailMainFrame:SetScript("OnShow", function()
     SmartMail_Debug("SmartMailMainFrame shown (Lua SetScript)")
     SmartMail_UpdateProfileList()
     if SmartMailCustomSendFrame then 
-        SmartMailCustomSendFrame:ClearAllPoints()
-        SmartMailCustomSendFrame:SetPoint("TOPLEFT", SmartMailMainFrame, "TOPRIGHT", -5, 0)
-        SmartMailCustomSendFrame:Show() 
+        if not (SmartMailDB and SmartMailDB.disableCustom) then
+            SmartMailCustomSendFrame:ClearAllPoints()
+            SmartMailCustomSendFrame:SetPoint("TOPLEFT", SmartMailMainFrame, "TOPRIGHT", -5, 0)
+            SmartMailCustomSendFrame:Show() 
+        end
     end
 end)
 
