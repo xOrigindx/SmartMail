@@ -22,15 +22,20 @@ The project uses two repositories:
 - When the user says "push public", push ONLY to the public repo (`public`). Do this by:
   1. Creating a temporary branch from `main`: `git checkout -b temp-public-release`.
   2. Renaming `public_repo.gitignore` to `.gitignore` (This temporary rename is exempt from the Artifact Plan rule).
-  3. Removing development files from Git tracking index (keeping local files safe): `git rm -rf --cached --ignore-unmatch .agents/ Scripts/ Docs/ TODO_STRESS.lua AGENTS.md public_repo.gitignore`.
-  4. Stamping all release files on the temporary branch with a version comment so GitHub updates their last commit message:
-     - For `.lua` files: `Add-Content -Path <file> -Value "`n-- v[Version]"`
-     - For `.xml` files: `Add-Content -Path <file> -Value "`n<!-- v[Version] -->"`
-     - For `.toc` files: `Add-Content -Path <file> -Value "`n## Release v[Version]"`
-     - For `.md` & `.gitignore` files: `Add-Content -Path <file> -Value "`n<!-- v[Version] -->"`
-  5. Committing all stamped files with the version and release description: `git commit -a -m "v[Version]: [Description]"`.
-  6. Pushing the temporary branch to the public main: `git push public temp-public-release:main --force`.
-  7. Returning to the main branch and deleting the temporary branch: `git checkout main; git branch -D temp-public-release`.
+  3. Removing development files from Git tracking index (keeping local files safe): `git rm -rf --cached --ignore-unmatch .agents/ Scripts/ Docs/ TODO_STRESS.lua AGENTS.md`.
+  4. Stamping and committing files in historical version groups:
+     - **Group 1 (v1.0.1):** Stamp `Bridge.lua` and `Queue.lua` with `-- v1.0.1`.
+       Commit: `git add Bridge.lua Queue.lua; git commit -m "v1.0.1: hotfixes and custom frame UX update"`
+     - **Group 2 (v1.0.2):** Stamp `Inbox.lua` and `Log.lua` with `-- v1.0.2`.
+       Commit: `git add Inbox.lua Log.lua; git commit -m "v1.0.2: UI Unification and Custom Frame Overhaul"`
+     - **Group 3 (v1.0.3 UI Function):** Stamp `UI.lua` with `-- v1.0.3`.
+       Commit: `git add UI.lua; git commit -m "v1.0.3: new generic scroll list function"`
+     - **Group 4 (v1.0.3 UI Layering):** Stamp `Custom.lua`, `SmartMail.Lua`, and `SmartMail.xml` with `-- v1.0.3` or `<!-- v1.0.3 -->`.
+       Commit: `git add Custom.lua SmartMail.Lua SmartMail.xml; git commit -m "v1.0.3: fix UI layering and anchors for expanded layout"`
+     - **Group 5 (v1.0.3 Release Config):** Stamp `SmartMail.toc`, `README.md`, and `.gitignore` with version comments.
+       Commit: `git add SmartMail.toc README.md .gitignore; git commit -m "v1.0.3: public release configuration and version bump"`
+  5. Pushing the temporary branch to the public main: `git push public temp-public-release:main --force`.
+  6. Returning to the main branch and deleting the temporary branch: `git checkout main; git branch -D temp-public-release`.
 - When the user says "push push public", do BOTH.
 
 ## 3. WORKFLOW TRIGGERS
