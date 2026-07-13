@@ -1,3 +1,4 @@
+-- v1.0.1: hotfixes and custom frame UX update
 SmartMailQueue = {}
 
 function SmartMailQueue:BuildQueueForProfile(charName)
