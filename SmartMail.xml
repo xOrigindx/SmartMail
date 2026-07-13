@@ -118,7 +118,23 @@
       </Anchor>
     </Anchors>
     <Frames>
-
+      <!-- Minimize Button for the Expanded Frame (hidden by default) -->
+      <Button name="$parentMinimizeButton" inherits="UIPanelButtonTemplate" text="[-]" hidden="true">
+        <Size x="24" y="24" />
+        <Anchors>
+          <Anchor point="TOPRIGHT">
+            <Offset x="-35" y="-9" />
+          </Anchor>
+        </Anchors>
+        <Scripts>
+          <OnClick>
+            SmartMail_Debug("SmartMailMainFrameMinimizeButton clicked")
+            if SmartMailCustomSendFrame then
+              SmartMailCustomSendFrame:Hide()
+            end
+          </OnClick>
+        </Scripts>
+      </Button>
 
       <!-- Top Row -->
       <Button name="$parentAddButton" inherits="UIPanelButtonTemplate" text="Add">
@@ -267,32 +283,13 @@
         </Scripts>
       </Button>
 
+
       <!-- Bottom Row -->
-      <Button name="$parentCustomSendButton" inherits="UIPanelButtonTemplate" text="Custom">
-        <Size x="90" y="24" />
-        <Anchors>
-          <Anchor point="BOTTOM">
-            <Offset x="0" y="20" />
-          </Anchor>
-        </Anchors>
-        <Scripts>
-          <OnClick>
-            SmartMail_Debug("SmartMailMainFrameCustomSendButton clicked")
-            if SmartMailCustomSendFrame and SmartMailCustomSendFrame:IsVisible() then
-              SmartMailCustomSendFrame:Hide()
-            else
-              if SmartMailCustomSendFrame then SmartMailCustomSendFrame:Show() end
-            end
-          </OnClick>
-        </Scripts>
-      </Button>
-
-
       <Button name="$parentOptionsButton" inherits="UIPanelButtonTemplate" text="Options">
         <Size x="90" y="24" />
         <Anchors>
-          <Anchor point="RIGHT" relativeTo="$parentCustomSendButton" relativePoint="LEFT">
-            <Offset x="-5" y="0" />
+          <Anchor point="BOTTOMLEFT">
+            <Offset x="52" y="20" />
           </Anchor>
         </Anchors>
         <Scripts>
@@ -310,8 +307,8 @@
       <Button name="$parentLogButton" inherits="UIPanelButtonTemplate" text="Log Window">
         <Size x="90" y="24" />
         <Anchors>
-          <Anchor point="LEFT" relativeTo="$parentCustomSendButton" relativePoint="RIGHT">
-            <Offset x="5" y="0" />
+          <Anchor point="BOTTOMLEFT">
+            <Offset x="242" y="20" />
           </Anchor>
         </Anchors>
         <Scripts>
@@ -331,7 +328,10 @@
 
     <Scripts>
       <OnLoad>
-        getglobal(this:GetName().."Title"):SetText("SmartMail")
+        local title = getglobal(this:GetName().."Title")
+        title:SetText("SmartMail")
+        title:ClearAllPoints()
+        title:SetPoint("TOP", this, "TOPLEFT", 192, -18)
         this:RegisterForDrag("LeftButton")
       </OnLoad>
       <OnMouseUp>
@@ -960,18 +960,10 @@
             SmartMail_Debug("SmartMailOptionsFrameDisableCustomCheckButton clicked")
             if this:GetChecked() then
               SmartMailDB.disableCustom = true
-              SmartMailMainFrameCustomSendButton:Hide()
-              if SmartMailCustomSendFrame and SmartMailCustomSendFrame:IsVisible() then
-                SmartMailCustomSendFrame:Hide()
-              end
-              if SmartMailCustomTab then SmartMailCustomTab:Hide() end
+              SmartMailUI_DisableSideBarTab("SmartMailCustomTab", true, "SmartMailCustomSendFrame")
             else
               SmartMailDB.disableCustom = false
-              SmartMailMainFrameCustomSendButton:Show()
-              if SmartMailCustomSendFrame then
-                SmartMailCustomSendFrame:Show()
-                if SmartMailCustomTab then SmartMailCustomTab:Hide() end
-              end
+              SmartMailUI_DisableSideBarTab("SmartMailCustomTab", false, "SmartMailCustomSendFrame")
             end
           </OnClick>
         </Scripts>

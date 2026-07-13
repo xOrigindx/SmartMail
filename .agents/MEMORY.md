@@ -28,3 +28,4 @@ When the user says "Start Session", you MUST first recite ALL rules: git rules, 
   - When the user says "push push public", do BOTH.
 - **ANALYZE OVER ASSUMING**: Never be too confident or make hasty assumptions, as this leads to bugs and mistakes. Carefully curate solutions and answers by thoroughly analyzing the *entirety* of the necessary data (code diffs, file structures, execution outputs) before making declarations.
 - **UI Frame Naming Convention**: `SmartMailMainFrame` = Main Frame, `SmartMailConfirmFrame` = Profile Frame, `SmartMailCustomSendFrame` = Custom Frame, `SmartMailProfileEditorFrame` = Profile Editor Frame. Inside the Custom Frame, the large left list is the **Custom List**, and the bottom right list is the **Cart**.
+- **UI Tabs Interaction**: All tabs on the side of the main frame must trigger `SmartMail_ToggleMainFrameWidth(expand)` when clicked to properly expand or collapse the main frame.

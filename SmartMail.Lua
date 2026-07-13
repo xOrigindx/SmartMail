@@ -51,8 +51,8 @@ eventFrame:SetScript("OnEvent", function()
         if not SmartMailDebugLog_PerChar.debugLog then SmartMailDebugLog_PerChar.debugLog = {} end
 
         -- Apply UI Settings
-        if SmartMailDB.disableCustom and SmartMailMainFrameCustomSendButton then
-            SmartMailMainFrameCustomSendButton:Hide()
+        if SmartMailDB.disableCustom then
+            SmartMailUI_DisableSideBarTab("SmartMailCustomTab", true, "SmartMailCustomSendFrame")
         end
     elseif event == "MAIL_SHOW" or event == "MAIL_CLOSED" then
         if event == "MAIL_SHOW" then
@@ -71,28 +71,7 @@ eventFrame:SetScript("OnEvent", function()
     end
 end)
 
-function SmartMail_CreateListRow(name, parent, width, height)
-    local row = CreateFrame("Button", name, parent, "SmartMailListRowTemplate")
-    
-    if width then row:SetWidth(width) end
-    if height then row:SetHeight(height) end
-    
-    row:RegisterForClicks("LeftButtonUp", "RightButtonUp")
-    
-    row.text = getglobal(name .. "Text")
-    row.selection = getglobal(name .. "Selection")
-    
-    row.SetSelected = function(self, isSelected)
-        if isSelected then
-            self.selection:Show()
-        else
-            self.selection:Hide()
-        end
-    end
-    
-    return row
-end
-
+-- SmartMail_CreateListRow is now defined in UI.lua
 
 function SmartMail_Debug(msg, category)
     local isError = (category == "Error")
@@ -158,6 +137,7 @@ function SmartMail_Debug(msg, category)
         end
     end
 end
+
 
 SmartMail.debugCategories = { "debugLog", "Send", "ScanInventory", "OpenAll", "Soulbound", "General" }
 SmartMail.currentDebugCategoryIndex = 1
@@ -928,10 +908,20 @@ SmartMailMainFrame:SetScript("OnShow", function()
     if SmartMailCustomSendFrame then 
         if not (SmartMailDB and SmartMailDB.disableCustom) then
             SmartMailCustomSendFrame:ClearAllPoints()
-            SmartMailCustomSendFrame:SetPoint("TOPLEFT", SmartMailMainFrame, "TOPRIGHT", -5, 0)
-            SmartMailCustomSendFrame:Show() 
+            SmartMailCustomSendFrame:SetPoint("TOPLEFT", SmartMailMainFrame, "TOPLEFT", 379, 15)
+            if SmartMailCustomTab then 
+                SmartMailCustomTab:SetParent(SmartMailMainFrame)
+                SmartMailCustomTab:ClearAllPoints()
+                SmartMailCustomTab:SetPoint("TOPLEFT", SmartMailMainFrame, "TOPRIGHT", -5, -20)
+                SmartMailCustomTab:Show() 
+            end
         end
     end
+end)
+
+SmartMailMainFrame:SetScript("OnHide", function()
+    if SmartMailCustomTab then SmartMailCustomTab:Hide() end
+    if SmartMailCustomSendFrame then SmartMailCustomSendFrame:Hide() end
 end)
 
 -- Wire up Add Button on Main UI

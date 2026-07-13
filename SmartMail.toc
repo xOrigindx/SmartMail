@@ -19,9 +19,10 @@ Libs\Tradeskills\PTTradeskillsEmbed.lua
 Bridge.lua
 Queue.lua
 Engine.lua
-Custom.lua
 Log.lua
 SmartMail.xml
+UI.lua
+Custom.lua
 SmartMail.lua
 Inbox.lua
 Tutorial.lua

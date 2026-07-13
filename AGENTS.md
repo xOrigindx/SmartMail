@@ -9,6 +9,7 @@
 - **Tool & Script Discipline**: You MAY propose Python scripts if you believe they are the most efficient way to solve a problem. However, you MUST ask the user for approval via a simple YES or NO question before executing it.
 - **Permission Loops**: If a terminal command or script fails due to permissions, STOP immediately. Ask the user.
 - **GitHub Restraint (NO AUTO-PUSHING)**: **STRICTLY ENFORCED. NO EXCEPTIONS.** You are NEVER allowed to run `git push` unless the user explicitly asks you to "push" in their *current* message. Permission to push from a previous message expires immediately. YOU DO NOT HAVE CONTROL OVER PUSHING. Commits are fine, pushing is forbidden unless commanded.
+- **TRUST THE PROCESS (STEP-BY-STEP METHOD)**: **STRICTLY ENFORCED**. Never question the user's step-by-step method. Do exactly what is requested for the current step, nothing more and nothing less. Do NOT attempt to anticipate the end goal, clean up surrounding code unprompted, or guess future steps. The user's workflow is the proven method.
 
 ## 2. WORKFLOW TRIGGERS
 - **Start Session**: When the user says "Start Session", you must ONLY read the `.agents/MEMORY.md` file and any other necessary `.md` files (as directed by the memory or session summary). Do NOT write any code or make modifications to the codebase. Simply summarize what you read and wait for the user to give you your first task.
