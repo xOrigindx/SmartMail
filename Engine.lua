@@ -1,4 +1,4 @@
--- v1.0.0: Engine baseline
+-- v1.0.4: fixed C API SendMail empty string exception
 SmartMailEngine = {
     flatQueue = {},
     retryQueue = {},
@@ -166,7 +166,7 @@ engineFrame:SetScript("OnUpdate", function()
             local item = SmartMailEngine.currentItem
             local subject = "SmartMail: " .. tostring(item.category)
             SmartMailEngine.lastSendTime = GetTime()
-            SendMail(SmartMailEngine.target, subject, "")
+            SendMail(SmartMailEngine.target, subject, " ")
         elseif waitTime > 2.0 then
             SmartMail_Debug("Engine: Timeout waiting for attachment.")
             waitTime = 0
@@ -259,7 +259,7 @@ function SmartMailEngine:Next()
 
         SetSendMailMoney(item.amount)
         SmartMailEngine.lastSendTime = GetTime()
-        SendMail(self.target, "SmartMail: Funds", "")
+        SendMail(self.target, "SmartMail: Funds", " ")
         waitTime = 0
         self.state = 3
         return
