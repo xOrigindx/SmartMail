@@ -1,4 +1,4 @@
--- v1.0.3: new generic scroll list function
+-- v1.0.4: added recipient selection popup dialog
 -- ============================================================
 -- UI.lua
 -- All visible UI frame creation and layout logic.
