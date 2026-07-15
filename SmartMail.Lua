@@ -1,4 +1,4 @@
--- v1.0.3: fix UI layering and anchors for expanded layout
+-- v1.0.4: screen position lock and default custom tab
 SmartMail = {
     -- CONFIGURABLE SETTINGS
     debug       = false, -- Set to true to see debug messages in chat
