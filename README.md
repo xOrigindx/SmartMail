@@ -1,4 +1,4 @@
-# SmartMail (v1.0.3)
+# SmartMail (v1.0.4)
 
 > [!NOTE]
 > **FIRST PUBLIC RELEASE**
