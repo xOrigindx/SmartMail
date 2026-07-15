@@ -1,16 +1,8 @@
-# Workflow Updates (v1.0.4)
+# Workflow Updates (v1.0.5)
 
 This document tracks the tasks and features we complete during this session. At the end of the session, we will use this log to properly update the main `README.md` file.
 
 ## Completed Tasks:
-- **Custom Send Scroll List Bugfix**: Fixed name mismatches of scroll children in `Custom.lua` to align with the dynamically created lists in `UI.lua`, resolving the issue where the Custom List, Saved Recipients, and Cart were not populating.
-- **Profile Editor Overhaul**: Rewrote `SmartMailProfileEditorFrame` to replace the dual-list interface (Available/Active) with a single, streamlined checklist layout using checkboxes, improving user experience and simplifying the underlying logic.
-- **SendMail API Fix**: Fixed an issue in `Engine.lua` where the C API `SendMail` would throw a Usage error because it was receiving an empty string for the body instead of a valid character.
-- **Confirm Send Target Bugfix**: Fixed a critical bug where clicking Send from the Confirm Frame would prematurely clear the selected profile due to a frame hide hook, resulting in the Engine failing to send due to a `nil` target.
-- **Default Custom Tab**: Added a hook to `SmartMailMainFrame.Show` so that opening the mailbox or typing `/sm` automatically defaults to opening the Custom tab, expanding the main frame, and respecting the `disableCustom` user setting.
-- **Keep UI Open on Send**: Removed the aggressive closing logic in `Custom.lua` and `SmartMail.Lua` so that the addon windows stay visible while mail is being processed, allowing the user to observe the progress.
-- **Auto-Reset Position**: Added logic to `SmartMailMainFrame.Show` to clear any manual dragging anchors and force the main frame to reset to a strict absolute screen position (matching the exact preferred layout next to the mailbox) whenever it opens, preventing overlapping bugs.
-- **Recipient Selection Popup**: Updated `SmartMailCustom:Send` and `UI.lua` to dynamically generate and display a dialog list of saved profiles if the user attempts to send without selecting a recipient. Clicking a profile locks it in and immediately resumes the send process.
 
 ## README Updates (User-Facing Changes)
 *Rule: This section must always contain professional, non-technical summaries of new features and bug fixes, formatted perfectly for direct copy-pasting into the README. Avoid casual phrasing.*

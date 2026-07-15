@@ -22,15 +22,17 @@ SmartMail is an inventory management tool that automatically sorts and mails ite
 ---
 
 ## Changelog
-### v1.0.3
-**Bug Fixes & Improvements:**
-* Resolved a critical addon conflict. SmartMail is now fully compatible with and immune to hooks from other mail addons (e.g., Postal, Mail, TurtleMail).
-* Redesigned the UI expansion layout for a cleaner and more stable interface.
-* Migrated the Custom Send feature to a dedicated vertical Side Tab, optimizing space in the bottom row.
-* Fixed a visual layering bug that caused the Custom Send frame to render behind the main window during dragging.
-* The Custom Send feature can now be completely disabled via the Options menu.
+### v1.0.4
+**New Features & Improvements:**
+* The Custom Send cart now remembers your items if you close the addon
+* Clicking Send without a target now pops up a list of your saved profiles
+* The Custom tab now opens automatically by default (a toggle to disable this will be added in a future update)
+* Windows stay open while sending mail to make batching easier
+* The main window locks its position to stop it from overlapping other frames
 
-
+**Bug Fixes:**
+* Fixed Confirm Frame allowing infinite scrolling
+* Fixed Confirm Frame textures bleeding over the border
 
 
 
@@ -91,6 +93,14 @@ The Custom Send frame is anchored to the right side of the Main Frame. It facili
 Feedback and feature proposals can be submitted by opening an issue or discussion on the GitHub repository.
 
 ## History / Previous Versions
+
+### v1.0.3
+**Bug Fixes & Improvements:**
+* Resolved a critical addon conflict. SmartMail is now fully compatible with and immune to hooks from other mail addons (e.g., Postal, Mail, TurtleMail).
+* Redesigned the UI expansion layout for a cleaner and more stable interface.
+* Migrated the Custom Send feature to a dedicated vertical Side Tab, optimizing space in the bottom row.
+* Fixed a visual layering bug that caused the Custom Send frame to render behind the main window during dragging.
+* The Custom Send feature can now be completely disabled via the Options menu.
 
 ### v1.0.2
 **UI Enhancements:**

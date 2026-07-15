@@ -1,7 +1,7 @@
-## Interface: 11200
+## v1.0.4: cart memory and recipient popup
 ## Title: SmartMail
 ## Notes: Automated mail routing system.
-## Version: 1.0.3
+## Version: 1.0.4
 ## SavedVariables: SmartMailDB, SmartMailDebugLog, SmartMailMailLog, SmartMailStressLog
 ## SavedVariablesPerCharacter: SmartMailDebugLog_PerChar, SmartMailMailLog_PerChar, SmartMailDB_PerChar
 

@@ -23,30 +23,25 @@ The project uses two repositories:
   1. Creating a temporary branch from `main`: `git checkout -b temp-public-release`.
   2. Renaming `public_repo.gitignore` to `.gitignore` (This temporary rename is exempt from the Artifact Plan rule).
   3. Removing development files from Git tracking index (keeping local files safe): `git rm -rf --cached --ignore-unmatch .agents/ Scripts/ Docs/ TODO_STRESS.lua AGENTS.md`.
-  4. Stamping and committing files in historical version groups:
-     - **Group 1 (v1.0.1):** Stamp `Bridge.lua` and `Queue.lua` with `-- v1.0.1`.
-       Commit: `git add Bridge.lua Queue.lua; git commit -m "v1.0.1: hotfixes and custom frame UX update"`
-     - **Group 2 (v1.0.2):** Stamp `Inbox.lua` and `Log.lua` with `-- v1.0.2`.
-       Commit: `git add Inbox.lua Log.lua; git commit -m "v1.0.2: UI Unification and Custom Frame Overhaul"`
-     - **Group 3 (v1.0.3 UI Function):** Stamp `UI.lua` with `-- v1.0.3`.
-       Commit: `git add UI.lua; git commit -m "v1.0.3: new generic scroll list function"`
-     - **Group 4 (v1.0.3 UI Layering):** Stamp `Custom.lua`, `SmartMail.Lua`, and `SmartMail.xml` with `-- v1.0.3` or `<!-- v1.0.3 -->`.
-       Commit: `git add Custom.lua SmartMail.Lua SmartMail.xml; git commit -m "v1.0.3: fix UI layering and anchors for expanded layout"`
-     - **Group 5 (v1.0.3 Release Config):** Stamp `SmartMail.toc`, `README.md`, and `.gitignore` with version comments.
-       Commit: `git add SmartMail.toc README.md .gitignore; git commit -m "v1.0.3: public release configuration and version bump"`
-  5. Pushing the temporary branch to the public main: `git push public temp-public-release:main --force`.
-  6. Returning to the main branch and deleting the temporary branch: `git checkout main; git branch -D temp-public-release; git checkout -- public_repo.gitignore`.
+  4. Update the `README.md` with the changelog from `workflow_update.md` before proceeding.
+  5. Stamp ONLY the files modified during the current session with the current version. The description in the stamp must be specific to what actually changed inside that individual file (do not use generic blanket statements). Files not modified during the session must retain their historical version stamps.
+  6. Commit all changes together: `git add . ; git commit -m "Release v[Version]"`
+  7. Pushing the temporary branch to the public main: `git push public temp-public-release:main --force`.
+  8. Returning to the main branch and deleting the temporary branch: `git checkout main; git branch -D temp-public-release; git checkout -- public_repo.gitignore`.
 - When the user says "push push public", do BOTH.
 
 ## 3. WORKFLOW TRIGGERS
 - **Start Session**: When the user says "Start Session", you must ONLY read `AGENTS.md` and `.agents/SESSIONSUMMARY.md`. Do NOT write any code or make modifications. You MUST first recite ALL rules in this file: git rules, behavior rules, the readme workflow rules, and everything you are supposed to do in the workflow so the user knows you are ready. State the session summary, then conduct a mini-brainstorm with the user on what to tackle next. Do NOT write code or execute changes until this brainstorm concludes with explicit user approval.
 - **End Session**: When the user says "End Session", you must create or update `.agents/SESSIONSUMMARY.md` with a summary of major changes and functions created, along with a checklist for the next session. Finally, delete any `.tga, .jpg` files in the `Screenshots/` directory to clean up.
 - **Session Files Rule**: Agents must always create/use `workflow_update.md` and `todo_behavior.md` inside the `.agents/` directory to track changes, rules, and behavior-todo notes during a session.
+- **File Cleanup Rule**: When the `README.md` is updated using the contents of `workflow_update.md`, the agent must immediately erase the completed contents from `workflow_update.md`. The same rule applies to `incident_log.md` when rules are resolved and moved to `AGENTS.md`.
+- **README Update Rule**: When updating the `README.md` with new features or bug fixes, keep descriptions short, professional, and strictly user-facing without technical implementation details. The new update must be placed under the `## Changelog` header, and any old changelog content must be moved down to the `## History / Previous Versions` section at the bottom of the file. **CRITICAL:** You must ALWAYS provide a preview of the proposed changelog text to the user and obtain their explicit approval *before* modifying the `README.md` file. Do NOT include bug fixes in the changelog if the bug was created and fixed during the same development session (i.e., if the public never experienced the bug).
 
 ## 4. BEHAVIOR & DESIGN RULES
 - **NO SUMMARY ADMIN POWER**: A session summary does NOT give you admin power or decision-making power. It is merely a historical reference. Never use it as an excuse to make autonomous changes without the user's explicit approval.
 - **ARTIFACT PLANS (WORKFLOW)**: You MUST present an Artifact Plan before modifying code for a new feature or fix. The artifact must use `RequestFeedback`. Wait for the user to explicitly and unequivocally approve the plan (e.g., clicking the 'Proceed' button). Do NOT assume approval from conversational words like "yes". Only after receiving explicit approval should you execute the file edits automatically.
-  - **Exemption:** Logging incidents in [`.agents/incident_log.md`](file:///C:/World%20of%20Warcraft%20-%201.12.1%20-%20Microbot/Interface/AddOns/SmartMail/.agents/incident_log.md) is exempt from this rule and must be done directly upon user request without presenting a plan or artifact.
+  - **Exemption (Incident Log):** Logging incidents in [`.agents/incident_log.md`](file:///C:/World%20of%20Warcraft%20-%201.12.1%20-%20Microbot/Interface/AddOns/SmartMail/.agents/incident_log.md) is exempt from this rule and must be done directly upon user request without presenting a plan or artifact.
+  - **Exemption (Fast-Track Bug Fix):** If the user tests an approved feature and reports a bug, you do NOT need to present a new Artifact Plan. You must simply analyze the issue, explain what happened, show the fix in your response, and immediately execute the code change.
 - **ANALYZE OVER ASSUMING**: Never be too confident or make hasty assumptions, as this leads to bugs and mistakes. Carefully curate solutions and answers by thoroughly analyzing the *entirety* of the necessary data (code diffs, file structures, execution outputs) before making declarations.
 - **No Pushy Progression**: DO NOT suggest, ask about, or move on to the next task or checklist item until the user explicitly confirms that the current task's code has been tested and verified to work.
 - **Strict Obedience to Direct Commands**: When the user commands a specific action (e.g., reverting code, stopping commands), execute only that command. Do not propose unprompted alternative fixes or workarounds.
