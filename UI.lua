@@ -423,3 +423,116 @@ end
 -- ============================================================
 SmartMailUI_CreateSideTab("SmartMailCustomTab", "Custom")
 SmartMailUI_InitCustomFrames()
+
+-- ============================================================
+-- Recipient Selection Popup
+-- ============================================================
+-- ============================================================
+-- Recipient Selection Popup
+-- ============================================================
+function SmartMail_ShowRecipientSelect()
+    if not SmartMailRecipientSelectFrame then
+        SmartMailRecipientSelectFrame = SmartMail_CreateDialog("SmartMailRecipientSelectFrame", UIParent, "Select Recipient", 300, 400)
+        SmartMailRecipientSelectFrame:SetFrameStrata("DIALOG")
+        SmartMailRecipientSelectFrame:SetPoint("CENTER", UIParent, "CENTER", 0, 0)
+        
+        -- Cancel Button
+        local cancelBtn = CreateFrame("Button", "SmartMailRecipientSelectCancelButton", SmartMailRecipientSelectFrame, "UIPanelButtonTemplate")
+        cancelBtn:SetWidth(100)
+        cancelBtn:SetHeight(24)
+        cancelBtn:SetPoint("BOTTOMLEFT", SmartMailRecipientSelectFrame, "BOTTOMLEFT", 30, 20)
+        cancelBtn:SetText("Cancel")
+        cancelBtn:SetScript("OnClick", function() SmartMailRecipientSelectFrame:Hide() end)
+        
+        -- Send Button
+        local sendBtn = CreateFrame("Button", "SmartMailRecipientSelectSendButton", SmartMailRecipientSelectFrame, "UIPanelButtonTemplate")
+        sendBtn:SetWidth(100)
+        sendBtn:SetHeight(24)
+        sendBtn:SetPoint("BOTTOMRIGHT", SmartMailRecipientSelectFrame, "BOTTOMRIGHT", -30, 20)
+        sendBtn:SetText("Send")
+        sendBtn:SetScript("OnClick", function()
+            if not SmartMailRecipientSelectFrame.selectedProfile then
+                DEFAULT_CHAT_FRAME:AddMessage("SmartMail: Please select a recipient from the list first!", 1, 0, 0)
+                return
+            end
+            
+            if SmartMailCustom then
+                SmartMailCustom.selectedRecipient = SmartMailRecipientSelectFrame.selectedProfile
+                SmartMailRecipientSelectFrame:Hide()
+                SmartMailCustom:Send()
+            end
+        end)
+        
+        local listFrame, scrollFrame, scrollChild = SmartMailUI_CreateScrollList("SmartMailRecipientSelectFrameList", SmartMailRecipientSelectFrame, 260, 310, "Saved Recipients", false, 0.5)
+        listFrame:SetPoint("TOP", SmartMailRecipientSelectFrame, "TOP", 0, -40)
+        SmartMailRecipientSelectFrame.scrollChild = scrollChild
+    end
+    
+    -- Reset selection
+    SmartMailRecipientSelectFrame.selectedProfile = nil
+    
+    local scrollChild = SmartMailRecipientSelectFrame.scrollChild
+    if scrollChild.rows then
+        for _, row in ipairs(scrollChild.rows) do
+            row:Hide()
+        end
+    else
+        scrollChild.rows = {}
+    end
+    
+    local profiles = {}
+    if SmartMailDB_PerChar and SmartMailDB_PerChar.customRecipients then
+        local seen = {}
+        for _, recip in ipairs(SmartMailDB_PerChar.customRecipients) do
+            if not seen[recip] then
+                seen[recip] = true
+                table.insert(profiles, recip)
+            end
+        end
+    end
+    table.sort(profiles)
+    
+    local yOffset = -5
+    for i, profileName in ipairs(profiles) do
+        local btn = scrollChild.rows[i]
+        if not btn then
+            btn = SmartMail_CreateListRow("SmartMailRecipientSelectRow" .. i, scrollChild, 240, 20)
+            table.insert(scrollChild.rows, btn)
+        end
+        btn:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 10, yOffset)
+        btn.text:SetText(profileName)
+        btn.recipientName = profileName
+        btn:SetSelected(false)
+        btn:Show()
+        
+        btn:SetScript("OnClick", function()
+            -- Clear all highlights
+            for _, r in ipairs(scrollChild.rows) do
+                r:SetSelected(false)
+            end
+            -- Highlight this one and save selection
+            this:SetSelected(true)
+            SmartMailRecipientSelectFrame.selectedProfile = this.recipientName
+            if SmartMail_Debug then SmartMail_Debug("Selected profile: " .. this.recipientName) end
+        end)
+        
+        yOffset = yOffset - 22
+    end
+    
+    if table.getn(profiles) == 0 then
+        local btn = scrollChild.rows[1]
+        if not btn then
+            btn = SmartMail_CreateListRow("SmartMailRecipientSelectRow1", scrollChild, 240, 20)
+            table.insert(scrollChild.rows, btn)
+        end
+        btn:SetPoint("TOPLEFT", scrollChild, "TOPLEFT", 10, yOffset)
+        btn.text:SetText("No saved recipients.")
+        btn:SetSelected(false)
+        btn:Show()
+        btn:SetScript("OnClick", nil)
+        yOffset = yOffset - 22
+    end
+    
+    scrollChild:SetHeight(math.abs(yOffset))
+    SmartMailRecipientSelectFrame:Show()
+end

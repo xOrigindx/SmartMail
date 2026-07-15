@@ -1,4 +1,4 @@
--- v1.0.3: fix UI layering and anchors for expanded layout
+-- v1.0.4: persistent cart memory and UI open state
 local SMARTMAIL_DISABLE_CUSTOM = false
 
 if SMARTMAIL_DISABLE_CUSTOM then
@@ -214,7 +214,10 @@ end
 function SmartMailCustom:Send()
     SmartMail_Debug("SmartMailCustom:Send called...")
     if not self.selectedRecipient or self.selectedRecipient == "" then
-        SmartMail_Debug("CustomSend: No recipient specified.")
+        SmartMail_Debug("CustomSend: No recipient specified. Prompting user...")
+        if SmartMail_ShowRecipientSelect then
+            SmartMail_ShowRecipientSelect()
+        end
         return
     end
     
@@ -228,11 +231,6 @@ function SmartMailCustom:Send()
     DEFAULT_CHAT_FRAME:AddMessage(expectedMsg, 1, 1, 0)
     SmartMail_Debug("CustomSend: " .. expectedMsg)
     
-    if SmartMailCustomSendFrame then SmartMailCustomSendFrame:Hide() end
-    if SmartMailMainFrame then
-        SmartMail.forceCloseAll = true
-        SmartMailMainFrame:Hide()
-    end
     SmartMailEngine:Start(self.selectedRecipient, queue, function(successCount, failCount, abortReason, failedItems)
         local msg = "SmartMail: Custom Send Complete! Expected: " .. expectedCount .. ". Sent: " .. (successCount or 0) .. ". Failed: " .. (failCount or 0) .. "."
         if failCount and failCount > 0 then 
@@ -261,18 +259,28 @@ function SmartMailCustom:Send()
             MoneyInputFrame_SetCopper(SmartMailCustomMoneyInput, 0)
         end
         SmartMailCustom.moneyToSend = 0
+        
+        -- Wipe the selected recipient so the user is forced to choose again
+        SmartMailCustom.selectedRecipient = nil
+        
+        -- Rescan inventory to remove sent items from the UI
+        SmartMailCustom:ScanInventory()
+        
         if SmartMail_UpdateCustomCartList then
             SmartMail_UpdateCustomCartList()
         end
         if SmartMail_UpdateCustomList then
             SmartMail_UpdateCustomList()
         end
+        if SmartMail_UpdateCustomRecipientList then
+            SmartMail_UpdateCustomRecipientList()
+        end
     end)
 end
 
 function SmartMail_UpdateCustomList()
     SmartMail_Debug("SmartMail_UpdateCustomList called...")
-    local scrollChild = getglobal("SmartMailCustomSendFrameListFrameScrollFrameScrollChild")
+    local scrollChild = SmartMailCustomSendFrameListFrameScrollChild
     if not scrollChild then return end
     
     -- Clear existing
@@ -477,13 +485,45 @@ if SmartMailCustomTab then
     end)
 end
 
+function SmartMailCustom:SaveCart()
+    self.savedCart = {}
+    if not self.items then return end
+    for _, item in ipairs(self.items) do
+        if item.amountToSend and item.amountToSend > 0 then
+            table.insert(self.savedCart, {
+                itemName = item.itemName,
+                amountToSend = item.amountToSend
+            })
+        end
+    end
+    self.savedMoney = self.moneyToSend or 0
+end
+
+function SmartMailCustom:RestoreCart()
+    self.moneyToSend = self.savedMoney or 0
+    if not self.savedCart or not self.items then return end
+    
+    for _, saved in ipairs(self.savedCart) do
+        local remaining = saved.amountToSend
+        for _, item in ipairs(self.items) do
+            if item.itemName == saved.itemName and remaining > 0 then
+                local available = item.totalCount - (item.amountToSend or 0)
+                if available > 0 then
+                    local add = math.min(available, remaining)
+                    item.amountToSend = (item.amountToSend or 0) + add
+                    remaining = remaining - add
+                end
+            end
+        end
+    end
+end
+
 -- OnShow / OnHide for the Custom Send Frame
 frame:SetScript("OnShow", function()
     SmartMail_Debug("SmartMailCustomSendFrame OnShow fired")
     if SmartMail_ToggleMainFrameWidth then SmartMail_ToggleMainFrameWidth(true) end
     SmartMailCustom:ScanInventory()
-    for _, item in ipairs(SmartMailCustom.items) do item.amountToSend = 0 end
-    SmartMailCustom.moneyToSend = 0
+    SmartMailCustom:RestoreCart()
     SmartMail_UpdateCustomList()
     SmartMail_UpdateCustomCartList()
     if SmartMail_UpdateCustomRecipientList then
@@ -493,6 +533,7 @@ end)
 
 frame:SetScript("OnHide", function()
     SmartMail_Debug("SmartMailCustomSendFrame OnHide fired")
+    SmartMailCustom:SaveCart()
     if SmartMail_ToggleMainFrameWidth then SmartMail_ToggleMainFrameWidth(false) end
 end)
 
@@ -762,7 +803,7 @@ function SmartMail_UpdateCustomRecipientList()
     table.sort(cleaned)
     SmartMailDB_PerChar.customRecipients = cleaned
     
-    local sideScrollChild = SmartMailCustomRecipientScrollChild
+    local sideScrollChild = SmartMailCustomRecipientListFrameScrollChild
     if not sideScrollChild then return end
 
     local children = {sideScrollChild:GetChildren()}
@@ -839,7 +880,7 @@ function SmartMail_UpdateCustomRecipientList()
 end
 
 function SmartMail_UpdateCustomCartList()
-    local customListScrollChild = SmartMailCustomListSideScrollChild
+    local customListScrollChild = SmartMailCustomListSideFrameScrollChild
     if not customListScrollChild then return end
 
     local children = {customListScrollChild:GetChildren()}

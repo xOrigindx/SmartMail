@@ -436,6 +436,18 @@ tinsert(UISpecialFrames, "SmartMailOptionsFrame")
 -- MainFrame ESC interceptor setup
 SmartMail.openChildFrames = {}
 
+local originalMainFrameShow = SmartMailMainFrame.Show
+SmartMailMainFrame.Show = function(self)
+    self:ClearAllPoints()
+    self:SetPoint("TOPLEFT", "UIParent", "TOPLEFT", 340, -104)
+    originalMainFrameShow(self)
+    if not (SmartMailDB and SmartMailDB.disableCustom) then
+        if SmartMailCustomTab then
+            SmartMailCustomTab:Click()
+        end
+    end
+end
+
 local originalMainFrameHide = SmartMailMainFrame.Hide
 SmartMailMainFrame.Hide = function(self)
     SmartMail_Debug("SmartMailMainFrame:Hide() called.")
@@ -502,16 +514,13 @@ function SmartMail_InitializeProfileCheckboxes()
 end
 
 function SmartMail_UpdateCategoryLists()
-    local availableChild = SmartMailProfileEditorFrameAvailableListFrameScrollFrameScrollChild
-    local activeChild = SmartMailProfileEditorFrameActiveListFrameScrollFrameScrollChild
-    if not availableChild or not activeChild then return end
+    local listChild = SmartMailProfileEditorFrameCategoryListFrameScrollFrameScrollChild
+    if not listChild then return end
     
-    if not availableChild.categoryLines then availableChild.categoryLines = {} end
-    if not activeChild.categoryLines then activeChild.categoryLines = {} end
+    if not listChild.categoryLines then listChild.categoryLines = {} end
     
     -- Hide existing
-    for _, line in ipairs(availableChild.categoryLines) do line:Hide() end
-    for _, line in ipairs(activeChild.categoryLines) do line:Hide() end
+    for _, line in ipairs(listChild.categoryLines) do line:Hide() end
     
     local bridgeCategories = Bridge:GetCategoryNames()
     local categories = {}
@@ -519,102 +528,80 @@ function SmartMail_UpdateCategoryLists()
     table.sort(categories)
     
     local profileData = SmartMail.editingProfileData or {}
-    local availY = -5
-    local activeY = -5
-    local availIndex = 1
-    local activeIndex = 1
+    local currentY = -5
+    local index = 1
     
     for _, catName in ipairs(categories) do
-        if profileData[catName] then
-            -- Active
-            local line = activeChild.categoryLines[activeIndex]
-            if not line then
-                line = SmartMail_CreateListRow("SmartMailActiveCategoryRow" .. activeIndex, activeChild, 190, 20)
-                line.text:SetFontObject("GameFontNormal")
-                line.text:SetPoint("LEFT", line, "LEFT", 10, 0)
+        local line = listChild.categoryLines[index]
+        if not line then
+            -- Create a container frame for the row
+            line = CreateFrame("Frame", "SmartMailCategoryCheckboxRow" .. index, listChild)
+            line:SetWidth(230)
+            line:SetHeight(24)
+            
+            -- Create the actual checkbox
+            line.check = CreateFrame("CheckButton", "$parentCheck", line, "UICheckButtonTemplate")
+            line.check:SetWidth(24)
+            line.check:SetHeight(24)
+            line.check:SetPoint("LEFT", line, "LEFT", 0, 0)
+            
+            -- Create the text label
+            line.text = line:CreateFontString("$parentText", "ARTWORK", "GameFontNormal")
+            line.text:SetPoint("LEFT", line.check, "RIGHT", 5, 0)
+            
+            line.check:SetScript("OnClick", function()
+                local pData = SmartMail.editingProfileData
+                if not pData then return end
                 
-                line:SetScript("OnClick", function()
-                    if arg1 == "RightButton" then
-                        local pData = SmartMail.editingProfileData
-                        if not pData then return end
-                        pData[this.categoryName] = nil
-                        SmartMail_UpdateCategoryLists()
-                    end
-                end)
-                line:SetScript("OnEnter", function()
-                    GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
-                    GameTooltip:SetText("Right-Click to Remove")
-                    GameTooltip:Show()
-                end)
-                line:SetScript("OnLeave", function()
-                    GameTooltip:Hide()
-                end)
-                table.insert(activeChild.categoryLines, line)
-            end
-            line.categoryName = catName
-            line.text:SetText(catName)
-            line.text:SetTextColor(0, 1, 0) -- Green
-            line:SetPoint("TOPLEFT", activeChild, "TOPLEFT", 10, activeY)
-            line:Show()
-            activeY = activeY - 20
-            activeIndex = activeIndex + 1
-        else
-            -- Available
-            local line = availableChild.categoryLines[availIndex]
-            if not line then
-                line = SmartMail_CreateListRow("SmartMailAvailableCategoryRow" .. availIndex, availableChild, 190, 20)
-                line.text:SetFontObject("GameFontNormal")
-                line.text:SetPoint("LEFT", line, "LEFT", 10, 0)
-                
-                line:SetScript("OnClick", function()
-                    if arg1 == "LeftButton" then
-                        local pData = SmartMail.editingProfileData
-                        if not pData then return end
-                        
-                        local catName = this.categoryName
-                        local assignedTo = nil
-                        if SmartMailDB and SmartMailDB.profiles then
-                            for pName, pCats in pairs(SmartMailDB.profiles) do
-                                if type(pCats) == "table" and pName ~= SmartMail.editingProfileName then
-                                    if pCats[catName] then
-                                        assignedTo = pName
-                                        break
-                                    end
-                                end
-                            end
-                        end
-                        
-                        if assignedTo then
-                            DEFAULT_CHAT_FRAME:AddMessage("|cffff0000[SmartMail]|r Cannot assign category '|cffffffff"..catName.."|r'. It is already assigned to '|cff00ffff"..assignedTo.."|r'.")
-                            return
-                        end
-
-                        pData[catName] = true
-                        SmartMail_UpdateCategoryLists()
-                    end
-                end)
-                line:SetScript("OnEnter", function()
-                    GameTooltip:SetOwner(this, "ANCHOR_RIGHT")
-                    GameTooltip:SetText("Left-Click to Add")
-                    GameTooltip:Show()
-                end)
-                line:SetScript("OnLeave", function()
-                    GameTooltip:Hide()
-                end)
-                table.insert(availableChild.categoryLines, line)
-            end
-            line.categoryName = catName
-            line.text:SetText(catName)
-            line.text:SetTextColor(0.8, 0.8, 0.8) -- Light Gray
-            line:SetPoint("TOPLEFT", availableChild, "TOPLEFT", 10, availY)
-            line:Show()
-            availY = availY - 20
-            availIndex = availIndex + 1
+                local cat = this:GetParent().categoryName
+                if this:GetChecked() then
+                    pData[cat] = true
+                else
+                    pData[cat] = nil
+                end
+                -- Update to refresh visuals if needed
+                SmartMail_UpdateCategoryLists()
+            end)
+            
+            table.insert(listChild.categoryLines, line)
         end
+        
+        line.categoryName = catName
+        line:SetPoint("TOPLEFT", listChild, "TOPLEFT", 10, currentY)
+        
+        -- Check if assigned to someone else
+        local assignedTo = nil
+        if SmartMailDB and SmartMailDB.profiles then
+            for pName, pCats in pairs(SmartMailDB.profiles) do
+                if type(pCats) == "table" and pName ~= SmartMail.editingProfileName then
+                    if pCats[catName] then
+                        assignedTo = pName
+                        break
+                    end
+                end
+            end
+        end
+        
+        -- Reset state
+        line.check:Enable()
+        line.check:SetChecked(profileData[catName] and 1 or nil)
+        
+        if assignedTo then
+            line.text:SetText(catName .. " (|cff999999Assigned to " .. assignedTo .. "|r)")
+            line.text:SetTextColor(0.5, 0.5, 0.5) -- Gray text
+            line.check:Disable()
+            line.check:SetChecked(nil) -- Force unchecked visually if disabled
+        else
+            line.text:SetText(catName)
+            line.text:SetTextColor(1, 1, 1) -- White text
+        end
+        
+        line:Show()
+        currentY = currentY - 26
+        index = index + 1
     end
     
-    availableChild:SetHeight(math.abs(availY))
-    activeChild:SetHeight(math.abs(activeY))
+    listChild:SetHeight(math.abs(currentY))
 end
 
 function SmartMail_OpenProfileEditor(characterName)
@@ -684,7 +671,10 @@ function SmartMail_CommitSaveProfile(charName)
     local count = 0
     if SmartMail.editingProfileData then
         for k, v in pairs(SmartMail.editingProfileData) do
-            if v then
+            if k == "itemSettings" then
+                -- Preserve item settings table
+                selectedCategories[k] = v
+            elseif v then
                 selectedCategories[k] = true
                 count = count + 1
             end
@@ -951,7 +941,7 @@ function SmartMail_ResetConfirmItems()
     if not charName or charName == "" or not SmartMailDB.profiles[charName] then return end
     local profile = SmartMailDB.profiles[charName]
     
-    if profile.itemSettings then
+    if type(profile.itemSettings) == "table" then
         for _, itemData in ipairs(SmartMail.confirmQueue) do
             local itemID = itemData.itemID
             if profile.itemSettings[itemID] then
@@ -969,7 +959,7 @@ function SmartMail_SaveItemSetting(profileName, itemID, key, value)
     if not SmartMailDB then return end
     if not SmartMailDB.profiles[profileName] then return end
     
-    if not SmartMailDB.profiles[profileName].itemSettings then
+    if type(SmartMailDB.profiles[profileName].itemSettings) ~= "table" then
         SmartMailDB.profiles[profileName].itemSettings = {}
     end
     if not SmartMailDB.profiles[profileName].itemSettings[itemID] then
@@ -1199,11 +1189,16 @@ function SmartMail_UpdateConfirmList()
         
         yOffset = yOffset - 30
     end
+    
+    scrollChild:SetHeight(math.abs(yOffset) + 10)
 end
 
 SmartMailConfirmFrame:SetScript("OnShow", function()
     SmartMail_Debug("SmartMailConfirmFrame shown (Lua SetScript)")
     SmartMail_UpdateConfirmList()
+    if SmartMailConfirmFrameListFrameScrollFrame then
+        SmartMailConfirmFrameListFrameScrollFrame:SetVerticalScroll(0)
+    end
 end)
 
 SmartMailConfirmFrameSendButton:SetScript("OnClick", function()
@@ -1216,15 +1211,12 @@ SmartMailConfirmFrameSendButton:SetScript("OnClick", function()
         return
     end
     
-    SmartMail_Debug("Starting Send process with " .. totalItems .. " items for " .. tostring(SmartMail.selectedProfile))
+    local targetProfile = SmartMail.selectedProfile
+    SmartMail_Debug("Starting Send process with " .. totalItems .. " items for " .. tostring(targetProfile))
     SmartMailConfirmFrame:Hide()
-    if SmartMailMainFrame then
-        SmartMail.forceCloseAll = true
-        SmartMailMainFrame:Hide()
-    end
     
     if SmartMailEngine and SmartMailEngine.Start then
-        SmartMailEngine:Start(SmartMail.selectedProfile, flatQueue)
+        SmartMailEngine:Start(targetProfile, flatQueue)
     else
         SmartMail_Debug("FATAL: Engine not found!")
     end

@@ -49,7 +49,7 @@ function SmartMailQueue:BuildQueueForProfile(charName)
                                 sendPart = 0
                             }
                             
-                            if profile.itemSettings and profile.itemSettings[itemID] then
+                            if type(profile.itemSettings) == "table" and profile.itemSettings[itemID] then
                                 local saved = profile.itemSettings[itemID]
                                 if saved.selected ~= nil then aggregatedQueue[itemID].selected = saved.selected end
                                 if saved.sendPart ~= nil then aggregatedQueue[itemID].sendPart = saved.sendPart end
@@ -75,7 +75,7 @@ function SmartMailQueue:BuildQueueForProfile(charName)
     end
     
     for itemID, data in pairs(aggregatedQueue) do
-        if not (profile and profile.itemSettings and profile.itemSettings[itemID]) then
+        if not (profile and type(profile.itemSettings) == "table" and profile.itemSettings[itemID]) then
             data.sendFull = data.fullStacks
             data.sendPart = data.partialStacks
         else

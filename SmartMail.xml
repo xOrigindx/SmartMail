@@ -357,7 +357,7 @@
   <!-- SmartMail Profile Editor Window -->
   <Frame name="SmartMailProfileEditorFrame" inherits="SmartMailDialogTemplate" parent="UIParent" hidden="true">
     <FrameStrata>DIALOG</FrameStrata>
-    <Size x="510" y="440" />
+    <Size x="300" y="440" />
     <Anchors>
       <Anchor point="CENTER" />
     </Anchors>
@@ -388,31 +388,12 @@
         </Scripts>
       </EditBox>
 
-      <!-- Available Categories -->
-      <Frame name="$parentAvailableLabelFrame">
-        <Size x="220" y="20"/>
+      <!-- Category Checkboxes -->
+      <Frame name="$parentCategoryListFrame" enableMouse="true">
+        <Size x="260" y="280" />
         <Anchors>
           <Anchor point="TOPLEFT" relativeTo="$parentNameEditBox" relativePoint="BOTTOMLEFT">
-            <Offset x="-5" y="-5" />
-          </Anchor>
-        </Anchors>
-        <Layers>
-          <Layer level="ARTWORK">
-            <FontString name="$parentText" inherits="GameFontHighlightSmall" text="Available Categories" justifyH="CENTER">
-              <Anchors>
-                <Anchor point="CENTER"/>
-              </Anchors>
-              <Color r="1" g="1" b="0" />
-            </FontString>
-          </Layer>
-        </Layers>
-      </Frame>
-
-      <Frame name="$parentAvailableListFrame" enableMouse="true">
-        <Size x="220" y="280" />
-        <Anchors>
-          <Anchor point="TOPLEFT" relativeTo="$parentAvailableLabelFrame" relativePoint="BOTTOMLEFT">
-            <Offset x="0" y="-5" />
+            <Offset x="-5" y="-15" />
           </Anchor>
         </Anchors>
         <Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background"
@@ -438,64 +419,7 @@
             </Anchors>
             <ScrollChild>
               <Frame name="$parentScrollChild">
-                <Size x="190" y="300" />
-              </Frame>
-            </ScrollChild>
-          </ScrollFrame>
-        </Frames>
-      </Frame>
-
-      <!-- Active Categories -->
-      <Frame name="$parentActiveLabelFrame">
-        <Size x="220" y="20"/>
-        <Anchors>
-          <Anchor point="TOPLEFT" relativeTo="$parentAvailableLabelFrame" relativePoint="TOPRIGHT">
-            <Offset x="10" y="0" />
-          </Anchor>
-        </Anchors>
-        <Layers>
-          <Layer level="ARTWORK">
-            <FontString name="$parentText" inherits="GameFontHighlightSmall" text="Active Categories" justifyH="CENTER">
-              <Anchors>
-                <Anchor point="CENTER"/>
-              </Anchors>
-              <Color r="1" g="1" b="0" />
-            </FontString>
-          </Layer>
-        </Layers>
-      </Frame>
-
-      <Frame name="$parentActiveListFrame" enableMouse="true">
-        <Size x="220" y="280" />
-        <Anchors>
-          <Anchor point="TOPLEFT" relativeTo="$parentActiveLabelFrame" relativePoint="BOTTOMLEFT">
-            <Offset x="0" y="-5" />
-          </Anchor>
-        </Anchors>
-        <Backdrop bgFile="Interface\Tooltips\UI-Tooltip-Background"
-          edgeFile="Interface\Tooltips\UI-Tooltip-Border" tile="true">
-          <BackgroundInsets left="4" right="4" top="4" bottom="4" />
-          <TileSize val="16" />
-          <EdgeSize val="16" />
-        </Backdrop>
-        <Scripts>
-          <OnLoad>
-            this:SetBackdropColor(0, 0, 0, 1)
-          </OnLoad>
-        </Scripts>
-        <Frames>
-          <ScrollFrame name="$parentScrollFrame" inherits="UIPanelScrollFrameTemplate">
-            <Anchors>
-              <Anchor point="TOPLEFT">
-                <Offset x="4" y="-4" />
-              </Anchor>
-              <Anchor point="BOTTOMRIGHT">
-                <Offset x="-26" y="4" />
-              </Anchor>
-            </Anchors>
-            <ScrollChild>
-              <Frame name="$parentScrollChild">
-                <Size x="190" y="300" />
+                <Size x="230" y="300" />
               </Frame>
             </ScrollChild>
           </ScrollFrame>
@@ -1085,10 +1009,10 @@
           <ScrollFrame name="$parentScrollFrame" inherits="UIPanelScrollFrameTemplate">
             <Anchors>
               <Anchor point="TOPLEFT">
-                <Offset x="4" y="-4" />
+                <Offset x="8" y="-8" />
               </Anchor>
               <Anchor point="BOTTOMRIGHT">
-                <Offset x="-26" y="4" />
+                <Offset x="-26" y="8" />
               </Anchor>
             </Anchors>
             <ScrollChild>
